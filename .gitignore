@@ -1,2 +1,5 @@
 apache/
 *.pyc
+.project
+.pydevproject
+
