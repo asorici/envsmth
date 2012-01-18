@@ -1,14 +1,15 @@
+ENV_DOMAIN = "environment"
+AREA_DOMAIN = "area"
+ANNOTATION_DOMAIN = "annotation"
+USER_DOMAIN = "user"
+ANNOUNCEMENT_DOMAIN = "announcement"
+
 class DBObject(object):
-    ENV_DOMAIN = "environment"
-    AREA_DOMAIN = "area"
-    ANNOTATION_DOMAIN = "annotation"
-    USER_DOMAIN = "user"
-    ANNOUNCEMENT_DOMAIN = "announcement" 
     
-    def __init__(self, domain, *args, **kwargs):
+    def __init__(self, domain, **kwargs):
+        self.__dict__ = kwargs
         self.exists = False
-        pass
-    
+        self.domain = domain
     
     def set(self, key, value, add_flag=False):
         v = self.__dict__[key]
@@ -44,8 +45,18 @@ class DBObject(object):
     def deleteObj(domain, *QObj, **predicate_dict):
         pass
     
-                    
-            
-    
-        
-        
+
+    def __eq__(self, other):
+        try:
+            return self.id == other.id
+        except AttributeError:
+            return id(self) == id(other)
+
+    def __hash__(self):
+        try:
+            return self.id
+        except AttributeError:
+            return id(self)
+
+    def __repr__(self):
+        return str(self.__dict__)
