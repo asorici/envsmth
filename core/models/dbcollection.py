@@ -4,10 +4,7 @@ class DBCollection(object):
     Build collection as a set.
     """
     def __init__(self, *obj):
-        if isinstance(obj, list):
-            self.objSet = set(obj)
-        else:
-            self.objSet = set([obj])
+        self.objSet = set(obj)
     
     def addObj(self, obj):
         self.objSet.add(obj)
@@ -34,3 +31,5 @@ class DBCollection(object):
     def getCollection(domain, *QObj, **predicate_dict):
         pass
     
+    def __repr__(self):
+        return str(self.objSet)
