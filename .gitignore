@@ -2,4 +2,4 @@ apache/
 *.pyc
 .project
 .pydevproject
-
+*test.py
