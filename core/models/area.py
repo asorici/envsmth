@@ -1,5 +1,5 @@
 from models.dbobject import DBObject, AREA_DOMAIN
-from geo.utils import Point2D
+from geo.utils import Point2D, get_circle
 
 
 class AreaShape(object):
@@ -15,7 +15,7 @@ class AreaShape(object):
     def getParams(self):
         if (self.type == AreaShape.POLYGON):
             return self.points
-        return _getCircleParams()
+        return get_circle(*self.points)
     
     def setPoints(self, *points):
         self.points = points
@@ -29,10 +29,6 @@ class AreaShape(object):
         params = shapeString.split(AreaShape.DB_SEP)
         args = map(lambda x : Point2D.dbDecode(x), params[1:])
         return AreaShape(params[0], *args)
-    
-    @staticmethod
-    def getCircleParams(self):
-        pass
     
     def __repr__(self):
         return "AreaShape(" + self.type + "," + str(self.points) + ")"

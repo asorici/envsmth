@@ -14,8 +14,6 @@ def get_line_intersection(A1, B1, C1, A2, B2, C2):
     det = A1 * B2 - A2 * B1
     if (det == 0):
         return None
-    print A1, B1, C1
-    print A2, B2, C2
     return Point2D((B2 * C1 - B1 * C2) / float(det),
                 (A1 * C2 - A2 * C1) / float(det))
 
@@ -31,15 +29,11 @@ def get_circle(p1, p2, p3):
     
     # get eq of perpendicular bisector of segment p1p2
     m_p1p2 = get_line_segment_midpoint(p1, p2)
-    print "m_p1p2: ", p1, p2, m_p1p2
     D1 = -B1 * m_p1p2._x + A1 * m_p1p2._y
-    print A1, B1, C1, D1
     
     # get eq of perpendicular bisector of segment p2p3
     m_p2p3 = get_line_segment_midpoint(p2, p3)
-    print "m_p2p3: ", p1, p2, m_p2p3
     D2 = -B2 * m_p2p3._x + A2 * m_p2p3._y
-    print A2, B2, C2, D2
     
     # get the center of the circle
     center = get_line_intersection(-B1, A1, D1, -B2, A2, D2)
@@ -61,7 +55,7 @@ class Point2D(object):
     
     @staticmethod
     def dbDecode(pointString):
-        coord = map(lambda x : float(x), pointString.split("%"))
+        coord = map(lambda x : float(x), pointString.split(Point2D.DB_SEP))
         return Point2D(*coord)
     
     def __repr__(self):
