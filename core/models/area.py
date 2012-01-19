@@ -36,16 +36,21 @@ class AreaShape(object):
     def __init__(self, type, *args):
         assert_arg_value(type, self.TYPE_CIRCLE, self.TYPE_POLYGON)
         self.type = type
-        assert_arg_list_type(args, Point2D)
-        self.points = args
-    
+        self.setPoints(args)
+
     def getParams(self):
         if (self.type == AreaShape.TYPE_POLYGON):
             return self.points
         return get_circle(*self.points)
     
     def setPoints(self, *points):
-        self.points = points
+        assert_arg_list_type(points, Point2D)
+        if (type == self.TYPE_CIRCLE) and (len(points) != 3):
+            raise TypeError(self.TYPE_CIRCLE + ' requires exactly 3 points.')
+        elif (type == self.TYPE_POLYGON) and (len(points) < 2):
+            raise TypeError(self.TYPE_POLYGON + ' requires at least 2 points.')
+        else:
+            self.points = points
     
     def dbEncode(self):
         encodedPoints = map(lambda x : x.dbEncode(), self.points)

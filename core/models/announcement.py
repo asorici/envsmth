@@ -1,5 +1,9 @@
 from models.dbobject import DBObject, ANNOUNCEMENT_DOMAIN
 
+"""
+TODO: add validations
+"""
+
 class Announcement(DBObject):
     
     REPEAT_EVERY_DAY = 'day'

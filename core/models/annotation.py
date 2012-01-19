@@ -1,5 +1,9 @@
 from models.dbobject import DBObject, ANNOTATION_DOMAIN
 
+"""
+TODO: add validations
+"""
+
 class Annotation(DBObject):
     
     def __init__(self, **kwargs):
