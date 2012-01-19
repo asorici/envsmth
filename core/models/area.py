@@ -1,6 +1,7 @@
 from models.dbobject import DBObject, AREA_DOMAIN
+from models.announcement import Announcement
 from geo.utils import Point2D, get_circle
-
+from utils import assert_arg_type
 
 class AreaShape(object):
     
@@ -36,15 +37,32 @@ class AreaShape(object):
 
 class Area(DBObject):
     
+    INTEREST = "interest"
+    NON_INTEREST = "non_interest"
+    
     def __init__(self, **kwargs):
         super(Area, self).__init__(AREA_DOMAIN, **kwargs)
     
+    
+    def getType(self):
+        return self.type
+    
+    def setType(self, type):
+        self.type = type
+
 
     def getName(self):
         return self.name
     
     def setName(self, name):
         self.name = name
+    
+    
+    def getCategory(self):
+        return self.description
+    
+    def setCategory(self, category):
+        self.category = category
     
     
     def getDescription(self):
@@ -64,7 +82,7 @@ class Area(DBObject):
     def getLevel(self):
         return self.level
     
-    def setLeve(self, level):
+    def setLevel(self, level):
         self.level = level
     
     
@@ -73,6 +91,21 @@ class Area(DBObject):
     
     def setShape(self, shape):
         self.shape = shape.dbEncode()
+    
+    
+    def getAnnouncements(self):
+        return self.announcements
+    
+    def addAnnouncement(self, ann):
+        assert_arg_type(ann, Announcement)
+        self.announcements.addObj(ann)
+        
+    
+    def getAnnotations(self):
+        return self.annotations
+    
+    def setAnnotations(self, annotations):
+        self.annotations = annotations
     
     
     def save(self):

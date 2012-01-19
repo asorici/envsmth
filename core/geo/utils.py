@@ -37,6 +37,7 @@ def get_circle(p1, p2, p3):
     
     # get the center of the circle
     center = get_line_intersection(-B1, A1, D1, -B2, A2, D2)
+    # get the radius of the circle
     radius = get_distance_2D(p1, center)
     
     return (center, radius)
