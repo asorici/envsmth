@@ -2,21 +2,45 @@ from models.dbobject import DBObject, AREA_DOMAIN
 from models.announcement import Announcement
 from models.annotation import Annotation
 from geo.utils import Point2D, get_circle
-from utils import assert_arg_type, assert_arg_value
+from utils import assert_arg_type, assert_arg_value, assert_arg_list_type
+
+
+class AreaData(object):
+    
+    def __init__(self, data, encode_func=str):
+        self.data = data
+        self.encode_func = encode_func
+    
+    def dbEncode(self):
+        return self.encode_func(self.data)
+    
+    @staticmethod
+    def dbDecode(dataString, decode_func=None):
+        assert_arg_type(dataString, str)
+        if decode_func is None:
+            return AreaData(dataString)
+        else:
+            return AreaData(decode_func(dataString))
+
+    def __repr__(self):
+        return str(self.data)
+    
 
 class AreaShape(object):
     
-    SHAPE_CIRCLE = "CIRCLE"
-    SHAPE_POLYGON = "POLYGON"
+    TYPE_CIRCLE = "CIRCLE"
+    TYPE_POLYGON = "POLYGON"
     
     DB_SEP = " "
     
     def __init__(self, type, *args):
+        assert_arg_value(type, self.TYPE_CIRCLE, self.TYPE_POLYGON)
         self.type = type
+        assert_arg_list_type(args, Point2D)
         self.points = args
     
     def getParams(self):
-        if (self.type == AreaShape.SHAPE_POLYGON):
+        if (self.type == AreaShape.TYPE_POLYGON):
             return self.points
         return get_circle(*self.points)
     
@@ -52,11 +76,23 @@ class Area(DBObject):
         self.envID = envID
         self.setName(name)
         self.setType(type)
+        self.setLevel(level)
+        self.setShape(shape)
+        self.setCategory(category)
+        self.setData(data)
+        self.setTags(tags)
      
 #    def __init__(self, **kwargs):
 #        super(Area, self).__init__(AREA_DOMAIN, **kwargs)
     
+    def getName(self):
+        return self.name
     
+    def setName(self, name):
+        assert_arg_type(name, str)
+        self.name = name
+
+
     def getType(self):
         return self.type
     
@@ -64,38 +100,6 @@ class Area(DBObject):
         assert_arg_type(type, str)
         assert_arg_value(type, self.TYPE_INTEREST, self.TYPE_NON_INTEREST)
         self.type = type
-
-
-    def getName(self):
-        return self.name
-    
-    def setName(self, name):
-        assert_arg_type(name, str)
-        self.name = name
-    
-    
-    def getCategory(self):
-        return self.description
-    
-    def setCategory(self, category):
-        assert_arg_type(category, str)
-        self.category = category
-    
-    
-    def getDescription(self):
-        return self.description
-    
-    def setDescription(self, desc):
-        assert_arg_type(desc, str)
-        self.description = desc
-    
-    
-    def getTags(self):
-        return self.tags
-    
-    def setTags(self, tags):
-        assert_arg_type(tags, list)
-        self.tags = tags
     
     
     def getLevel(self):
@@ -103,15 +107,56 @@ class Area(DBObject):
     
     def setLevel(self, level):
         assert_arg_type(level, int)
+        # TODO: check max level
         self.level = level
-    
+        
     
     def getShape(self):
         return AreaShape.dbDecode(self.shape)
     
     def setShape(self, shape):
-        assert_arg_type(shape, AreaShape)
-        self.shape = shape.dbEncode()
+        if shape is None:
+            self.shape = None
+        else:
+            assert_arg_type(shape, AreaShape)
+            # the encoded data must always be a type 'str'
+            self.shape = str(shape.dbEncode())
+    
+    
+    def getCategory(self):
+        return self.description
+    
+    def setCategory(self, category):
+        assert_arg_type(category, str)
+        assert_arg_value(category, self.CATEGORY_DEFAULT, self.CATEGORY_ORDERING)
+        self.category = category
+    
+    
+    def getData(self):
+        return self.data
+    
+    def setData(self, data):
+        if data is None:
+            self.data = None
+        else:
+            assert_arg_type(data, AreaData)
+            # the encoded data must always be a type 'str'
+            self.data = str(data.dbEncode())
+    
+    
+    def getTags(self):
+        return self.tags
+    
+    def setTags(self, tags):
+        if tags is None:
+            self.tags = []
+        else:
+            assert_arg_type(tags, list)
+            assert_arg_list_type(tags, str)
+            self.tags = tags
+    
+    def addTag(self, tag):
+        self.tags.append(str(tag))
     
     
     def getAnnouncements(self):
