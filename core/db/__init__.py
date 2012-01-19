@@ -9,6 +9,7 @@ class CassandraConnection(object):
         self.keyspace = keyspace
         self.username = username
         self.password = password
+        self.pool_size = pool_size
         
         self.logged_in = False
         self.pool = None
@@ -23,13 +24,13 @@ class CassandraConnection(object):
         
         try:
             if self.username and self.password:
-                credentials = {'username': username, 'password': password}
-                self.pool = ConnectionPool(keyspace=self.keyspace, server_list=server_list, credentials=credentials, pool_size=pool_size)
+                credentials = {'username': self.username, 'password': self.password}
+                self.pool = ConnectionPool(keyspace=self.keyspace, server_list=server_list, credentials=credentials, pool_size=self.pool_size)
                 if self.pool:
                     self.logged_in = True
                     connected = True
             else:
-                self.pool = ConnectionPool(keyspace=self.keyspace, server_list=server_list, credentials=credentials, pool_size=pool_size)
+                self.pool = ConnectionPool(keyspace=self.keyspace, server_list=server_list, credentials=credentials, pool_size=self.pool_size)
                 if self.pool:
                     connected = True
                 
