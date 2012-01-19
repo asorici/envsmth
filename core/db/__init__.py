@@ -30,7 +30,7 @@ class CassandraConnection(object):
                     self.logged_in = True
                     connected = True
             else:
-                self.pool = ConnectionPool(keyspace=self.keyspace, server_list=server_list, credentials=credentials, pool_size=self.pool_size)
+                self.pool = ConnectionPool(keyspace=self.keyspace, server_list=server_list, pool_size=self.pool_size)
                 if self.pool:
                     connected = True
                 
