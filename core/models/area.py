@@ -1,12 +1,14 @@
 from models.dbobject import DBObject, AREA_DOMAIN
 from models.announcement import Announcement
+from models.annotation import Annotation
 from geo.utils import Point2D, get_circle
-from utils import assert_arg_type
+from utils import assert_arg_type, assert_arg_value
 
 class AreaShape(object):
     
-    CIRCLE = "CIRCLE"
-    POLYGON = "POLYGON"
+    SHAPE_CIRCLE = "CIRCLE"
+    SHAPE_POLYGON = "POLYGON"
+    
     DB_SEP = " "
     
     def __init__(self, type, *args):
@@ -14,7 +16,7 @@ class AreaShape(object):
         self.points = args
     
     def getParams(self):
-        if (self.type == AreaShape.POLYGON):
+        if (self.type == AreaShape.SHAPE_POLYGON):
             return self.points
         return get_circle(*self.points)
     
@@ -37,17 +39,30 @@ class AreaShape(object):
 
 class Area(DBObject):
     
-    INTEREST = "interest"
-    NON_INTEREST = "non_interest"
+    TYPE_INTEREST = "interest"
+    TYPE_NON_INTEREST = "non_interest"
     
-    def __init__(self, **kwargs):
-        super(Area, self).__init__(AREA_DOMAIN, **kwargs)
+    CATEGORY_DEFAULT = 'Default'
+    CATEGORY_ORDERING = 'Ordering'
+    
+    def __init__(self, envID, name, type=TYPE_INTEREST, level=0, 
+                 shape=None, category=CATEGORY_DEFAULT, data=None, tags=None):
+        super(Area, self).__init__(AREA_DOMAIN)
+        # TODO: check envID value
+        self.envID = envID
+        self.setName(name)
+        self.setType(type)
+     
+#    def __init__(self, **kwargs):
+#        super(Area, self).__init__(AREA_DOMAIN, **kwargs)
     
     
     def getType(self):
         return self.type
     
     def setType(self, type):
+        assert_arg_type(type, str)
+        assert_arg_value(type, self.TYPE_INTEREST, self.TYPE_NON_INTEREST)
         self.type = type
 
 
@@ -55,6 +70,7 @@ class Area(DBObject):
         return self.name
     
     def setName(self, name):
+        assert_arg_type(name, str)
         self.name = name
     
     
@@ -62,6 +78,7 @@ class Area(DBObject):
         return self.description
     
     def setCategory(self, category):
+        assert_arg_type(category, str)
         self.category = category
     
     
@@ -69,6 +86,7 @@ class Area(DBObject):
         return self.description
     
     def setDescription(self, desc):
+        assert_arg_type(desc, str)
         self.description = desc
     
     
@@ -76,6 +94,7 @@ class Area(DBObject):
         return self.tags
     
     def setTags(self, tags):
+        assert_arg_type(tags, list)
         self.tags = tags
     
     
@@ -83,6 +102,7 @@ class Area(DBObject):
         return self.level
     
     def setLevel(self, level):
+        assert_arg_type(level, int)
         self.level = level
     
     
@@ -90,6 +110,7 @@ class Area(DBObject):
         return AreaShape.dbDecode(self.shape)
     
     def setShape(self, shape):
+        assert_arg_type(shape, AreaShape)
         self.shape = shape.dbEncode()
     
     
@@ -104,8 +125,9 @@ class Area(DBObject):
     def getAnnotations(self):
         return self.annotations
     
-    def setAnnotations(self, annotations):
-        self.annotations = annotations
+    def addAnnotation(self, ann):
+        assert_arg_type(ann, Annotation)
+        self.annotations.addObj(ann)
     
     
     def save(self):
