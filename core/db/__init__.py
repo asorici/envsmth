@@ -78,4 +78,4 @@ def connect_to_db():
     except Exception, e:
         raise DatabaseError('Error connecting to database. Incorrect configuration in settings file: %s' % str(e))
     
-connection = connect_to_db()        
+db_connection = connect_to_db()        
