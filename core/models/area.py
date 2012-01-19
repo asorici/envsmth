@@ -1,27 +1,8 @@
 from models.dbobject import DBObject, AREA_DOMAIN
+from geo.utils import Point2D
 
 
-class Point2D(object):
-    
-    DB_SEP = ":"
-    
-    def __init__(self, x, y):
-        self._x = x
-        self._y = y
-    
-    def dbEncode(self):
-        return str(self._x) + self.DB_SEP + str(self._y)
-    
-    @staticmethod
-    def dbDecode(pointString):
-        coord = map(lambda x : float(x), pointString.split("%"))
-        return Point2D(*coord)
-    
-    def __repr__(self):
-        return "Point2D(" + str(self._x) + "," + str(self._y) + ")"
-
-
-class Shape(object):
+class AreaShape(object):
     
     CIRCLE = "CIRCLE"
     POLYGON = "POLYGON"
@@ -32,7 +13,7 @@ class Shape(object):
         self.points = args
     
     def getParams(self):
-        if (self.type == Shape.POLYGON):
+        if (self.type == AreaShape.POLYGON):
             return self.points
         return _getCircleParams()
     
@@ -41,20 +22,20 @@ class Shape(object):
     
     def dbEncode(self):
         encodedPoints = map(lambda x : x.dbEncode(), self.points)
-        return self.type + Shape.DB_SEP + Shape.DB_SEP.join(encodedPoints)
+        return self.type + AreaShape.DB_SEP + AreaShape.DB_SEP.join(encodedPoints)
     
     @staticmethod
     def dbDecode(shapeString):
-        params = shapeString.split(Shape.DB_SEP)
+        params = shapeString.split(AreaShape.DB_SEP)
         args = map(lambda x : Point2D.dbDecode(x), params[1:])
-        return Shape(params[0], *args)
+        return AreaShape(params[0], *args)
     
     @staticmethod
     def getCircleParams(self):
         pass
     
     def __repr__(self):
-        return "Shape(" + self.type + "," + str(self.points) + ")"
+        return "AreaShape(" + self.type + "," + str(self.points) + ")"
 
 
 class Area(DBObject):
@@ -92,7 +73,7 @@ class Area(DBObject):
     
     
     def getShape(self):
-        return Shape.dbDecode(self.shape)
+        return AreaShape.dbDecode(self.shape)
     
     def setShape(self, shape):
         self.shape = shape.dbEncode()
