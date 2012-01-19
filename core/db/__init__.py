@@ -22,7 +22,7 @@ class CassandraConnection(object):
         connected = False
         
         try:
-            if user and password:
+            if username and password:
                 credentials = {'username': username, 'password': password}
                 self.pool = ConnectionPool(keyspace=self.keyspace, server_list=server_list, credentials=credentials, pool_size=pool_size)
                 if self.pool:
