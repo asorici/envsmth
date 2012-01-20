@@ -1,19 +1,59 @@
 from models.dbobject import DBObject, ANNOTATION_DOMAIN
+from models.utils import assert_arg_type
+from time import time
 
 """
-TODO: add validations
+TODO: add validations for envID, areaID, userID
 """
 
 class Annotation(DBObject):
     
-    def __init__(self, **kwargs):
-        super(Annotation, self).__init__(ANNOTATION_DOMAIN, **kwargs)
+    def __init__(self, locID, userID, data, isEnvAnn=False):
+        super(Annotation, self).__init__(ANNOTATION_DOMAIN)
+        if isEnvAnn:
+            self.setEnvID(locID)
+        else:
+            self.setAreaID(locID)
+        self.setUserID(userID)
+        self.setData(data)
+        self.setTimestamp(int(time()))
+    
+    
+    def getEnvID(self):
+        return self.envID
+    
+    def setEnvID(self, id):
+        self.envID = id
+    
+        
+    def getAreaID(self):
+        return self.areaID
+    
+    def setAreaID(self, id):
+        self.areaID = id
+    
     
     def getUserID(self):
-        return self.repeatEvery
+        return self.userID
+    
+    def setUserID(self, userID):
+        self.userID = userID
+    
     
     def getData(self):
         return self.data
     
-    def getPostDate(self):
-        return self.postDate
+    def setData(self, data):
+        if isinstance(data, str):
+            self.data = data
+        else:
+            assert_arg_type(data, DBField)
+            self.data = str(data.dbEncode())
+    
+    
+    def getTimestamp(self):
+        return self.timestamp
+    
+    def setTimestamp(self, timestamp):
+        assert_arg_type(timestamp, int)
+        self.timestamp = timestamp

@@ -1,4 +1,5 @@
-from models.dbobject import DBObject, AREA_DOMAIN
+from models.dbobject import DBObject, AREA_DOMAIN, ANNOUNCEMENT_DOMAIN, ANNOTATION_DOMAIN
+from models.dbcollection import DBCollection
 from models.announcement import Announcement
 from models.annotation import Annotation
 from models.utils import DBField
@@ -67,7 +68,9 @@ class AreaShape(object):
     def __repr__(self):
         return "AreaShape(" + self.type + "," + str(self.points) + ")"
 
-
+"""
+TODO: add id to DBObject; add domain to DBCollection
+"""
 class Area(DBObject):
     
     TYPE_INTEREST = "interest"
@@ -88,6 +91,8 @@ class Area(DBObject):
         self.setCategory(category)
         self.setData(data)
         self.setTags(tags)
+        self.announcements = DBCollection(ANNOUNCEMENT_DOMAIN)
+        self.annotations = DBCollection(ANNOTATION_DOMAIN)
      
 #    def __init__(self, **kwargs):
 #        super(Area, self).__init__(AREA_DOMAIN, **kwargs)
@@ -181,9 +186,6 @@ class Area(DBObject):
         assert_arg_type(ann, Annotation)
         self.annotations.addObj(ann)
     
-    
-    def save(self):
-        pass
-    
-    def delete(self):
+    @staticmethod
+    def getObj(**predicate_dict):
         pass

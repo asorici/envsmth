@@ -29,23 +29,3 @@ class DBField(object):
 
     def __repr__(self):
         return str(self.data)
-
-class DateField(object):
-    
-    DB_SEP = "-"
-    
-    def __init__(self, year, month, day):
-        self.year = year
-        self.month = month
-        self.day = day
-    
-    def dbEncode(self):
-        return self.year + self.DB_SEP + self.month + self.DB_SEP + self.day
-    
-    @staticmethod
-    def dbDecode(dateString):
-        params = dateString.split(DateField.DB_SEP)
-        return DateField(params[0], params[1], params[2])
-    
-    def __repr__(self):
-        return self.dbEncode()
