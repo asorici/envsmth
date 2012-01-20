@@ -65,3 +65,11 @@ class Point2D(object):
     
     def __repr__(self):
         return "Point2D(" + str(self._x) + "," + str(self._y) + ")"
+
+class Geolocation(object):
+    
+    def __init__(self, lat, long):
+        assert_arg_type(lat, float)
+        assert_arg_type(long, float)
+        self.lat = lat
+        self.long = long
