@@ -4,6 +4,8 @@ ANNOTATION_DOMAIN = "annotation"
 USER_DOMAIN = "user"
 ANNOUNCEMENT_DOMAIN = "announcement"
 
+from core.db.query_builder import CassandraQuery
+
 class DBObject(object):
     
     def __init__(self, domain, **kwargs):
@@ -24,25 +26,28 @@ class DBObject(object):
             self.__dict__[key] = value
                 
     def save(self):
-        pass
+        ins_query = CassandraQuery(self.domain, CassandraQuery.OP_INSERT, self)
+        ins_query.execute_query()
     
     def delete(self):
-        pass
+        del_query = CassandraQuery(self.domain, CassandraQuery.OP_DELETE, self)
+        del_query.execute_query()
     
     @staticmethod
-    def getObj(domain, **predicate_dict):
-        pass
+    def getObj(domain, qObj=None, **predicate_dict):
+        query = CassandraQuery(domain, CassandraQuery.OP_SELECT)
+        query.add_filter_object(qObj)
+        query.add_filter_statements(predicate_dict)
+        
+        return query.execute_query()
+    
     
     @staticmethod
-    def getObj(domain, *QObj, **predicate_dict):
-        pass
-    
-    @staticmethod
-    def deleteObj(domain, **predicate_dict):
-        pass
-    
-    @staticmethod
-    def deleteObj(domain, *QObj, **predicate_dict):
+    def deleteObj(domain, qObj=None, **predicate_dict):
+        query = CassandraQuery(domain, CassandraQuery.OP_DELETE)
+        query.add_filter_object(qObj)
+        query.add_filter_statements(predicate_dict)
+        
         pass
     
 
@@ -60,3 +65,6 @@ class DBObject(object):
 
     def __repr__(self):
         return str(self.__dict__)
+
+
+
