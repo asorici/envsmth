@@ -1,10 +1,11 @@
 from models.dbobject import DBObject, AREA_DOMAIN
 from models.announcement import Announcement
 from models.annotation import Annotation
+from models.utils import DBField
 from geo.utils import Point2D, get_circle
 from utils import assert_arg_type, assert_arg_value, assert_arg_list_type
 
-
+"""
 class AreaData(object):
     
     def __init__(self, data, encode_func=str):
@@ -24,7 +25,7 @@ class AreaData(object):
 
     def __repr__(self):
         return str(self.data)
-    
+"""    
 
 class AreaShape(object):
     
@@ -36,7 +37,7 @@ class AreaShape(object):
     def __init__(self, type, *args):
         assert_arg_value(type, self.TYPE_CIRCLE, self.TYPE_POLYGON)
         self.type = type
-        self.setPoints(args)
+        self.setPoints(*args)
 
     def getParams(self):
         if (self.type == AreaShape.TYPE_POLYGON):
@@ -44,6 +45,7 @@ class AreaShape(object):
         return get_circle(*self.points)
     
     def setPoints(self, *points):
+        print points
         assert_arg_list_type(points, Point2D)
         if (type == self.TYPE_CIRCLE) and (len(points) != 3):
             raise TypeError(self.TYPE_CIRCLE + ' requires exactly 3 points.')
@@ -108,13 +110,13 @@ class Area(DBObject):
     
     
     def getLevel(self):
-        return self.level
+        return int(self.level)
     
     def setLevel(self, level):
         assert_arg_type(level, int)
         # TODO: check max level
-        self.level = level
-        
+        self.level = str(level)
+    
     
     def getShape(self):
         return AreaShape.dbDecode(self.shape)
@@ -129,7 +131,7 @@ class Area(DBObject):
     
     
     def getCategory(self):
-        return self.description
+        return self.category
     
     def setCategory(self, category):
         assert_arg_type(category, str)
@@ -144,8 +146,8 @@ class Area(DBObject):
         if data is None:
             self.data = None
         else:
-            assert_arg_type(data, AreaData)
-            # the encoded data must always be a type 'str'
+            assert_arg_type(data, DBField)
+            # the encoded data must either be a type 'str' or having a repr
             self.data = str(data.dbEncode())
     
     
