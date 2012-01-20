@@ -1,5 +1,5 @@
-from models.dbobject import DBObject, ANNOTATION_DOMAIN
-from models.utils import assert_arg_type
+from core.models.dbobject import DBObject, ANNOTATION_DOMAIN
+from core.models.utils import assert_arg_type
 from time import time
 
 """
