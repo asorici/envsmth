@@ -1,6 +1,7 @@
 from django.db.models import Q
 from django.db.utils import DatabaseError
 from core.models.utils import assert_arg_type
+from core.db import db_connection
 
 class CassandraQuery(object):
     SIMPLE_QUERY = "simple"
@@ -20,7 +21,8 @@ class CassandraQuery(object):
         self.data = data
         
         self.where_node = None
-        self.select_offset
+        self.offset_id = 0
+        self.limit = 100
     
     def add_filter_statements(self, **statements):
         for item in statements.items():
@@ -34,6 +36,10 @@ class CassandraQuery(object):
         else:
             self.where_node = self.where_node & qObj
     
+    
+    def set_fetch_limits(self, offset_id, limit):
+        self.offset_id = offset_id
+        self.limit = limit
     
     def execute_query(self, offset = 0, limit = 100):
         if self.op_type == CassandraQuery.OP_SELECT:

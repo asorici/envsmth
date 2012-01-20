@@ -1,8 +1,12 @@
-ENV_DOMAIN = "environment"
-AREA_DOMAIN = "area"
-ANNOTATION_DOMAIN = "annotation"
-USER_DOMAIN = "user"
-ANNOUNCEMENT_DOMAIN = "announcement"
+ENV_DOMAIN = "Environment"
+AREA_DOMAIN = "Area"
+ANNOTATION_DOMAIN = "Annotation"
+USER_DOMAIN = "User"
+ANNOUNCEMENT_DOMAIN = "Announcement"
+HISTORY_DOMAIN = "History"
+CONFIG_DOMAIN = "Config"
+PRIVACY_DOMAIN = "Privacy"
+LAYOUT_DOMAIN = "Layout"
 
 from core.db.query_builder import CassandraQuery
 
@@ -47,8 +51,6 @@ class DBObject(object):
         query = CassandraQuery(domain, CassandraQuery.OP_DELETE)
         query.add_filter_object(qObj)
         query.add_filter_statements(predicate_dict)
-        
-        pass
     
 
     def __eq__(self, other):
