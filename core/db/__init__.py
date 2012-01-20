@@ -17,7 +17,6 @@ class CassandraConnection(object):
     def commit(self):
         pass
     
-    
     def open(self):
         server_list = [self.host + ":" + self.port]
         connected = False

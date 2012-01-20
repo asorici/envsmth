@@ -1,9 +1,12 @@
+from core.db.query_builder import CassandraQuery
+
 class DBCollection(object):
     
     """
     Build collection as a set.
     """
-    def __init__(self, *obj):
+    def __init__(self, domain, *obj):
+        self.domain = domain
         self.objSet = set(obj)
     
     def addObj(self, obj):
@@ -23,13 +26,15 @@ class DBCollection(object):
         # TODO: batch operation 
         pass
     
-    @staticmethod
-    def getCollection(domain, **predicate_dict):
-        pass
     
     @staticmethod
-    def getCollection(domain, *QObj, **predicate_dict):
-        pass
+    def getCollection(domain, offset = 0, limit = 100, qObj = None, **predicate_dict):
+        query = CassandraQuery(domain, CassandraQuery.OP_FETCH)
+        query.add_filter_object(qObj)
+        query.add_filter_statements(predicate_dict)
+        
+        return query.execute_query()
+
     
     def __repr__(self):
         return str(self.objSet)
