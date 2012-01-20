@@ -1,4 +1,5 @@
 from math import sqrt
+from models.utils import assert_arg_type, assert_arg_list_type
 
 def get_line_segment_midpoint(point1, point2):
     return Point2D((point1._x + point2._x) / float(2),
@@ -48,6 +49,8 @@ class Point2D(object):
     DB_SEP = ":"
     
     def __init__(self, x, y):
+        assert_arg_type(x, float)
+        assert_arg_type(y, float)
         self._x = x
         self._y = y
     
@@ -57,6 +60,7 @@ class Point2D(object):
     @staticmethod
     def dbDecode(pointString):
         coord = map(lambda x : float(x), pointString.split(Point2D.DB_SEP))
+#        assert_arg_list_type(coord, float)
         return Point2D(*coord)
     
     def __repr__(self):

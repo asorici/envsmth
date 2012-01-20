@@ -9,7 +9,7 @@ from core.db.query_builder import CassandraQuery
 class DBObject(object):
     
     def __init__(self, domain, **kwargs):
-        self.__dict__ = kwargs
+        self.__dict__.update(kwargs)
         self.exists = False
         self.domain = domain
     

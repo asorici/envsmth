@@ -1,25 +1,59 @@
-from models.dbobject import DBObject, AREA_DOMAIN
+from models.dbobject import DBObject, AREA_DOMAIN, ANNOUNCEMENT_DOMAIN, ANNOTATION_DOMAIN
+from models.dbcollection import DBCollection
 from models.announcement import Announcement
+from models.annotation import Annotation
+from models.utils import DBField
 from geo.utils import Point2D, get_circle
-from utils import assert_arg_type
+from utils import assert_arg_type, assert_arg_value, assert_arg_list_type
+
+"""
+class AreaData(object):
+    
+    def __init__(self, data, encode_func=str):
+        self.data = data
+        self.encode_func = encode_func
+    
+    def dbEncode(self):
+        return self.encode_func(self.data)
+    
+    @staticmethod
+    def dbDecode(dataString, decode_func=None):
+        assert_arg_type(dataString, str)
+        if decode_func is None:
+            return AreaData(dataString)
+        else:
+            return AreaData(decode_func(dataString))
+
+    def __repr__(self):
+        return str(self.data)
+"""    
 
 class AreaShape(object):
     
-    CIRCLE = "CIRCLE"
-    POLYGON = "POLYGON"
+    TYPE_CIRCLE = "CIRCLE"
+    TYPE_POLYGON = "POLYGON"
+    
     DB_SEP = " "
     
     def __init__(self, type, *args):
+        assert_arg_value(type, self.TYPE_CIRCLE, self.TYPE_POLYGON)
         self.type = type
-        self.points = args
-    
+        self.setPoints(*args)
+
     def getParams(self):
-        if (self.type == AreaShape.POLYGON):
+        if (self.type == AreaShape.TYPE_POLYGON):
             return self.points
         return get_circle(*self.points)
     
     def setPoints(self, *points):
-        self.points = points
+        print points
+        assert_arg_list_type(points, Point2D)
+        if (type == self.TYPE_CIRCLE) and (len(points) != 3):
+            raise TypeError(self.TYPE_CIRCLE + ' requires exactly 3 points.')
+        elif (type == self.TYPE_POLYGON) and (len(points) < 2):
+            raise TypeError(self.TYPE_POLYGON + ' requires at least 2 points.')
+        else:
+            self.points = points
     
     def dbEncode(self):
         encodedPoints = map(lambda x : x.dbEncode(), self.points)
@@ -34,63 +68,107 @@ class AreaShape(object):
     def __repr__(self):
         return "AreaShape(" + self.type + "," + str(self.points) + ")"
 
-
+"""
+TODO: add id to DBObject; add domain to DBCollection
+"""
 class Area(DBObject):
     
-    INTEREST = "interest"
-    NON_INTEREST = "non_interest"
+    TYPE_INTEREST = "interest"
+    TYPE_NON_INTEREST = "non_interest"
     
-    def __init__(self, **kwargs):
-        super(Area, self).__init__(AREA_DOMAIN, **kwargs)
+    CATEGORY_DEFAULT = 'Default'
+    CATEGORY_ORDERING = 'Ordering'
     
+    def __init__(self, envID, name, type=TYPE_INTEREST, level=0, 
+                 shape=None, category=CATEGORY_DEFAULT, data=None, tags=None):
+        super(Area, self).__init__(AREA_DOMAIN)
+        # TODO: check envID value
+        self.envID = envID
+        self.setName(name)
+        self.setType(type)
+        self.setLevel(level)
+        self.setShape(shape)
+        self.setCategory(category)
+        self.setData(data)
+        self.setTags(tags)
+        self.announcements = DBCollection(ANNOUNCEMENT_DOMAIN)
+        self.annotations = DBCollection(ANNOTATION_DOMAIN)
+     
+#    def __init__(self, **kwargs):
+#        super(Area, self).__init__(AREA_DOMAIN, **kwargs)
     
-    def getType(self):
-        return self.type
-    
-    def setType(self, type):
-        self.type = type
-
-
     def getName(self):
         return self.name
     
     def setName(self, name):
+        assert_arg_type(name, str)
         self.name = name
+
+
+    def getType(self):
+        return self.type
     
-    
-    def getCategory(self):
-        return self.description
-    
-    def setCategory(self, category):
-        self.category = category
-    
-    
-    def getDescription(self):
-        return self.description
-    
-    def setDescription(self, desc):
-        self.description = desc
-    
-    
-    def getTags(self):
-        return self.tags
-    
-    def setTags(self, tags):
-        self.tags = tags
+    def setType(self, type):
+        assert_arg_type(type, str)
+        assert_arg_value(type, self.TYPE_INTEREST, self.TYPE_NON_INTEREST)
+        self.type = type
     
     
     def getLevel(self):
-        return self.level
+        return int(self.level)
     
     def setLevel(self, level):
-        self.level = level
+        assert_arg_type(level, int)
+        # TODO: check max level
+        self.level = str(level)
     
     
     def getShape(self):
         return AreaShape.dbDecode(self.shape)
     
     def setShape(self, shape):
-        self.shape = shape.dbEncode()
+        if shape is None:
+            self.shape = None
+        else:
+            assert_arg_type(shape, AreaShape)
+            # the encoded data must always be a type 'str'
+            self.shape = str(shape.dbEncode())
+    
+    
+    def getCategory(self):
+        return self.category
+    
+    def setCategory(self, category):
+        assert_arg_type(category, str)
+        assert_arg_value(category, self.CATEGORY_DEFAULT, self.CATEGORY_ORDERING)
+        self.category = category
+    
+    
+    def getData(self):
+        return self.data
+    
+    def setData(self, data):
+        if data is None:
+            self.data = None
+        else:
+            assert_arg_type(data, DBField)
+            # the encoded data must either be a type 'str' or having a repr
+            self.data = str(data.dbEncode())
+    
+    
+    def getTags(self):
+        return self.tags
+    
+    def setTags(self, tags):
+        if tags is None:
+            self.tags = []
+        else:
+            assert_arg_type(tags, list)
+            assert_arg_list_type(tags, str)
+            self.tags = tags
+    
+    def addTag(self, tag):
+        self.tags.append(str(tag))
     
     
     def getAnnouncements(self):
@@ -104,12 +182,10 @@ class Area(DBObject):
     def getAnnotations(self):
         return self.annotations
     
-    def setAnnotations(self, annotations):
-        self.annotations = annotations
+    def addAnnotation(self, ann):
+        assert_arg_type(ann, Annotation)
+        self.annotations.addObj(ann)
     
-    
-    def save(self):
-        pass
-    
-    def delete(self):
+    @staticmethod
+    def getObj(**predicate_dict):
         pass
