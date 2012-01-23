@@ -26,7 +26,7 @@ class EnvLayout(DBObject):
         assert_arg_type(areac, DBCollection)
         assert_arg_value(areac.domain, AREA_DOMAIN)
         self.areaCollection = areac
-        self._updateAreaLevel(level)
+        self._updateAreaLevel(self.level)
     
     def addArea(self, area):
         assert_arg_type(area, Area)
@@ -55,7 +55,7 @@ class Environment(DBObject, IndexableObject, TriggerObject, AnnotatedObject):
     CATEGORY_DEFAULT = 'Default'
     CATEGORY_ORDERING = 'Ordering'
     
-    def __init__(self, ownerID, name, category=self.CATEGORY_DEFAULT,
+    def __init__(self, ownerID, name, category=Environment.CATEGORY_DEFAULT,
             data=None, tags=None, parentID=None, geoLocation=None):
         pass
     
