@@ -1,5 +1,8 @@
+from core.models.utils import DBObject
 from core.models.utils import assert_arg_type, assert_arg_value
-from core.models.utils import DataField
+from core.models.utils import DataField, IndexableObject
+from core.models.annotation import AnnotatedObject
+from core.models.announcement import TriggerObject
 from core.models.area import Area
 from core.models.dbobject import AREA_DOMAIN
 
