@@ -1,5 +1,6 @@
-from models.dbobject import DBObject, ANNOUNCEMENT_DOMAIN
-from models.utils import assert_arg_type, assert_arg_value, assert_arg_list_type
+from core.models.dbobject import DBObject
+from core.models.dbobject import ANNOUNCEMENT_DOMAIN
+from core.models.utils import assert_arg_type, assert_arg_value, assert_arg_list_type
 from datetime import datetime
 from time import time
 
@@ -23,7 +24,7 @@ class Announcement(DBObject):
         if isinstance(data, str):
             self.data = data
         else:
-            assert_arg_type(data, DBField)
+            assert_arg_type(data, DataField)
             self.data = str(data.dbEncode())
     
     def getDateTimeTriggers(self):
@@ -57,3 +58,13 @@ class Announcement(DBObject):
     def setTimestamp(self, timestamp):
         assert_arg_type(timestamp, int)
         self.timestamp = timestamp
+
+
+class TriggerObject(object):
+
+    def getAnnouncements(self):
+        return self.announcements
+    
+    def addAnnouncement(self, ann):
+        assert_arg_type(ann, Announcement)
+        self.announcements.addObj(ann)

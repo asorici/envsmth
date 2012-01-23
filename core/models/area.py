@@ -1,32 +1,12 @@
-from models.dbobject import DBObject, AREA_DOMAIN, ANNOUNCEMENT_DOMAIN, ANNOTATION_DOMAIN
-from models.dbcollection import DBCollection
-from models.announcement import Announcement
-from models.annotation import Annotation
-from models.utils import DBField
-from geo.utils import Point2D, get_circle
-from utils import assert_arg_type, assert_arg_value, assert_arg_list_type
+from core.models.dbobject import DBObject
+from core.models.dbobject import AREA_DOMAIN, ANNOUNCEMENT_DOMAIN, ANNOTATION_DOMAIN
+from core.models.dbcollection import DBCollection
+from core.models.announcement import Announcement, TriggerObject
+from core.models.annotation import Annotation, AnnotatedObject
+from core.models.utils import DataField, IndexableObject
+from core.geo.utils import Point2D, get_circle
+from core.models.utils import assert_arg_type, assert_arg_value, assert_arg_list_type
 
-"""
-class AreaData(object):
-    
-    def __init__(self, data, encode_func=str):
-        self.data = data
-        self.encode_func = encode_func
-    
-    def dbEncode(self):
-        return self.encode_func(self.data)
-    
-    @staticmethod
-    def dbDecode(dataString, decode_func=None):
-        assert_arg_type(dataString, str)
-        if decode_func is None:
-            return AreaData(dataString)
-        else:
-            return AreaData(decode_func(dataString))
-
-    def __repr__(self):
-        return str(self.data)
-"""    
 
 class AreaShape(object):
     
@@ -71,7 +51,7 @@ class AreaShape(object):
 """
 TODO: add id to DBObject; add domain to DBCollection
 """
-class Area(DBObject):
+class Area(DBObject, IndexableObject, TriggerObject, AnnotatedObject):
     
     TYPE_INTEREST = "interest"
     TYPE_NON_INTEREST = "non_interest"
@@ -94,16 +74,6 @@ class Area(DBObject):
         self.announcements = DBCollection(ANNOUNCEMENT_DOMAIN)
         self.annotations = DBCollection(ANNOTATION_DOMAIN)
      
-#    def __init__(self, **kwargs):
-#        super(Area, self).__init__(AREA_DOMAIN, **kwargs)
-    
-    def getName(self):
-        return self.name
-    
-    def setName(self, name):
-        assert_arg_type(name, str)
-        self.name = name
-
 
     def getType(self):
         return self.type
@@ -142,49 +112,6 @@ class Area(DBObject):
         assert_arg_type(category, str)
         assert_arg_value(category, self.CATEGORY_DEFAULT, self.CATEGORY_ORDERING)
         self.category = category
-    
-    
-    def getData(self):
-        return self.data
-    
-    def setData(self, data):
-        if data is None:
-            self.data = None
-        else:
-            assert_arg_type(data, DBField)
-            # the encoded data must either be a type 'str' or having a repr
-            self.data = str(data.dbEncode())
-    
-    
-    def getTags(self):
-        return self.tags
-    
-    def setTags(self, tags):
-        if tags is None:
-            self.tags = []
-        else:
-            assert_arg_type(tags, list)
-            assert_arg_list_type(tags, str)
-            self.tags = tags
-    
-    def addTag(self, tag):
-        self.tags.append(str(tag))
-    
-    
-    def getAnnouncements(self):
-        return self.announcements
-    
-    def addAnnouncement(self, ann):
-        assert_arg_type(ann, Announcement)
-        self.announcements.addObj(ann)
-        
-    
-    def getAnnotations(self):
-        return self.annotations
-    
-    def addAnnotation(self, ann):
-        assert_arg_type(ann, Annotation)
-        self.annotations.addObj(ann)
     
     @staticmethod
     def getObj(**predicate_dict):

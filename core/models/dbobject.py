@@ -11,6 +11,7 @@ LAYOUT_DOMAIN = "Layout"
 
 from core.db.query_builder import CassandraQuery
 
+
 class DBObject(object):
     
     def __init__(self, domain, **kwargs):
@@ -62,7 +63,6 @@ class DBObject(object):
         query = CassandraQuery(domain, CassandraQuery.OP_DELETE)
         query.add_filter_object(qObj)
         query.add_filter_statements(predicate_dict)
-    
 
     def __eq__(self, other):
         try:
@@ -78,6 +78,4 @@ class DBObject(object):
 
     def __repr__(self):
         return str(self.__dict__)
-
-
 

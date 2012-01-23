@@ -1,5 +1,5 @@
 from math import sqrt
-from models.utils import assert_arg_type, assert_arg_list_type
+from core.models.utils import assert_arg_type, assert_arg_list_type
 
 def get_line_segment_midpoint(point1, point2):
     return Point2D((point1._x + point2._x) / float(2),

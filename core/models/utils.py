@@ -10,7 +10,7 @@ def assert_arg_value(givenArg, *values):
     if givenArg not in values:
         raise ValueError("Value '" + str(givenArg) + "' is invalid. Possible values are " + str(values))
 
-class DBField(object):
+class DataField(object):
     
     def __init__(self, data, encode_func=str):
         self.data = data
@@ -29,3 +29,38 @@ class DBField(object):
 
     def __repr__(self):
         return str(self.data)
+
+
+class IndexableObject(object):
+    
+    def getName(self):
+        return self.name
+    
+    def setName(self, name):
+        assert_arg_type(name, str)
+        self.name = name
+    
+    def getData(self):
+        return self.data
+    
+    def setData(self, data):
+        if data is None:
+            self.data = None
+        else:
+            assert_arg_type(data, DataField)
+            # the encoded data must either be a type 'str' or having a repr
+            self.data = str(data.dbEncode())
+    
+    def getTags(self):
+        return self.tags
+    
+    def setTags(self, tags):
+        if tags is None:
+            self.tags = []
+        else:
+            assert_arg_type(tags, list)
+            assert_arg_list_type(tags, str)
+            self.tags = tags
+    
+    def addTag(self, tag):
+        self.tags.append(str(tag))
