@@ -1,4 +1,5 @@
-from core.models.utils import DBObject
+from core.models.dbobject import DBObject
+from core.models.dbcollection import DBCollection
 from core.models.utils import assert_arg_type, assert_arg_value
 from core.models.utils import DataField, IndexableObject
 from core.models.annotation import AnnotatedObject
