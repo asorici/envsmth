@@ -24,7 +24,7 @@ DATABASES = {
     },
     
     'cassandra': {
-        'ENGINE': 'django.db.backends.sqlite3',
+        'ENGINE': 'django.db.backends.dummy',
         'NAME': 'envsocial',
         'USER': '',
         'PASSWORD': '',

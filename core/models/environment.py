@@ -1,7 +1,8 @@
-from models.utils import assert_arg_type, assert_arg_value
-from models.utils import DBField
-from models.area import Area
-from models.dbobject import AREA_DOMAIN
+from utils import assert_arg_type, assert_arg_value, assert_arg_list_type
+from utils import DBField
+from area import Area
+from dbobject import AREA_DOMAIN, DBObject
+from dbcollection import DBCollection
 
 class EnvLayout(object):
     
@@ -45,7 +46,7 @@ class Environment(DBObject):
     CATEGORY_DEFAULT = 'Default'
     CATEGORY_ORDERING = 'Ordering'
     
-    def __init__(self, ownerID, name, category=self.CATEGORY_DEFAULT,
+    def __init__(self, ownerID, name, category=CATEGORY_DEFAULT,
             data=None, tags=None, parentID=None, geoLocation=None):
         pass
     

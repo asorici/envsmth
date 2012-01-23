@@ -1,6 +1,7 @@
 ENV_DOMAIN = "Environment"
 AREA_DOMAIN = "Area"
 ANNOTATION_DOMAIN = "Annotation"
+EVENT_DOMAIN = "Event"
 USER_DOMAIN = "User"
 ANNOUNCEMENT_DOMAIN = "Announcement"
 HISTORY_DOMAIN = "History"
@@ -28,13 +29,23 @@ class DBObject(object):
                 self.__dict__[key] = [v, value] 
         else:
             self.__dict__[key] = value
+    
+    """
+    must be overridden in each class sub-classing DBObject
+    default function assumes a field named "id" exists within the created object
+    if no such field is found None is returned
+    """
+    def get_pk(self):
+        if self.__dict__["id"]:
+            return self.__dict__["id"]
+        return None
                 
     def save(self):
         ins_query = CassandraQuery(self.domain, CassandraQuery.OP_INSERT, self)
         ins_query.execute_query()
     
-    def delete(self):
-        del_query = CassandraQuery(self.domain, CassandraQuery.OP_DELETE, self)
+    def delete(self, cascade = True):
+        del_query = CassandraQuery(self.domain, CassandraQuery.OP_DELETE, self, cascade = cascade)
         del_query.execute_query()
     
     @staticmethod

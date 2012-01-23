@@ -20,11 +20,13 @@ class DBCollection(object):
     
     def save(self):
         # TODO: batch operation
-        pass
+        ins_query = CassandraQuery(self.domain, CassandraQuery.OP_BATCH_INSERT, self)
+        ins_query.execute_query()
     
-    def delete(self):
+    def delete(self, cascade = True):
         # TODO: batch operation 
-        pass
+        del_query = CassandraQuery(self.domain, CassandraQuery.OP_BATCH_DELETE, self, cascade=cascade)
+        del_query.execute_query()
     
     
     @staticmethod
