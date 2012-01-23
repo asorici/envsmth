@@ -47,7 +47,7 @@ class Annotation(DBObject):
         if isinstance(data, str):
             self.data = data
         else:
-            assert_arg_type(data, DBField)
+            assert_arg_type(data, DataField)
             self.data = str(data.dbEncode())
     
     
@@ -57,3 +57,13 @@ class Annotation(DBObject):
     def setTimestamp(self, timestamp):
         assert_arg_type(timestamp, int)
         self.timestamp = timestamp
+
+
+class AnnotatedObject(object):
+    
+    def getAnnotations(self):
+        return self.annotations
+    
+    def addAnnotation(self, ann):
+        assert_arg_type(ann, Annotation)
+        self.annotations.addObj(ann)

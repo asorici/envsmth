@@ -35,6 +35,14 @@ class DBCollection(object):
         
         return query.execute_query()
 
+    def __iter__(self):
+        return self.objSet.__iter__()
+    
+    def __len__(self):
+        return len(self.objSet)
+    
+    def __containts__(self, v):
+        return v in self.objSet
     
     def __repr__(self):
         return str(self.objSet)

@@ -1,5 +1,5 @@
 from core.models.utils import assert_arg_type, assert_arg_value
-from core.models.utils import DBField
+from core.models.utils import DataField
 from core.models.area import Area
 from core.models.dbobject import AREA_DOMAIN
 
@@ -23,9 +23,11 @@ class EnvLayout(object):
         assert_arg_type(areac, DBCollection)
         assert_arg_value(areac.domain, AREA_DOMAIN)
         self._areaCollection = areac
+        self._updateAreaLevel(level)
     
     def addArea(self, area):
         assert_arg_type(area, Area)
+        area.setLevel(self._level)
         self._areaCollection.addObj(area)
     
     def removeArea(self, area):
@@ -38,9 +40,14 @@ class EnvLayout(object):
     def setLevel(self, level):
         assert_arg_type(level, int)
         self._level = level
+        self._updateAreaLevel(level)
+    
+    def _updateAreaLevel(self, level):
+        for a in self._areaCollection:
+            a.setLevel(level)
 
 
-class Environment(DBObject):
+class Environment(DBObject, IndexableObject, TriggerObject, AnnotatedObject):
     
     CATEGORY_DEFAULT = 'Default'
     CATEGORY_ORDERING = 'Ordering'
@@ -49,17 +56,13 @@ class Environment(DBObject):
             data=None, tags=None, parentID=None, geoLocation=None):
         pass
     
+    
     def getOwnerID(self):
         return self._ownerID
     
     def setOwnerID(self, owner):
         self._ownerID = owner
-    
-    def getName(self):
-        return self._name
-    
-    def setName(self, name):
-        self._name = str(name)
+
     
     def getCategory(self):
         return self._category
@@ -68,28 +71,3 @@ class Environment(DBObject):
         assert_arg_type(cat, str)
         assert_arg_value(cat, self.CATEGORY_DEFAULT, self.CATEGORY_ORDERING)
         self._category = cat
-    
-    def getData(self):
-        return self._data
-    
-    def setData(self, data):
-        if data is None:
-            self.data = None
-        else:
-            assert_arg_type(data, DBField)
-            # the encoded data must either be a type 'str' or having a repr
-            self.data = str(data.dbEncode())
-    
-    def getTags(self):
-        return self.tags
-    
-    def setTags(self, tags):
-        if tags is None:
-            self.tags = []
-        else:
-            assert_arg_type(tags, list)
-            assert_arg_list_type(tags, str)
-            self.tags = tags
-    
-    def addTag(self, tag):
-        self.tags.append(str(tag))
