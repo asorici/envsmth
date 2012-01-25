@@ -1,5 +1,5 @@
 from django.db import models
-#from coresql.db import fields
+from coresql.db import fields
 
 # Create your models here.
 
@@ -12,12 +12,17 @@ class User(models.Model):
 
 
 class Environment(models.Model):
+    CATEGORY_CHOICES = (
+        ("default", "Default"), 
+        ("ordering", "Ordering")
+    )
+    
     ownerID = models.ForeignKey(User)
     name = models.CharField(max_length=140)
-    category = models.CharField(max_length=50)
-#    data = models.DataField()
+    category = models.CharField(max_length=50, choices = CATEGORY_CHOICES)
+    data = fields.DataField()
     parentID = models.IntegerField()
-#    tags = fields.TagListField()
+    tags = fields.TagListField(null = True, blank = True)
     width = models.IntegerField()
     height = models.IntegerField()
     latitude = models.FloatField()
@@ -26,38 +31,58 @@ class Environment(models.Model):
 
 
 class Layout(models.Model):
-    envID = models.ForeignKey(Environment)
+    envID = models.ForeignKey(Environment, related_name = "layouts")
     level = models.IntegerField()
     mapURL = models.URLField()
     timestamp = models.DateTimeField(auto_now = True)
 
 
 class Area(models.Model):
-    envID = models.ForeignKey(Environment)
-    areaType = models.CharField(max_length=50)
+    CATEGORY_CHOICES = (
+        ("default", "Default"), 
+        ("ordering", "Ordering")
+    )
+    
+    TYPE_CHOICES = (
+        ("interest", "Interest"), 
+        ("non-interest", "Non-Interest")
+    )
+    
+    envID = models.ForeignKey(Environment, related_name = "areas")
+    areaType = models.CharField(max_length=50, choices = TYPE_CHOICES)
     name = models.CharField(max_length=140)
-    category = models.CharField(max_length=50)
-#    data = models.DataField()
-#    tags = fields.TagListField()
-    layoutID = models.ForeignKey(Layout)
-#    shape = fields.AreaShapeField()
+    category = models.CharField(max_length=50, choices = CATEGORY_CHOICES)
+    
+    data = fields.DataField(null = True, blank = True)
+    tags = fields.TagListField(null = True, blank = True)
+    layoutID = models.ForeignKey(Layout, related_name = "areas")
+    
+    shape = fields.AreaShapeField()
     timestamp = models.DateTimeField(auto_now = True)
 
 
 class Announcement(models.Model):
-    areaID = models.ForeignKey(Area)
-    envID = models.ForeignKey(Environment)
-#    data = models.DataField()
-    repeatEvery = models.CharField(max_length=50)
-#    triggers = fields.DateTimeListField()
+    REPEAT_EVERY_CHOICES = (
+        ("none", "None"), 
+        ("day", "Day"), 
+        ("week", "Week")
+    )
+    
+    areaID = models.ForeignKey(Area, null = True, blank = True, related_name = "announcements")
+    envID = models.ForeignKey(Environment, null = True, blank = True, related_name = "announcements")
+    
+    data = fields.DataField()
+    repeatEvery = models.CharField(max_length=50, choices = REPEAT_EVERY_CHOICES, default = "None")
+    
+    triggers = fields.DateTimeListField()
     timestamp = models.DateTimeField(auto_now = True)
 
 
 class Annotation(models.Model):
-    areaID = models.ForeignKey(Area)
-    envID = models.ForeignKey(Environment)
+    areaID = models.ForeignKey(Area, null = True, blank = True, related_name = "annotations")
+    envID = models.ForeignKey(Environment, null = True, blank = True, related_name = "annotations")
     userID = models.ForeignKey(User)
-#    data = models.DataField()
+    data = fields.DataField()
     timestamp = models.DateTimeField(auto_now = True)
 
 
@@ -71,4 +96,6 @@ class History(models.Model):
 class Privacy(models.Model):
     userID = models.ForeignKey(User)
     envID = models.ForeignKey(Environment)
-    relation = models.CharField(max_length=50)    
+    relation = models.CharField(max_length=50)
+    
+    
