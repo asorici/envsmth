@@ -45,7 +45,7 @@ class TagList(object):
     
     def __init__(self, tags = None, limit = 100):
         super(TagList, self).__init__(tags, limit)
-
+        
 
 from datetime import datetime
 
