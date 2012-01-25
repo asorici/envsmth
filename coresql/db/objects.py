@@ -38,3 +38,19 @@ class ListWrapper(object):
     def setLimit(self, limit):
         assert_arg_type(limit, int)
         self.limit = limit
+
+
+class TagList(object):
+    """ Wrapper for a list of tags. """
+    
+    def __init__(self, tags = None, limit = 100):
+        super(TagList, self).__init__(tags, limit)
+
+
+from datetime import datetime
+
+class DateTimeList(ListWrapper):
+    """ Wrapper for a list of datetime objects. """
+    
+    def __init__(self, triggers = None, limit = 10):
+        super(DateTimeList, self).__init__(triggers, limit, datetime)
