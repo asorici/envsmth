@@ -72,6 +72,6 @@ class Data(object):
             return dataString
         else:
             return decode_func(dataString)
-
+    
     def __repr__(self):
         return str(self.data)
