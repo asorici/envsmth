@@ -8,7 +8,9 @@ class Environment(models.Model):
 
 
 class Layout(models.Model):
-    pass
+    envID = models.ForeignKey(Environment)
+    level = models.IntegerField()
+    mapURL = models.URLField()
 
 
 class Area(models.Model):
