@@ -1,10 +1,13 @@
 from core.models.utils import assert_arg_type
+from core.models.dbobject import DBObject, USER_DOMAIN
 
 class User(DBObject):
     
-    def __init__(self, firstName, lastName, email, fbId=None):
-        self.setName(fistName, lastName)
-        sef.setEmail(email)
+    def __init__(self, id, firstName, lastName, email, fbId=None):
+        super(User, self).__init__(USER_DOMAIN, id)
+        
+        self.setName(firstName, lastName)
+        self.setEmail(email)
         self.setFbId(fbId)
     
     def getName(self):

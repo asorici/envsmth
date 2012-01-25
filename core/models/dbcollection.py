@@ -8,6 +8,13 @@ class DBCollection(object):
     def __init__(self, domain, *obj):
         self.domain = domain
         self.objSet = set(obj)
+        self.exists = False
+    
+    def setExists(self, exists):
+        self.exists = exists
+        
+    def exists(self):
+        return self.exists
     
     def addObj(self, obj):
         self.objSet.add(obj)
@@ -28,12 +35,19 @@ class DBCollection(object):
         del_query = CassandraQuery(self.domain, CassandraQuery.OP_BATCH_DELETE, self, cascade=cascade)
         del_query.execute_query()
     
+    @staticmethod
+    def getCollection(domain, offset = 0, limit = 100):
+        query = CassandraQuery(domain, CassandraQuery.OP_FETCH)
+        query.set_fetch_limits(offset, limit)
+        
+        return query.execute_query()
     
     @staticmethod
-    def getCollection(domain, offset = 0, limit = 100, qObj = None, **predicate_dict):
+    def filterCollection(domain, offset = 0, limit = 100, qObj = None, **predicate_dict):
         query = CassandraQuery(domain, CassandraQuery.OP_FETCH)
         query.add_filter_object(qObj)
         query.add_filter_statements(predicate_dict)
+        query.set_fetch_limits(offset, limit)
         
         return query.execute_query()
 

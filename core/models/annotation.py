@@ -1,12 +1,12 @@
 from core.models.dbobject import DBObject, ANNOTATION_DOMAIN
-from core.models.utils import assert_arg_type
+from core.models.utils import assert_arg_type, DataField
 from time import time
 
 
 class Annotation(DBObject):
     
-    def __init__(self, locID, userID, data, isEnvAnn=False):
-        super(Annotation, self).__init__(ANNOTATION_DOMAIN)
+    def __init__(self, id, locID, userID, data, isEnvAnn=False):
+        super(Annotation, self).__init__(ANNOTATION_DOMAIN, id)
         if isEnvAnn:
             self.setEnvID(locID)
         else:

@@ -1,11 +1,13 @@
 from core.models.utils import assert_arg_type, assert_arg_value
+from core.models.dbobject import DBObject, PRIVACY_DOMAIN
 
 class Privacy(DBObject):
     
     RELATION_PUBLIC = "public"
     RELATION_PRIVATE = "private"
     
-    def __init__(self, userID, envID, relation):
+    def __init__(self, id, userID, envID, relation):
+        super(Privacy, self).__init__(PRIVACY_DOMAIN, id)
         self.setUserID(userID)
         self.setEnvID(envID)
         self.setRelation(relation)

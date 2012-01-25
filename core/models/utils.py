@@ -17,7 +17,7 @@ class DataField(object):
         self.encode_func = encode_func
     
     def dbEncode(self):
-        return self.encode_func(self.data)
+        return str(self.encode_func(self.data))
     
     @staticmethod
     def dbDecode(dataString, decode_func=None):

@@ -1,9 +1,9 @@
 from core.models.dbobject import DBObject
 from core.models.dbobject import AREA_DOMAIN, ANNOUNCEMENT_DOMAIN, ANNOTATION_DOMAIN
 from core.models.dbcollection import DBCollection
-from core.models.announcement import Announcement, TriggerObject
-from core.models.annotation import Annotation, AnnotatedObject
-from core.models.utils import DataField, IndexableObject
+from core.models.announcement import TriggerObject
+from core.models.annotation import AnnotatedObject
+from core.models.utils import IndexableObject
 from core.geo.utils import Point2D, get_circle
 from core.models.utils import assert_arg_type, assert_arg_value, assert_arg_list_type
 
@@ -59,9 +59,9 @@ class Area(DBObject, IndexableObject, TriggerObject, AnnotatedObject):
     CATEGORY_DEFAULT = 'Default'
     CATEGORY_ORDERING = 'Ordering'
     
-    def __init__(self, envID, name, type=TYPE_INTEREST, level=0, 
+    def __init__(self, id, envID, name, type=TYPE_INTEREST, level=0, 
                  shape=None, category=CATEGORY_DEFAULT, data=None, tags=None):
-        super(Area, self).__init__(AREA_DOMAIN)
+        super(Area, self).__init__(AREA_DOMAIN, id)
         # TODO: check envID value
         self.envID = envID
         self.setName(name)
@@ -82,7 +82,6 @@ class Area(DBObject, IndexableObject, TriggerObject, AnnotatedObject):
         assert_arg_type(type, str)
         assert_arg_value(type, self.TYPE_INTEREST, self.TYPE_NON_INTEREST)
         self.type = type
-    
     
     def getLevel(self):
         return int(self.level)

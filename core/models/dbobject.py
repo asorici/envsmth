@@ -14,10 +14,11 @@ from core.db.query_builder import CassandraQuery
 
 class DBObject(object):
     
-    def __init__(self, domain, **kwargs):
+    def __init__(self, domain, id, **kwargs):
         self.__dict__.update(kwargs)
         self.exists = False
         self.domain = domain
+        self.id = id
     
     def set(self, key, value, add_flag=False):
         v = self.__dict__[key]
@@ -30,6 +31,12 @@ class DBObject(object):
                 self.__dict__[key] = [v, value] 
         else:
             self.__dict__[key] = value
+    
+    def setExists(self, exists):
+        self.exists = exists
+    
+    def exists(self):
+        return self.exists
     
     """
     must be overridden in each class sub-classing DBObject
@@ -50,20 +57,22 @@ class DBObject(object):
         del_query.execute_query()
     
     @staticmethod
-    def getObj(domain, qObj=None, **predicate_dict):
+    def getObj(domain, row_key):
+        query = CassandraQuery(domain, CassandraQuery.OP_SELECT)
+        query.set_fetch_limits(row_key, 1)
+        
+        return query.execute_query()
+    
+    @staticmethod
+    def filterObj(domain, qObj=None, **predicate_dict):
         query = CassandraQuery(domain, CassandraQuery.OP_SELECT)
         query.add_filter_object(qObj)
         query.add_filter_statements(predicate_dict)
+        query.set_fetch_limits(0, 1)
         
         return query.execute_query()
     
     
-    @staticmethod
-    def deleteObj(domain, qObj=None, **predicate_dict):
-        query = CassandraQuery(domain, CassandraQuery.OP_DELETE)
-        query.add_filter_object(qObj)
-        query.add_filter_statements(predicate_dict)
-
     def __eq__(self, other):
         try:
             return self.id == other.id
