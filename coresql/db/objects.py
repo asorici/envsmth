@@ -54,3 +54,24 @@ class DateTimeList(ListWrapper):
     
     def __init__(self, triggers = None, limit = 10):
         super(DateTimeList, self).__init__(triggers, limit, datetime)
+
+
+class Data(object):
+    
+    def __init__(self, data, encode_func=str):
+        self.data = data
+        self.encode_func = encode_func
+    
+    def dbEncode(self):
+        return str(self.encode_func(self.data))
+    
+    @staticmethod
+    def dbDecode(dataString, decode_func=None):
+        assert_arg_type(dataString, str)
+        if decode_func is None:
+            return dataString
+        else:
+            return decode_func(dataString)
+
+    def __repr__(self):
+        return str(self.data)

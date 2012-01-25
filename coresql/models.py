@@ -11,7 +11,7 @@ class Environment(models.Model):
     pass
 
 
-""" TODO: de-comment data and triggers """
+""" TODO: uncomment data and triggers """
 class Announcement(models.Model):
     areaID = models.ForeignKey(Area)
     envID = models.ForeignKey(Environment)
