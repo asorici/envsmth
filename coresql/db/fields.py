@@ -25,7 +25,7 @@ class TagField(models.TextField):
         # value is an object of type TagList
         return self.separator.join(value.getTags())
     
-    
+    """
     def get_prep_lookup(self, lookup_type, value):
         # We only handle 'exact' and 'in'. All others are errors.
         if lookup_type == 'exact':
@@ -34,5 +34,8 @@ class TagField(models.TextField):
             return [self.get_prep_value(v) for v in value]
         else:
             raise TypeError('Lookup type %r not supported.' % lookup_type)
-        
-        
+    """
+
+ 
+class DataField(models.TextField):
+    
