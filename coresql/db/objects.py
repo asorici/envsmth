@@ -12,15 +12,18 @@ class TagList(object):
         if self.isFull():
             raise TypeError('Tag list limit: ' + str(limit))
     
+    def __unicode__(self):
+        return ";".join(self.tags)
+    
     def isFull(self):
         return len(self.tags) >= self.limit
     
     def addTag(self, tag):
-        assert_arg_type(tags, str)
+        assert_arg_type(tag, str)
         self.tags.append(tag)
     
     def removeTag(self, tag):
-        assert_arg_type(tags, str)
+        assert_arg_type(tag, str)
         self.tags.remove(tag)
     
     def getTags(self):
