@@ -63,15 +63,19 @@ class DateTimeListField(models.TextField):
         # value is an object of type DateTimeList
         return DateTimeListField.separator.join( map(lambda d: d.strftime("%Y-%m-%d %H:%M:%S"), value.getList()) )
 
+
+def strDecode(value):
+    ## the received value will be a string
+    return Data(value)
+
  
 class DataField(models.TextField):
-    
     description = "A structured data type encoded as a string"
     
     __metaclass__ = models.SubfieldBase
     
-    def __init__(self, encode_func = str, *args, **kwargs):
-        self.encode_func = encode_func 
+    def __init__(self, decode_func = strDecode, *args, **kwargs):
+        self.decode_func = decode_func 
         super(DataField, self).__init__(*args, **kwargs)
         
     def to_python(self, value):
@@ -80,13 +84,12 @@ class DataField(models.TextField):
             return value
         
         # the string case which also matches the database case since we subclass TextField
-        return Data.dbDecode(value, self.encode_func)
+        return Data.dbDecode(value, self.decode_func)
     
     def get_prep_value(self, value):
         # value is an object of type Data
         return value.dbEncode()
     
-
 
 
 class AreaShapeField(models.TextField):
