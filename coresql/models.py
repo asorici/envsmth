@@ -5,8 +5,8 @@ from django.db import models
 
 class User(models.Model):
     fbID = models.CharField(max_length=50)
-    firstName = models.CharField(max_length=30)
-    lastName = models.CharField(max_length=30)
+    firstName = models.CharField(max_length=50)
+    lastName = models.CharField(max_length=50)
     email = models.EmailField(unique = True)
     timestamp = models.DateTimeField(auto_now = True)
 
@@ -59,3 +59,16 @@ class Annotation(models.Model):
     userID = models.ForeignKey(User)
 #    data = models.DataField()
     timestamp = models.DateTimeField(auto_now = True)
+
+
+class History(models.Model):
+    userID = models.ForeignKey(User)
+    areaID = models.ForeignKey(Area)
+    envID = models.ForeignKey(Environment)
+    timestamp = models.DateTimeField(auto_now = True)
+
+
+class Privacy(models.Model):
+    userID = models.ForeignKey(User)
+    envID = models.ForeignKey(Environment)
+    relation = models.CharField(max_length=50)    
