@@ -3,27 +3,47 @@ from django.db import models
 
 # Create your models here.
 
+class User(models.Model):
+    fbID = models.CharField(max_length=50)
+    firstName = models.CharField(max_length=50)
+    lastName = models.CharField(max_length=50)
+    email = models.EmailField(unique = True)
+    timestamp = models.DateTimeField(auto_now = True)
+
+
 class Environment(models.Model):
-    pass
+    ownerID = models.ForeignKey(User)
+    name = models.CharField(max_length=140)
+    category = models.CharField(max_length=50)
+#    data = models.DataField()
+    parentID = models.IntegerField()
+#    tags = fields.TagListField()
+    width = models.IntegerField()
+    height = models.IntegerField()
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    timestamp = models.DateTimeField(auto_now = True)
 
 
 class Layout(models.Model):
-    pass
+    envID = models.ForeignKey(Environment)
+    level = models.IntegerField()
+    mapURL = models.URLField()
+    timestamp = models.DateTimeField(auto_now = True)
 
 
 class Area(models.Model):
     envID = models.ForeignKey(Environment)
-    usage = models.CharField(max_length=50)
+    areaType = models.CharField(max_length=50)
+    name = models.CharField(max_length=140)
+    category = models.CharField(max_length=50)
+#    data = models.DataField()
+#    tags = fields.TagListField()
+    layoutID = models.ForeignKey(Layout)
+#    shape = fields.AreaShapeField()
+    timestamp = models.DateTimeField(auto_now = True)
 
 
-class User(models.Model):
-    fbID = models.CharField(max_length=50)
-    firstName = models.CharField(max_length=30)
-    lastName = models.CharField(max_length=30)
-    email = models.EmailField(unique = True)
-
-
-""" TODO: uncomment data and triggers """
 class Announcement(models.Model):
     areaID = models.ForeignKey(Area)
     envID = models.ForeignKey(Environment)
@@ -39,3 +59,16 @@ class Annotation(models.Model):
     userID = models.ForeignKey(User)
 #    data = models.DataField()
     timestamp = models.DateTimeField(auto_now = True)
+
+
+class History(models.Model):
+    userID = models.ForeignKey(User)
+    areaID = models.ForeignKey(Area)
+    envID = models.ForeignKey(Environment)
+    timestamp = models.DateTimeField(auto_now = True)
+
+
+class Privacy(models.Model):
+    userID = models.ForeignKey(User)
+    envID = models.ForeignKey(Environment)
+    relation = models.CharField(max_length=50)    
