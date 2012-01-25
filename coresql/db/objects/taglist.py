@@ -1,8 +1,13 @@
 from coresql.utils.validations import assert_arg_type, assert_arg_list_type
 
+
 class TagList(object):
     """ Wrapper for a list of tags. """
     
+    def __init__(self, tags = None, limit = 100):
+        super(TagList, self).__init__(tags, limit)
+
+"""
     def __init__(self, tags = None, limit = 100):
         if not tags is None:
             self.setTags(tags)
@@ -37,3 +42,4 @@ class TagList(object):
     def setLimit(self, limit):
         assert_arg_type(limit, int)
         self.limit = limit
+"""
