@@ -1,6 +1,11 @@
+from core.models.dbobject import DBObject, HISTORY_DOMAIN
+
+
 class History(DBObject):
     
-    def __init__(self, userID, envID, areaID=None):
+    def __init__(self, id, userID, envID, areaID=None):
+        super(History, self).__init__(HISTORY_DOMAIN, id)
+        
         self.setUserID(userID)
 #        if areaID is None:
         self.setAreaID(areaID)

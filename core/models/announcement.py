@@ -1,6 +1,7 @@
 from core.models.dbobject import DBObject
 from core.models.dbobject import ANNOUNCEMENT_DOMAIN
-from core.models.utils import assert_arg_type, assert_arg_value, assert_arg_list_type
+from core.models.utils import assert_arg_type, assert_arg_value, assert_arg_list_type,\
+    DataField
 from datetime import datetime
 from time import time
 
@@ -10,8 +11,9 @@ class Announcement(DBObject):
     REPEAT_EVERY_DAY = 'day'
     REPEAT_EVERY_WEEK = 'week'
     
-    def __init__(self, data, dateTimeList, repeat=None):
-        super(Announcement, self).__init__(ANNOUNCEMENT_DOMAIN)
+    def __init__(self, id, data, dateTimeList, repeat=None):
+        super(Announcement, self).__init__(ANNOUNCEMENT_DOMAIN, id)
+        
         self.setData(data)
         self.setDateTimeTriggers(dateTimeList)
         self.setRepeatEvery(repeat)

@@ -3,3 +3,5 @@ apache/
 .project
 .pydevproject
 *test.py
+.settings/
+.gitignore
