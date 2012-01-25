@@ -1,4 +1,4 @@
-from coresql.utils.validations import assert_arg_type, assert_arg_list_type
+from coresql.utils.validations import assert_arg_type, assert_arg_list_type, assert_arg_value
 
 
 class ListWrapper(object):
@@ -40,7 +40,7 @@ class ListWrapper(object):
         self.limit = limit
 
 
-class TagList(object):
+class TagList(ListWrapper):
     """ Wrapper for a list of tags. """
     
     def __init__(self, tags = None, limit = 100):
@@ -75,3 +75,47 @@ class Data(object):
 
     def __repr__(self):
         return str(self.data)
+
+
+from coresql.utils.geo import Point2D
+from coresql.utils.geo import get_circle
+
+class AreaShape(object):
+    
+    TYPE_CIRCLE = "CIRCLE"
+    TYPE_POLYGON = "POLYGON"
+    
+    DB_SEP = " "
+    
+    def __init__(self, areaType, *args):
+        assert_arg_value(areaType, self.TYPE_CIRCLE, self.TYPE_POLYGON)
+        self.areaType = areaType
+        self.setPoints(*args)
+
+    def getParams(self):
+        if (self.areaType == AreaShape.TYPE_POLYGON):
+            return self.points
+        return get_circle(*self.points)
+    
+    def setPoints(self, *points):
+        print points
+        assert_arg_list_type(points, Point2D)
+        if (type == self.TYPE_CIRCLE) and (len(points) != 3):
+            raise TypeError(self.TYPE_CIRCLE + ' requires exactly 3 points.')
+        elif (type == self.TYPE_POLYGON) and (len(points) < 2):
+            raise TypeError(self.TYPE_POLYGON + ' requires at least 2 points.')
+        else:
+            self.points = points
+    
+    def dbEncode(self):
+        encodedPoints = map(lambda x : x.dbEncode(), self.points)
+        return self.areaType + AreaShape.DB_SEP + AreaShape.DB_SEP.join(encodedPoints)
+    
+    @staticmethod
+    def dbDecode(shapeString):
+        params = shapeString.split(AreaShape.DB_SEP)
+        args = map(lambda x : Point2D.dbDecode(x), params[1:])
+        return AreaShape(params[0], *args)
+    
+    def __repr__(self):
+        return "AreaShape(" + self.areaType + "," + str(self.points) + ")"
