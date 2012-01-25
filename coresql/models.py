@@ -13,7 +13,13 @@ class Layout(models.Model):
 
 class Area(models.Model):
     envID = models.ForeignKey(Environment)
-    usage = models.CharField(max_length=50)
+    areaType = models.CharField(max_length=50)
+    name = models.CharField(max_length=100)
+    category = models.CharField(max_length=50)
+#    data = models.DataField()
+#    tags = fields.TagListField()
+    layoutID = models.ForeignKey(Layout)
+#    shape = fields.AreaShapeField()
 
 
 class User(models.Model):
