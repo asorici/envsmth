@@ -49,14 +49,20 @@ class EnvLayout(DBObject):
     def _updateAreaLevel(self, level):
         for a in self.areaCollection:
             a.setLevel(level)
+    
+    @staticmethod
+    def getForeignKeys():
+        return {Environment: 'envID'}
 
-
+"""    
+TODO: add EnvLayout
+"""
 class Environment(DBObject, IndexableObject, TriggerObject, AnnotatedObject):
     
     CATEGORY_DEFAULT = 'Default'
     CATEGORY_ORDERING = 'Ordering'
     
-    def __init__(self, ownerID, name, category=Environment.CATEGORY_DEFAULT,
+    def __init__(self, ownerID, name, category=CATEGORY_DEFAULT,
             data=None, tags=None, parentID=None, geoLocation=None):
         pass
     
@@ -75,3 +81,15 @@ class Environment(DBObject, IndexableObject, TriggerObject, AnnotatedObject):
         assert_arg_type(cat, str)
         assert_arg_value(cat, self.CATEGORY_DEFAULT, self.CATEGORY_ORDERING)
         self.category = cat
+    
+    @staticmethod
+    def getReferencedModels():
+        return [Area, EnvLayout]
+    
+    @staticmethod
+    def getForeignKeys():
+        return {}
+    
+    @staticmethod
+    def getObject():
+        pass
