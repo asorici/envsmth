@@ -1,6 +1,7 @@
 from django.db import models
 from coresql.db import fields
 
+
 # Create your models here.
 
 class User(models.Model):
@@ -9,6 +10,7 @@ class User(models.Model):
     lastName = models.CharField(max_length=50)
     email = models.EmailField(unique = True)
     timestamp = models.DateTimeField(auto_now = True)
+    is_anonymous = models.BooleanField()
 
 
 class Environment(models.Model):
@@ -57,7 +59,7 @@ class Area(models.Model):
     tags = fields.TagListField(null = True, blank = True)
     layoutID = models.ForeignKey(Layout, related_name = "areas")
     
-    shape = fields.AreaShapeField()
+    shape = fields.AreaShapeField(blank = True)
     timestamp = models.DateTimeField(auto_now = True)
 
 
@@ -81,7 +83,7 @@ class Announcement(models.Model):
 class Annotation(models.Model):
     areaID = models.ForeignKey(Area, null = True, blank = True, related_name = "annotations")
     envID = models.ForeignKey(Environment, null = True, blank = True, related_name = "annotations")
-    userID = models.ForeignKey(User)
+    userID = models.ForeignKey(User, on_delete=models.SET_NULL)
     data = fields.DataField()
     timestamp = models.DateTimeField(auto_now = True)
 
@@ -98,4 +100,9 @@ class Privacy(models.Model):
     envID = models.ForeignKey(Environment)
     relation = models.CharField(max_length=50)
     
+
+class UserContext(models.Model):
+    userID = models.ForeignKey(User)
+    currentEnv = models.ForeignKey(Environment, null=True, blank = True)
+    currentArea = models.ForeignKey(Area, null=True, blank = True)
     

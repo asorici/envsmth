@@ -20,8 +20,12 @@ class TagListField(models.TextField):
             return value
         
         # the string case which also matches the database case since we subclass TextField
-        tag_list = string.split(value, TagListField.separator)
-        return TagList(tags = tag_list)
+        if not value is None: 
+            tag_list = string.split(value, TagListField.separator)
+            return TagList(tags = tag_list)
+        
+        ## the case where the NULL value from the DB is returned as a None python value
+        return TagList()
     
     def get_prep_value(self, value):
         # value is an object of type TagList
@@ -54,17 +58,21 @@ class DateTimeListField(models.TextField):
             return value
         
         # the string case which also matches the database case since we subclass TextField
-        datetime_str_list = string.split(value, DateTimeListField.separator)
-        trigger_list = map(lambda d: datetime.strptime(d, '%Y-%m-%d %H:%M:%S'), datetime_str_list)
+        if value:
+            datetime_str_list = string.split(value, DateTimeListField.separator)
+            trigger_list = map(lambda d: datetime.strptime(d, '%Y-%m-%d %H:%M:%S'), datetime_str_list)
         
-        return DateTimeList(triggers = trigger_list)
+            return DateTimeList(triggers = trigger_list)
+        
+        ## if an empty string is received
+        return DateTimeList()
     
     def get_prep_value(self, value):
         # value is an object of type DateTimeList
         return DateTimeListField.separator.join( map(lambda d: d.strftime("%Y-%m-%d %H:%M:%S"), value.getList()) )
 
 
-def strDecode(value):
+def strDataDecode(value):
     ## the received value will be a string
     return Data(value)
 
@@ -74,7 +82,7 @@ class DataField(models.TextField):
     
     __metaclass__ = models.SubfieldBase
     
-    def __init__(self, decode_func = strDecode, *args, **kwargs):
+    def __init__(self, decode_func = strDataDecode, *args, **kwargs):
         self.decode_func = decode_func 
         super(DataField, self).__init__(*args, **kwargs)
         
@@ -84,7 +92,10 @@ class DataField(models.TextField):
             return value
         
         # the string case which also matches the database case since we subclass TextField
-        return Data.dbDecode(value, self.decode_func)
+        if not value is None:
+            return Data.dbDecode(value, self.decode_func)
+        else:
+            return Data("")
     
     def get_prep_value(self, value):
         # value is an object of type Data
@@ -98,8 +109,7 @@ class AreaShapeField(models.TextField):
     
     __metaclass__ = models.SubfieldBase
     
-    def __init__(self, encode_func = str, *args, **kwargs):
-        self.encode_func = encode_func 
+    def __init__(self, *args, **kwargs):
         super(AreaShapeField, self).__init__(*args, **kwargs)
         
     def to_python(self, value):
@@ -108,7 +118,8 @@ class AreaShapeField(models.TextField):
             return value
         
         # the string case which also matches the database case since we subclass TextField
-        return AreaShape.dbDecode(value, self.encode_func)
+        return AreaShape.dbDecode(value)
+        
     
     def get_prep_value(self, value):
         # value is an object of type AreaShape
