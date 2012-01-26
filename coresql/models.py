@@ -83,7 +83,7 @@ class Announcement(models.Model):
 class Annotation(models.Model):
     areaID = models.ForeignKey(Area, null = True, blank = True, related_name = "annotations")
     envID = models.ForeignKey(Environment, null = True, blank = True, related_name = "annotations")
-    userID = models.ForeignKey(User, on_delete=models.SET_NULL)
+    userID = models.ForeignKey(User, null = True, on_delete=models.SET_NULL)
     data = fields.DataField()
     timestamp = models.DateTimeField(auto_now = True)
 
