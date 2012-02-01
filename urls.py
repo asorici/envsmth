@@ -18,7 +18,5 @@ urlpatterns = patterns('',
 )
 
 urlpatterns += patterns('',
-    url('r^envsocial/resources/environment/(\d+)/$', views.handleEnvironmentRequest, name="handle-env"),
-    url('r^envsocial/resources/area/(\d+)/$', views.handleAreaRequest, name="handle-area"),
-    url('r^envsocial/resources/area/(\d+)/$', views.handleAreaRequest, name="handle-area"),
+    url('r^envsocial/resources/', include('envsocial.coresql.urls')),
 )

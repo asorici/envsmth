@@ -2,6 +2,7 @@ import string
 from datetime import datetime
 from django.db import models
 from coresql.db.objects import TagList, Data, AreaShape, DateTimeList
+from django.core.exceptions import ValidationError
 
 class TagListField(models.TextField):
     
@@ -21,8 +22,11 @@ class TagListField(models.TextField):
         
         # the string case which also matches the database case since we subclass TextField
         if not value is None: 
-            tag_list = string.split(value, TagListField.separator)
-            return TagList(tags = tag_list)
+            try:
+                tag_list = string.split(value, TagListField.separator)
+                return TagList(tags = tag_list)
+            except Exception, ex:
+                raise ValidationError("Invalid tag list. " + str(ex))
         
         ## the case where the NULL value from the DB is returned as a None python value
         return TagList()
@@ -59,11 +63,14 @@ class DateTimeListField(models.TextField):
         
         # the string case which also matches the database case since we subclass TextField
         if value:
-            datetime_str_list = string.split(value, DateTimeListField.separator)
-            trigger_list = map(lambda d: datetime.strptime(d, '%Y-%m-%d %H:%M:%S'), datetime_str_list)
-        
-            return DateTimeList(triggers = trigger_list)
-        
+            try:
+                datetime_str_list = string.split(value, DateTimeListField.separator)
+                trigger_list = map(lambda d: datetime.strptime(d, '%Y-%m-%d %H:%M:%S'), datetime_str_list)
+            
+                return DateTimeList(triggers = trigger_list)
+            except Exception, ex:
+                raise ValidationError("Invalid DateTime list. " + str(ex))
+            
         ## if an empty string is received
         return DateTimeList()
     
@@ -85,7 +92,10 @@ class DataField(models.TextField):
     def __init__(self, decode_func = strDataDecode, *args, **kwargs):
         self.decode_func = decode_func 
         super(DataField, self).__init__(*args, **kwargs)
-        
+    
+    def set_decode_func(self, decode_func):
+        self.decode_func = decode_func
+    
     def to_python(self, value):
         # the object case
         if isinstance(value, Data):
@@ -93,7 +103,10 @@ class DataField(models.TextField):
         
         # the string case which also matches the database case since we subclass TextField
         if not value is None:
-            return Data.dbDecode(value, self.decode_func)
+            try:
+                return Data.dbDecode(value, self.decode_func)
+            except Exception, ex:
+                raise ValidationError("Invalid encoding for data object. " + str(ex))
         else:
             return Data("")
     
@@ -118,7 +131,10 @@ class AreaShapeField(models.TextField):
             return value
         
         # the string case which also matches the database case since we subclass TextField
-        return AreaShape.dbDecode(value)
+        try:
+            return AreaShape.dbDecode(value)
+        except Exception, ex:
+            raise ValidationError("Invalid encoding for area shape object. " + str(ex))
         
     
     def get_prep_value(self, value):

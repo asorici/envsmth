@@ -1,39 +1,39 @@
 from django.db import models
 from coresql.db import fields
-
+from django.contrib.auth.models import User as DjangoUser
 
 # Create your models here.
 
+#class User(DjangoUser):
 class User(models.Model):
+    user = models.OneToOneField(DjangoUser)
+    
     fbID = models.CharField(max_length=50)
-    firstName = models.CharField(max_length=50)
-    lastName = models.CharField(max_length=50)
-    email = models.EmailField(unique = True)
     timestamp = models.DateTimeField(auto_now = True)
     is_anonymous = models.BooleanField()
 
 
 class Environment(models.Model):
     CATEGORY_CHOICES = (
-        ("default", "Default"), 
-        ("ordering", "Ordering")
+        ("default", "default"), 
+        ("ordering", "ordering")
     )
     
-    ownerID = models.ForeignKey(User)
+    owner = models.ForeignKey(User)
     name = models.CharField(max_length=140)
     category = models.CharField(max_length=50, choices = CATEGORY_CHOICES)
     data = fields.DataField()
-    parentID = models.IntegerField()
+    parentID = models.IntegerField(null = True, blank = True)
     tags = fields.TagListField(null = True, blank = True)
-    width = models.IntegerField()
-    height = models.IntegerField()
-    latitude = models.FloatField()
-    longitude = models.FloatField()
+    width = models.IntegerField(null = True, blank = True)
+    height = models.IntegerField(null = True, blank = True)
+    latitude = models.FloatField(null = True, blank = True)
+    longitude = models.FloatField(null = True, blank = True)
     timestamp = models.DateTimeField(auto_now = True)
 
 
 class Layout(models.Model):
-    envID = models.ForeignKey(Environment, related_name = "layouts")
+    env = models.ForeignKey(Environment, related_name = "layouts")
     level = models.IntegerField()
     mapURL = models.URLField()
     timestamp = models.DateTimeField(auto_now = True)
@@ -41,8 +41,8 @@ class Layout(models.Model):
 
 class Area(models.Model):
     CATEGORY_CHOICES = (
-        ("default", "Default"), 
-        ("ordering", "Ordering")
+        ("default", "default"), 
+        ("ordering", "ordering")
     )
     
     TYPE_CHOICES = (
@@ -50,14 +50,14 @@ class Area(models.Model):
         ("non-interest", "Non-Interest")
     )
     
-    envID = models.ForeignKey(Environment, related_name = "areas")
+    env = models.ForeignKey(Environment, related_name = "areas")
     areaType = models.CharField(max_length=50, choices = TYPE_CHOICES)
     name = models.CharField(max_length=140)
     category = models.CharField(max_length=50, choices = CATEGORY_CHOICES)
     
     data = fields.DataField(null = True, blank = True)
     tags = fields.TagListField(null = True, blank = True)
-    layoutID = models.ForeignKey(Layout, related_name = "areas")
+    layout = models.ForeignKey(Layout, related_name = "areas", blank = True)
     
     shape = fields.AreaShapeField(blank = True)
     timestamp = models.DateTimeField(auto_now = True)
@@ -70,8 +70,8 @@ class Announcement(models.Model):
         ("week", "Week")
     )
     
-    areaID = models.ForeignKey(Area, null = True, blank = True, related_name = "announcements")
-    envID = models.ForeignKey(Environment, null = True, blank = True, related_name = "announcements")
+    area = models.ForeignKey(Area, null = True, blank = True, related_name = "announcements")
+    env = models.ForeignKey(Environment, null = True, blank = True, related_name = "announcements")
     
     data = fields.DataField()
     repeatEvery = models.CharField(max_length=50, choices = REPEAT_EVERY_CHOICES, default = "None")
@@ -81,28 +81,28 @@ class Announcement(models.Model):
 
 
 class Annotation(models.Model):
-    areaID = models.ForeignKey(Area, null = True, blank = True, related_name = "annotations")
-    envID = models.ForeignKey(Environment, null = True, blank = True, related_name = "annotations")
-    userID = models.ForeignKey(User, null = True, on_delete=models.SET_NULL)
+    area = models.ForeignKey(Area, null = True, blank = True, related_name = "annotations")
+    env = models.ForeignKey(Environment, null = True, blank = True, related_name = "annotations")
+    user = models.ForeignKey(User, null = True, blank = True, on_delete=models.SET_NULL)
     data = fields.DataField()
     timestamp = models.DateTimeField(auto_now = True)
 
 
 class History(models.Model):
-    userID = models.ForeignKey(User)
-    areaID = models.ForeignKey(Area)
-    envID = models.ForeignKey(Environment)
+    user = models.ForeignKey(User)
+    area = models.ForeignKey(Area)
+    env = models.ForeignKey(Environment)
     timestamp = models.DateTimeField(auto_now = True)
 
 
 class Privacy(models.Model):
-    userID = models.ForeignKey(User)
-    envID = models.ForeignKey(Environment)
+    user = models.ForeignKey(User)
+    env = models.ForeignKey(Environment)
     relation = models.CharField(max_length=50)
     
 
 class UserContext(models.Model):
-    userID = models.ForeignKey(User)
+    user = models.ForeignKey(User)
     currentEnv = models.ForeignKey(Environment, null=True, blank = True)
     currentArea = models.ForeignKey(Area, null=True, blank = True)
     
