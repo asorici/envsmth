@@ -123,7 +123,7 @@ TEMPLATE_DIRS = (
 )
 
 
-AUTH_PROFILE_MODULE = 'coresql.User'
+AUTH_PROFILE_MODULE = 'coresql.UserProfile'
 
 
 INSTALLED_APPS = (
@@ -139,6 +139,7 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'coresql',
+    'tastypie',
 )
 
 # A sample logging configuration. The only tangible logging

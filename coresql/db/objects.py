@@ -3,7 +3,9 @@ from coresql.utils.validations import assert_arg_type, assert_arg_list_type, ass
 
 class ListWrapper(object):
     
-    def __init__(self, argList = None, limit = 100, elemType = str):
+    def __init__(self, argList = None, limit = 100, elemType = unicode):
+        self.elemType = elemType
+        
         if not argList is None:
             self.setList(argList)
         else:
@@ -11,7 +13,6 @@ class ListWrapper(object):
         self.setLimit(limit)
         if self.isFull():
             raise TypeError('Argument list limit: ' + str(limit))
-        self.elemType = elemType
     
     def isFull(self):
         return len(self.argList) >= self.limit
@@ -38,6 +39,13 @@ class ListWrapper(object):
     def setLimit(self, limit):
         assert_arg_type(limit, int)
         self.limit = limit
+        
+    def to_serializable(self):
+        """
+        should return a basic type value (int, float, boolean, string, tuple, list, dict, datetime) that can be
+        easily serialized. The default is to return the contained arglist 
+        """
+        return self.argList
 
 
 class TagList(ListWrapper):
@@ -45,6 +53,7 @@ class TagList(ListWrapper):
     
     def __init__(self, tags = None, limit = 100):
         super(TagList, self).__init__(argList = tags, limit = limit)
+        
         
 
 from datetime import datetime
@@ -56,9 +65,14 @@ class DateTimeList(ListWrapper):
         super(DateTimeList, self).__init__(argList = triggers, limit = limit, elemType = datetime)
 
 
+def json_encode(value):
+    from django.utils import simplejson
+    #d = {'value': value}
+    return simplejson.dumps(value, ensure_ascii = False)
+
+
 class Data(object):
-    
-    def __init__(self, data, encode_func=str):
+    def __init__(self, data, encode_func=json_encode):
         self.data = data
         self.encode_func = encode_func
     
@@ -67,11 +81,19 @@ class Data(object):
     
     @staticmethod
     def dbDecode(dataString, decode_func=None):
-        assert_arg_type(dataString, str)
+        assert_arg_type(dataString, unicode)
+        
+        ## this logic is poor - I believe the best way is to define a standard set of 
+        ## representation formats and use try..except clauses to parse the incoming string
+        ## according to the defined formats (formats: text, json, xml)
+        ## For now we treat it as a default of text 
         if decode_func is None:
-            return dataString
+            return Data(dataString)
         else:
             return decode_func(dataString)
+
+    def to_serializable(self):
+        return self.data
 
     def __repr__(self):
         return str(self.data)
@@ -98,7 +120,7 @@ class AreaShape(object):
         return get_circle(*self.points)
     
     def setPoints(self, *points):
-        print points
+        #print points
         assert_arg_list_type(points, Point2D)
         if (type == self.TYPE_CIRCLE) and (len(points) != 3):
             raise TypeError(self.TYPE_CIRCLE + ' requires exactly 3 points.')

@@ -23,7 +23,7 @@ class TagListField(models.TextField):
         # the string case which also matches the database case since we subclass TextField
         if not value is None: 
             try:
-                tag_list = string.split(value, TagListField.separator)
+                tag_list = string.split(value, self.separator)
                 return TagList(tags = tag_list)
             except Exception, ex:
                 raise ValidationError("Invalid tag list. " + str(ex))
@@ -33,7 +33,7 @@ class TagListField(models.TextField):
     
     def get_prep_value(self, value):
         # value is an object of type TagList
-        return TagListField.separator.join(value.getList())
+        return self.separator.join(value.getList())
     
     """
     def get_prep_lookup(self, lookup_type, value):
@@ -79,22 +79,15 @@ class DateTimeListField(models.TextField):
         return DateTimeListField.separator.join( map(lambda d: d.strftime("%Y-%m-%d %H:%M:%S"), value.getList()) )
 
 
-def strDataDecode(value):
-    ## the received value will be a string
-    return Data(value)
-
  
 class DataField(models.TextField):
     description = "A structured data type encoded as a string"
     
     __metaclass__ = models.SubfieldBase
     
-    def __init__(self, decode_func = strDataDecode, *args, **kwargs):
-        self.decode_func = decode_func 
+    def __init__(self, *args, **kwargs):
         super(DataField, self).__init__(*args, **kwargs)
     
-    def set_decode_func(self, decode_func):
-        self.decode_func = decode_func
     
     def to_python(self, value):
         # the object case
@@ -104,7 +97,7 @@ class DataField(models.TextField):
         # the string case which also matches the database case since we subclass TextField
         if not value is None:
             try:
-                return Data.dbDecode(value, self.decode_func)
+                return Data.dbDecode(value)
             except Exception, ex:
                 raise ValidationError("Invalid encoding for data object. " + str(ex))
         else:
@@ -131,12 +124,14 @@ class AreaShapeField(models.TextField):
             return value
         
         # the string case which also matches the database case since we subclass TextField
-        try:
-            return AreaShape.dbDecode(value)
-        except Exception, ex:
-            raise ValidationError("Invalid encoding for area shape object. " + str(ex))
-        
-    
+        if not value is None:
+            try:
+                return AreaShape.dbDecode(value)
+            except Exception, ex:
+                raise ValidationError("Invalid encoding for area shape object. " + str(ex))
+        else:
+            return AreaShape(AreaShape.TYPE_POLYGON)
+
     def get_prep_value(self, value):
         # value is an object of type AreaShape
         return value.dbEncode()

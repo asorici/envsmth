@@ -1,5 +1,17 @@
 from django.conf.urls.defaults import patterns, include, url
-from coresql import views
+#from coresql import views
+
+from tastypie.api import Api
+from client.api import EnvironmentResource, AreaResource, AnnotationResource,\
+                        AnnouncementResource, HistoryResource
+
+v1_api = Api(api_name='v1')
+v1_api.register(EnvironmentResource())
+v1_api.register(AreaResource())
+v1_api.register(AnnotationResource())
+v1_api.register(AnnouncementResource())
+v1_api.register(HistoryResource())
+
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -18,5 +30,5 @@ urlpatterns = patterns('',
 )
 
 urlpatterns += patterns('',
-    url('r^envsocial/resources/', include('envsocial.coresql.urls')),
+    (r'^envsocial/resources/client/', include(v1_api.urls)),
 )

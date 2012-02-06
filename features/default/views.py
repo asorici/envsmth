@@ -1,140 +1,276 @@
 from django.utils import simplejson
 from django.http import HttpResponse
-from coresql.models import User, Environment, Area, Annotation, Announcement, History, UserContext
-from coresql.forms import EnvironmentForm,  
+from coresql.models import User, Environment, Area, Annotation, Announcement
+from coresql.forms import EnvironmentForm, UpdateEnvironmentForm, AreaForm, UpdateAreaForm, \
+                          AnnotationForm, UpdateAnnotationForm, AnnouncementForm, UpdateAnnouncementForm  
+from coresql.views import OP_READ, OP_CREATE,  OP_UPDATE, OP_DELETE
+from coresql.views import bad_request_error, not_logged_error, operation_successful
 
-
-OP_READ = "Read"
-OP_CREATE = "Create"
-OP_UPDATE = "Update"
-OP_DELETE = "Delete"
-
-
-def handle_environment_request(envID = None, request):
-    from coresql.views import bad_request_error
-    
+def handle_environment_request(id = None, request):
     if request.method != "GET":
         if not request.user.is_authenticated():
             return not_logged_error("Environment")
     
-    """
-    HANDLE POST REQUEST
-    """
     if request.method == "POST":
-        ## a new environment must me created
-        
+        """
+        HANDLE POST REQUEST - semantics of creation
+        """
+        form = EnvironmentForm(request.POST)
         try:
-            env.save()
-            return operation_successful("Environment", OP_CREATE, )
+            if form.is_valid():
+                instance = form.save(commit=False)
+                data = {'url': instance.get_absolute_url, 'id': str(instance.id)}
+                instance.save()
+                
+                return operation_successful("Environment", OP_CREATE, data)
+            else:
+                err_text = form._get_errors().as_text()
+                return bad_request_error("Environment", OP_CREATE + " operation failed. ", {"model_errors": err_text})
+            
         except Exception, ex:
-            return bad_request_error("Environment", msg = "Save failed. Invalid data supplied.")
+            err_text = form._get_errors().as_text()
+            return bad_request_error("Environment", OP_CREATE + " operation failed. ", {"model_errors": err_text})
     
-    """
-    HANDLE PUT REQUEST
-    """ 
     elif request.method == "PUT":
-        ## semantics of an update
-        ## first call 
-        if envID is None:
+        """
+        HANDLE PUT REQUEST - semantics of an update
+        """
+        if id is None:
             return bad_request_error("Environment", msg = "Invalid update. No environment id specified.")
         else:
-            env = Environment.objects.get(id=envID)
+            instance = Environment.objects.get(id=id)
             
-            ## check if user is owner of environment
+            ## check if user has rights
             user = request.user.get_profile()
-            if user == env.owner:
-                if "category" in request.PUT:
-                    env.category = request.PUT["category"]
-                
-                if "name" in request.PUT:
-                    env.name = request.PUT["name"]
-                
-                if "description" in request.PUT:
-                    env.data = request.PUT["description"]
-                
-                if "parentID" in request.PUT:
-                    env.parentID = int(request.PUT["parentID"])
-                    
-                if "geolocation" in request.PUT:
-                    try:
-                        ll = request.PUT["geolocation"].split(":")
-                        longitude = float(ll[0])
-                        latitude = float(ll[1])
-                            
-                        env.longitude = longitude
-                        env.latitude = latitude
-                    except Exception, ex:
-                        return bad_request_error("Environment", msg = "Invalid update. Geolocation data not valid.")
-                    
-                """
-                TODO : treat image upload and URL creation 
-                
-                if "layout_level" in request.PUT and "layout_image" in request.PUT:
-                    try:
-                        pass
-                    except Exception, ex:
-                        return bad_request_error("Environment", msg = "Invalid update. Level does not exist.")
-                """
-                
+            if user == instance.owner:
+                try:
+                    form = UpdateEnvironmentForm(request.PUT, instance=instance)
+                    if form.is_valid():
+                        instance = form.save(commit = False)
+                        data = {'url': instance.get_absolute_url, 'id': str(instance.id)}
+                        instance.save()
+                        
+                        return operation_successful("Environment", OP_UPDATE, data)
+                    else:
+                        err_text = form._get_errors().as_text()
+                        return bad_request_error("Environment", OP_UPDATE + " operation failed. ", {"model_errors": err_text})
+                except Exception, ex:
+                    err_text = form._get_errors().as_text()
+                    return bad_request_error("Environment", OP_UPDATE + " operation failed. ", {"model_errors": err_text})
             else:
-                return bad_request_error("Environment", msg = "Invalid update. You are not the owner of this environment. This incident will be reported")
-
-            
-    """
-    HANDLE DELETE REQUEST
-    """    
-    elif request.method == "DELETE":
-        ## semantics of deletion
-        pass
+                return bad_request_error("Environment", msg = "Invalid " + OP_UPDATE + ". You are not the owner of this environment. This incident will be reported")
 
     
-    """
-    HANDLE GET REQUEST
-    """
+    elif request.method == "DELETE":
+        """
+        HANDLE DELETE REQUEST - semantics of delete
+        """
+        if id is None:
+            return bad_request_error("Environment", msg = "Invalid " + OP_DELETE + ". No environment id specified.")
+        else:
+            instance = Environment.objects.get(id=id)
+            if user == instance.owner:
+                instance.delete()
+                return operation_successful("Environment", OP_DELETE)
+            else:
+                return bad_request_error("Environment", msg = "Invalid " + OP_DELETE + ". You are not the owner of this environment. This incident will be reported")
+
+    
     elif request.method == "GET":
-        ## semantics of retrieval
+        """
+        HANDLE GET REQUEST - semantics of read
+        """
         pass
+
 
 
 def handle_area_request(areaID = None, request):
     pass
 
 
+
 def handle_announcement_request(id = None, request):
-    pass
-
-
-def handle_annotation_request(annID = None, request):
-    pass
-
-
-
-##############################################################################################################
-##############################################################################################################
-
-def operation_successful(model, op, data = None):
-    response = {"success": True, "data": {"msg": op + "operation successful for " + model + ". "}}
-    if op == OP_CREATE:
-        response["code"] = 201
-    else:
-        response["code"] = 200
-    
-    if not data is None:
-        response["data"].update(data)
+    if request.method != "GET":
+        if not request.user.is_authenticated():
+            return not_logged_error("Announcement")
         
-    response_json = simplejson.dumps(response)
-    http_response = HttpResponse(response_json, mimetype='application/json')
-    http_response.status_code = response["code"]
-    return http_response
+    if request.method == "POST":
+        form = AnnouncementForm(request.POST)
+        try:
+            if form.is_valid():
+                instance = form.save(commit=False)
+                data = {'url': instance.get_absolute_url, 'id': str(instance.id)}
+                instance.save()
+                
+                return operation_successful("Announcement", OP_CREATE, data)
+            else:
+                err_text = form._get_errors().as_text()
+                return bad_request_error("Announcement", OP_CREATE + " operation failed. ", {"model_errors": err_text})
+            
+        except Exception, ex:
+            err_text = form._get_errors().as_text()
+            return bad_request_error("Announcement", OP_CREATE + " operation failed. ", {"model_errors": err_text})
 
+    elif request.method == "PUT":
+        """
+        HANDLE PUT REQUEST - semantics of an update
+        """
+        if id is None:
+            return bad_request_error("Announcement", msg = "Invalid update. No environment id specified.")
+        else:
+            instance = Announcement.objects.get(id=id)
+            
+            ## check if user has rights
+            user = request.user.get_profile()
+            owner = None
+            
+            if not instance.env is None:
+                owner = instance.env.owner
+            elif not instance.area is None:
+                owner = instance.area.owner 
+            
+            if user == owner:
+                try:
+                    form = UpdateAnnouncementForm(request.PUT, instance=instance)
+                    if form.is_valid():
+                        instance = form.save(commit = False)
+                        data = {'url': instance.get_absolute_url, 'id': str(instance.id)}
+                        instance.save()
+                        
+                        return operation_successful("Announcement", OP_UPDATE, data)
+                    else:
+                        err_text = form._get_errors().as_text()
+                        return bad_request_error("Announcement", OP_UPDATE + " operation failed. ", {"model_errors": err_text})
+                except Exception, ex:
+                    err_text = form._get_errors().as_text()
+                    return bad_request_error("Announcement", OP_UPDATE + " operation failed. ", {"model_errors": err_text})
+            else:
+                return bad_request_error("Announcement", msg = "Invalid " + OP_UPDATE + ". You are not the owner of this environment. This incident will be reported")
 
-def not_logged_error(model):
-    response = {"success": False, "code": 401, "data": {"msg": "Unauthenticated modification request for " + model + ". "}}
-    response_json = simplejson.dumps(response)
-    http_response = HttpResponse(response_json, mimetype='application/json')
-    http_response.status_code = 401
-    return http_response
+    elif request.method == "DELETE":
+        """
+        HANDLE DELETE REQUEST - semantics of delete
+        """
+        if id is None:
+            return bad_request_error("Announcement", msg = "Invalid " + OP_DELETE + ". No environment id specified.")
+        else:
+            instance = Announcement.objects.get(id=id)
+            if user == instance.owner:
+                instance.delete()
+                return operation_successful("Announcement", OP_DELETE)
+            else:
+                return bad_request_error("Announcement", msg = "Invalid " + OP_DELETE + ". You are not the owner of this environment. This incident will be reported")
+
     
+    elif request.method == "GET":
+        """
+        HANDLE GET REQUEST - semantics of read
+        """
+        pass
+
+
+
+def handle_annotation_request(annID = None, request):    
+    
+    if request.method == "POST":
+        form = AnnotationForm(request.POST)
+        try:
+            if form.is_valid():
+                instance = form.save(commit=False)
+                data = {'url': instance.get_absolute_url, 'id': str(instance.id)}
+                instance.save()
+                
+                return operation_successful("Annotation", OP_CREATE, data)
+            else:
+                err_text = form._get_errors().as_text()
+                return bad_request_error("Annotation", OP_CREATE + " operation failed. ", {"model_errors": err_text})
+            
+        except Exception, ex:
+            err_text = form._get_errors().as_text()
+            return bad_request_error("Annotation", OP_CREATE + " operation failed. ", {"model_errors": err_text})
+
+    elif request.method == "PUT":
+        """
+        HANDLE PUT REQUEST - semantics of an update
+        """
+        if id is None:
+            return bad_request_error("Annotation", msg = "Invalid update. No environment id specified.")
+        else:
+            instance = Annotation.objects.get(id=id)
+            
+            ## check if user has rights
+            has_rights = True
+            if request.user.is_anonymous:
+                has_rights = False
+            else:
+                user = request.user.get_profile()
+                owner = None
+                if not instance.env is None:
+                    owner = instance.env.owner
+                elif not instance.area is None:
+                    owner = instance.area.owner
+                    
+                if owner is None:
+                    has_rights = False
+            
+            if has_rights:
+                try:
+                    form = UpdateAnnotationForm(request.PUT, instance=instance)
+                    if form.is_valid():
+                        instance = form.save(commit = False)
+                        data = {'url': instance.get_absolute_url, 'id': str(instance.id)}
+                        instance.save()
+                        
+                        return operation_successful("Annotation", OP_UPDATE, data)
+                    else:
+                        err_text = form._get_errors().as_text()
+                        return bad_request_error("Annotation", OP_UPDATE + " operation failed. ", {"model_errors": err_text})
+                except Exception, ex:
+                    err_text = form._get_errors().as_text()
+                    return bad_request_error("Annotation", OP_UPDATE + " operation failed. ", {"model_errors": err_text})
+            else:
+                return bad_request_error("Annotation", msg = "Invalid " + OP_UPDATE + ". You are not allowed to perform this operation. This incident will be reported")
+
+    elif request.method == "DELETE":
+        """
+        HANDLE DELETE REQUEST - semantics of delete
+        """
+        if id is None:
+            return bad_request_error("Annotation", msg = "Invalid " + OP_DELETE + ". No environment id specified.")
+        else:
+            instance = Annotation.objects.get(id=id)
+            ## check if user has rights
+            has_rights = True
+            if request.user.is_anonymous():
+                has_rights = False
+            else:
+                user = request.user.get_profile()
+                owner = None
+                if not instance.env is None:
+                    owner = instance.env.owner
+                elif not instance.area is None:
+                    owner = instance.area.owner
+                    
+                if owner is None:
+                    has_rights = False
+                    
+            if has_rights:
+                instance.delete()
+                return operation_successful("Annotation", OP_DELETE)
+            else:
+                return bad_request_error("Annotation", msg = "Invalid " + OP_DELETE + ". You are not allowed to perform this operation. This incident will be reported")
+
+    
+    elif request.method == "GET":
+        """
+        HANDLE GET REQUEST - semantics of read
+        """
+        pass
+
+
+
+##############################################################################################################
+##############################################################################################################
 
 
 def load_put_and_files(request):

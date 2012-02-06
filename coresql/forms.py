@@ -27,6 +27,12 @@ class EnvironmentForm(forms.ModelForm):
 
 
 
+class UpdateEnvironmentForm(EnvironmentForm):
+    class Meta(EnvironmentForm.Meta):
+        exclude = ("timestamp", "owner", "parentID", "width", "height")
+        
+        
+
 
 class AreaForm(forms.ModelForm):
     """
@@ -41,7 +47,7 @@ class AreaForm(forms.ModelForm):
     
     class Meta:
         model = Area
-        exclude = ("timestamp",)
+        exclude = ("timestamp", )
         
     
     def clean_data(self):
@@ -50,6 +56,11 @@ class AreaForm(forms.ModelForm):
         for now do nothing 
         """
         return self.cleaned_data['data']
+
+
+class UpdateAreaForm(AreaForm):
+    class Meta(AreaForm.Meta):
+        exclude = ("timestamp", "areaType", "layout", "shape", "env")
 
 
 
@@ -61,7 +72,6 @@ class AnnotationForm(forms.ModelForm):
         if set_not_required:
             for key in self.fields:
                 self.fields[key].required = False
-
     
     def clean(self):
         cleaned_data = self.cleaned_data
@@ -73,10 +83,13 @@ class AnnotationForm(forms.ModelForm):
         
         return cleaned_data
 
-    
     class Meta:
         model = Annotation
 
+
+class UpdateAnnotationForm(AnnotationForm):
+    class Meta(AnnotationForm.Meta):
+        exclude = ("timestamp", "env", "area", "user")
 
 
 
@@ -98,11 +111,14 @@ class AnnouncementForm(forms.ModelForm):
         
         return cleaned_data
 
-
     class Meta:
         model = Announcement
 
 
+class UpdateAnnouncementForm(AnnouncementForm):
+    class Meta(AnnouncementForm.Meta):
+        exclude = ("timestamp", "env", "area")
+        
 
 ###########################################################################################################
 #################### Special form fields for Data, TagList, DateTimeList and AreaShape ####################

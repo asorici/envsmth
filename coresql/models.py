@@ -1,16 +1,28 @@
 from django.db import models
 from coresql.db import fields
-from django.contrib.auth.models import User as DjangoUser
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
 
-# Create your models here.
 
 #class User(DjangoUser):
-class User(models.Model):
-    user = models.OneToOneField(DjangoUser)
+class UserProfile(models.Model):
+    user = models.OneToOneField(User)
     
     fbID = models.CharField(max_length=50)
     timestamp = models.DateTimeField(auto_now = True)
     is_anonymous = models.BooleanField()
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('handle-user', [str(self.user.id)])
+
+
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+post_save.connect(create_user_profile, sender=User)
+    
 
 
 class Environment(models.Model):
@@ -19,10 +31,12 @@ class Environment(models.Model):
         ("ordering", "ordering")
     )
     
-    owner = models.ForeignKey(User)
+    owner = models.ForeignKey(UserProfile)
     name = models.CharField(max_length=140)
-    category = models.CharField(max_length=50, choices = CATEGORY_CHOICES)
-    data = fields.DataField()
+    
+    #category = models.CharField(max_length=50, choices = CATEGORY_CHOICES)
+    #data = fields.DataField()
+    
     parentID = models.IntegerField(null = True, blank = True)
     tags = fields.TagListField(null = True, blank = True)
     width = models.IntegerField(null = True, blank = True)
@@ -31,10 +45,15 @@ class Environment(models.Model):
     longitude = models.FloatField(null = True, blank = True)
     timestamp = models.DateTimeField(auto_now = True)
 
+    @models.permalink
+    def get_absolute_url(self):
+        return ('dispatch-env', (), {
+            'id': str(self.id)})
+            
 
 class Layout(models.Model):
     env = models.ForeignKey(Environment, related_name = "layouts")
-    level = models.IntegerField()
+    level = models.IntegerField(default = 0)
     mapURL = models.URLField()
     timestamp = models.DateTimeField(auto_now = True)
 
@@ -46,63 +65,99 @@ class Area(models.Model):
     )
     
     TYPE_CHOICES = (
-        ("interest", "Interest"), 
-        ("non-interest", "Non-Interest")
+        ("interest", "interest"), 
+        ("non-interest", "non-interest")
     )
     
     env = models.ForeignKey(Environment, related_name = "areas")
     areaType = models.CharField(max_length=50, choices = TYPE_CHOICES)
     name = models.CharField(max_length=140)
-    category = models.CharField(max_length=50, choices = CATEGORY_CHOICES)
     
-    data = fields.DataField(null = True, blank = True)
+    #category = models.CharField(max_length=50, choices = CATEGORY_CHOICES)
+    #data = fields.DataField(null = True, blank = True)
+    
     tags = fields.TagListField(null = True, blank = True)
     layout = models.ForeignKey(Layout, related_name = "areas", blank = True)
     
-    shape = fields.AreaShapeField(blank = True)
+    shape = fields.AreaShapeField(blank = True, null = True)
     timestamp = models.DateTimeField(auto_now = True)
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('dispatch-area', (), {
+            'areaID': str(self.id)})
+
+
+class Feature(models.Model):
+    CATEGORY_CHOICES = (
+        ("default", "default"), 
+        ("ordering", "ordering")
+    )
+    
+    area = models.ForeignKey(Area, null = True, blank = True, related_name = "features")
+    env = models.ForeignKey(Environment, null = True, blank = True, related_name = "features")
+    category = models.CharField(max_length=50, choices = CATEGORY_CHOICES)
+    data = fields.DataField(null = True, blank = True)
+
 
 
 class Announcement(models.Model):
     REPEAT_EVERY_CHOICES = (
-        ("none", "None"), 
-        ("day", "Day"), 
-        ("week", "Week")
+        ("none", "none"), 
+        ("day", "day"), 
+        ("week", "week")
     )
     
     area = models.ForeignKey(Area, null = True, blank = True, related_name = "announcements")
     env = models.ForeignKey(Environment, null = True, blank = True, related_name = "announcements")
     
     data = fields.DataField()
-    repeatEvery = models.CharField(max_length=50, choices = REPEAT_EVERY_CHOICES, default = "None")
+    repeatEvery = models.CharField(max_length=50, choices = REPEAT_EVERY_CHOICES, default = "none")
     
     triggers = fields.DateTimeListField()
     timestamp = models.DateTimeField(auto_now = True)
+    
+    @models.permalink
+    def get_absolute_url(self):
+        return ('dispatch-announcement', (), {
+            'announceID': str(self.id)})
+
 
 
 class Annotation(models.Model):
     area = models.ForeignKey(Area, null = True, blank = True, related_name = "annotations")
     env = models.ForeignKey(Environment, null = True, blank = True, related_name = "annotations")
-    user = models.ForeignKey(User, null = True, blank = True, on_delete=models.SET_NULL)
+    user = models.ForeignKey(UserProfile, null = True, blank = True, on_delete=models.SET_NULL)
     data = fields.DataField()
     timestamp = models.DateTimeField(auto_now = True)
+    
+    @models.permalink
+    def get_absolute_url(self):
+        return ('dispatch-annotation', (), {
+            'annID': str(self.id)})
+
 
 
 class History(models.Model):
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(UserProfile)
     area = models.ForeignKey(Area)
     env = models.ForeignKey(Environment)
     timestamp = models.DateTimeField(auto_now = True)
+    
+    @models.permalink
+    def get_absolute_url(self):
+        return ('handle-history', [str(self.user.id)])
+
 
 
 class Privacy(models.Model):
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(UserProfile)
     env = models.ForeignKey(Environment)
     relation = models.CharField(max_length=50)
     
 
 class UserContext(models.Model):
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(UserProfile)
     currentEnv = models.ForeignKey(Environment, null=True, blank = True)
     currentArea = models.ForeignKey(Area, null=True, blank = True)
     
