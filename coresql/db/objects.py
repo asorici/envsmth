@@ -3,7 +3,7 @@ from coresql.utils.validations import assert_arg_type, assert_arg_list_type, ass
 
 class ListWrapper(object):
     
-    def __init__(self, argList = None, limit = 100, elemType = unicode):
+    def __init__(self, argList = None, limit = 100, elemType = basestring):
         self.elemType = elemType
         
         if not argList is None:
@@ -65,34 +65,70 @@ class DateTimeList(ListWrapper):
         super(DateTimeList, self).__init__(argList = triggers, limit = limit, elemType = datetime)
 
 
-def json_encode(value):
+def dbencode(value):
     from django.utils import simplejson
     #d = {'value': value}
     return simplejson.dumps(value, ensure_ascii = False)
+    #return unicode(value)
 
 
 class Data(object):
-    def __init__(self, data, encode_func=json_encode):
+    TEXT = "text"
+    XML = "xml"
+    JSON = "json"
+    
+    def __init__(self, data, encode_func=dbencode, format = TEXT):
         self.data = data
         self.encode_func = encode_func
+        self.format = format
     
     def dbEncode(self):
         return str(self.encode_func(self.data))
     
     @staticmethod
-    def dbDecode(dataString, decode_func=None):
-        assert_arg_type(dataString, unicode)
+    def dbDecode(dataString):
+        assert_arg_type(dataString, basestring)
         
         ## this logic is poor - I believe the best way is to define a standard set of 
         ## representation formats and use try..except clauses to parse the incoming string
         ## according to the defined formats (formats: text, json, xml)
-        ## For now we treat it as a default of text 
-        if decode_func is None:
-            return Data(dataString)
+        ## For now we treat it as a default of text
+        
+        ## use tastypie's serializer to do the testing 
+        from tastypie.serializers import Serializer
+        ## instantiate a serializer to test
+        serdes = Serializer()
+        
+        dataobj = None
+        val = None
+        try:
+            val = serdes.from_xml(dataString)
+        except Exception:
+            val = None
+        
+        if val is None:
+            try:
+                val = serdes.from_json(dataString)
+            except Exception:
+                val = None
+            
+            if not isinstance(val, (dict, list)):
+                val = dataString
+                dataobj = Data(val, format = Data.TEXT)
+            else:
+                dataobj = Data(val, format = Data.JSON)
         else:
-            return decode_func(dataString)
-
+            dataobj = Data(val, format = Data.XML)
+        
+        ## then clean up after myself
+        del serdes
+        ## and return new data object
+        return dataobj
+        
+    
     def to_serializable(self):
+        ## we can just return data here since we try to ensure it is a serializable format (string, list, dict)
+        ## beforehand
         return self.data
 
     def __repr__(self):
