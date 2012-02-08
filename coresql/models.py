@@ -10,7 +10,7 @@ class UserProfile(models.Model):
     
     fbID = models.CharField(max_length=50)
     timestamp = models.DateTimeField(auto_now = True)
-    is_anonymous = models.BooleanField()
+    is_anonymous = models.BooleanField(default = False)
 
     @models.permalink
     def get_absolute_url(self):
@@ -157,7 +157,7 @@ class Privacy(models.Model):
     
 
 class UserContext(models.Model):
-    user = models.ForeignKey(UserProfile)
-    currentEnv = models.ForeignKey(Environment, null=True, blank = True)
-    currentArea = models.ForeignKey(Area, null=True, blank = True)
+    user = models.OneToOneField(UserProfile, related_name='context')
+    currentEnv = models.ForeignKey(Environment, null = True, blank = True)
+    currentArea = models.ForeignKey(Area, null = True, blank = True)
     

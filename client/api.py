@@ -107,7 +107,7 @@ class AnnouncementResource(ModelResource):
         fields = ['data', 'timestamp']
         excludes = ['id']
         filtering = {
-            #'area': ['exact'],
+            'area': ['exact'],
             'env': ['exact'],
             'timestamp': ['gt', 'gte'],
         }
@@ -115,9 +115,9 @@ class AnnouncementResource(ModelResource):
     
     
     def get_list(self, request, **kwargs):
-        ## override the list retrieval part to verify additionally that an ``env`` filter exists
+        ## override the list retrieval part to verify additionally that an ``env`` or ``area`` filter exists
         ## otherwise reject the call with a HttpMethodNotAllowed
-        if 'env' in request.GET:
+        if 'env' in request.GET or 'area' in request.GET:
             return super(AnnouncementResource, self).get_list(request, **kwargs)
         else:
             raise ImmediateHttpResponse(response=http.HttpMethodNotAllowed())
@@ -127,17 +127,31 @@ class AnnouncementResource(ModelResource):
         ## override the usual obj_list retrieval by filtering out only the yet to be given announcements 
         ## for the current environment (which we **know** must exist) 
         timestamp = datetime.now()
-        env_id = request.GET['env']
+        
+        ## get default object list
+        announcement_obj_list = super(AnnouncementResource, self).get_object_list(request)
+        
+        if 'env' in request.GET:
+            try:
+                env_id = request.GET['env']
+                environ = Environment.objects.get(id=env_id)
+                announcement_obj_list = announcement_obj_list.filter(env=environ)
+            except Exception:
+                pass
+            
+        if 'area' in request.GET:
+            try:
+                area_id = request.GET['area']
+                area = Area.objects.get(id=area_id)
+                announcement_obj_list = announcement_obj_list.filter(area=area)
+            except Exception:
+                pass
         
         try:
-            environ = Environment.objects.get(id=env_id)
-            obj_list = super(AnnouncementResource, self).get_object_list(request)
-            env_obj_list = obj_list.filter(env=environ)
-                    
             id_list = []
             ## loop through each announcement and see if any of its
             ## triggers are greater than the current timestamp
-            for obj in env_obj_list:
+            for obj in announcement_obj_list:
                 triggers = obj.triggers.getList()
                         
                 ## maybe make the following a little less hardcoded
@@ -166,8 +180,7 @@ class AnnouncementResource(ModelResource):
                 if should_be_included:
                     id_list.append(obj.id)
                     
-            
-            return env_obj_list.filter(id__in = id_list)
+            return announcement_obj_list.filter(id__in = id_list)
                     
         except Exception:
                 raise ImmediateHttpResponse(response=http.HttpMethodNotAllowed())
@@ -176,7 +189,7 @@ class AnnouncementResource(ModelResource):
 
 class AnnotationResource(ModelResource):
     env = fields.ForeignKey(EnvironmentResource, 'env', null = True)
-    area = fields.ForeignKey(AreaResource, 'area')
+    area = fields.ForeignKey(AreaResource, 'area', null = True)
     
     class Meta:
         queryset = Annotation.objects.all()
@@ -195,9 +208,9 @@ class AnnotationResource(ModelResource):
         validation = FormValidation(form_class = AnnotationForm)
         
     def get_list(self, request, **kwargs):
-        ## override the list retrieval part to verify additionally that an ``area`` filter exists
+        ## override the list retrieval part to verify additionally that an ``area`` or ``env`` filter exists
         ## otherwise reject the call with a HttpMethodNotAllowed
-        if 'area' in request.GET:
+        if 'area' in request.GET or 'env' in request.GET:
             return super(AnnotationResource, self).get_list(request, **kwargs)
         else:
             raise ImmediateHttpResponse(response=http.HttpMethodNotAllowed())

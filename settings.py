@@ -41,7 +41,7 @@ DATABASES = {
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'America/Chicago'
+TIME_ZONE = None
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -107,11 +107,17 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    #'envsocial.client.middleware.ClientCheckinUrlRedirectMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    #'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+)
+
+AUTHENTICATION_BACKENDS = (
+    'client.backends.AnonymousProfileBackend',
+    'django.contrib.auth.backends.ModelBackend',
 )
 
 ROOT_URLCONF = 'envsocial.urls'
@@ -124,7 +130,7 @@ TEMPLATE_DIRS = (
 
 
 AUTH_PROFILE_MODULE = 'coresql.UserProfile'
-
+CLIENT_LANDING_PAGE_URL = '/envsocial/'
 
 INSTALLED_APPS = (
     'django.contrib.auth',
