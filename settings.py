@@ -131,6 +131,7 @@ TEMPLATE_DIRS = (
 
 AUTH_PROFILE_MODULE = 'coresql.UserProfile'
 CLIENT_LANDING_PAGE_URL = '/envsocial/'
+SESSION_COOKIE_AGE = 10800
 
 INSTALLED_APPS = (
     'django.contrib.auth',
