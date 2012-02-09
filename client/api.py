@@ -5,6 +5,7 @@ from tastypie.exceptions import ImmediateHttpResponse
 from tastypie.validation import FormValidation
 from tastypie import fields, http
 from tastypie.authentication import Authentication
+from tastypie.api import Api
 from client.authorization import AnnotationAuthorization
 from datetime import datetime
 #from tastypie.utils import now
@@ -14,6 +15,7 @@ class UserResource(ModelResource):
     class Meta:
         queryset = UserProfile.objects.all()
         resource_name = 'user'
+        #api_name = 'v1/resources'
         allowed_methods = []
         
     
@@ -24,11 +26,13 @@ class EnvironmentResource(ModelResource):
     class Meta:
         queryset = Environment.objects.all()
         resource_name = 'environment'
+        #api_name = 'v1/resources'
         #fields = ['name', 'data', 'tags', 'parentID', 'category', 'latitude', 'longitude', 'timestamp']
         excludes = ['id', 'owner', 'width', 'height']
         detail_allowed_methods = ['get']
         list_allowed_methods = []
         authentication = Authentication()
+        default_format = "application/json"
         
     def dehydrate_tags(self, bundle):
         return bundle.obj.tags.to_serializable()
@@ -53,6 +57,7 @@ class AreaResource(ModelResource):
     class Meta:
         queryset = Area.objects.all()
         resource_name = 'area'
+        #api_name = 'v1/resources'
         allowed_methods = ['get']
         #fields = ['name', 'data', 'category', 'tags']
         excludes = ['id', 'env', 'shape', 'layout']
@@ -103,6 +108,7 @@ class AnnouncementResource(ModelResource):
     class Meta:
         queryset = Announcement.objects.all()
         resource_name = 'announcement'
+        #api_name = 'v1/resources'
         allowed_methods = ['get']
         fields = ['data', 'timestamp']
         excludes = ['id']
@@ -194,6 +200,7 @@ class AnnotationResource(ModelResource):
     class Meta:
         queryset = Annotation.objects.all()
         resource_name = 'annotation'
+        #api_name = 'v1/resources'
         allowed_methods = ['get', 'post', 'put', 'delete']
         fields = ['data', 'timestamp']
         #excludes = ['id', 'area']
@@ -215,8 +222,18 @@ class AnnotationResource(ModelResource):
         else:
             raise ImmediateHttpResponse(response=http.HttpMethodNotAllowed())
         
-
-
+    
+    def obj_create(self, bundle, request=None, **kwargs):
+        ## because of the AnnotationAuthorization class, request.user will have a profile
+        user_profile = request.user.get_profile()
+        return super(AnnotationResource, self).obj_create(bundle, request, user=user_profile)
+        
+    
+    def obj_update(self, bundle, request=None, **kwargs):
+        ## because of the AnnotationAuthorization class, request.user will have a profile
+        user_profile = request.user.get_profile()
+        return super(AnnotationResource, self).obj_update(bundle, request, user=user_profile)
+        
 
 class HistoryResource(ModelResource):
     env = fields.ForeignKey(EnvironmentResource, 'env')
@@ -225,6 +242,7 @@ class HistoryResource(ModelResource):
     
     class Meta:
         resource_name = 'history'
+        #api_name = 'v1/resources'
         queryset = History.objects.all()
         excludes = ['user']
         allowed_methods = ['get']
@@ -245,6 +263,43 @@ class HistoryResource(ModelResource):
 
 #############################################################################################################
 #############################################################################################################
+
+class ClientApi(Api):
+    
+    def __init__(self, *args, **kwargs):
+        super(ClientApi, self).__init__(*args, **kwargs)
+
+    
+    @property
+    def urls(self):
+        """
+        Provides URLconf details for the ``Api`` and all registered
+        ``Resources`` beneath it.
+        """
+        
+        from django.conf.urls.defaults import url, include, patterns
+        from tastypie.utils import trailing_slash
+        from client.views import checkin, checkout
+        
+        pattern_list = [
+            url(r"^(?P<api_name>%s)%s$" % (self.api_name, trailing_slash()), self.wrap_view('top_level'), name="api_%s_top_level" % self.api_name),
+        ]
+
+        for name in sorted(self._registry.keys()):
+            self._registry[name].api_name = self.api_name
+            pattern_list.append((r"^(?P<api_name>%s)/resources/" % self.api_name, include(self._registry[name].urls)))
+
+        ## then add the actions
+        pattern_list.extend([
+            url(r"^%s/actions/checkin/$" % self.api_name, checkin, name="checkin"),
+            url(r"^%s/actions/checkout/$" % self.api_name, checkout, name="checkout")
+        ])
+
+        urlpatterns = self.override_urls() + patterns('',
+            *pattern_list
+        )
+        return urlpatterns
+
 
 def get_timestamp_from_url(date_string):
     timestamp = None

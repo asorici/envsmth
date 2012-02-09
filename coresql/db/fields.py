@@ -94,6 +94,10 @@ class DataField(models.TextField):
         if isinstance(value, Data):
             return value
         
+        # the dict case
+        if isinstance(value, dict):
+            return Data(value)
+        
         # the string case which also matches the database case since we subclass TextField
         if not value is None:
             try:

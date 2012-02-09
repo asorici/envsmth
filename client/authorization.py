@@ -1,4 +1,5 @@
 from tastypie.authorization import Authorization
+from tastypie.serializers import Serializer
 from django.db.models import Q
 from coresql.models import UserContext, Environment, Area
 
@@ -7,18 +8,29 @@ class AnnotationAuthorization(Authorization):
         ## check here for annotation requests that the requesting user is actually checked in   
         if hasattr(request, 'user') and not request.user.is_anonymous():
             user = request.user.get_profile()       ## will be an instance of UserProfile => available context
+            
+            serdes = Serializer()
+            deserialized = None
+            try:
+                deserialized = serdes.deserialize(request.raw_post_data, format=request.META.get('CONTENT_TYPE', 'application/json'))
+            except Exception:
+                return False
+            
+            if deserialized is None:
+                return False
+            
             env_pk = None
             area_pk = None
             
-            if 'env' in request.REQUEST:
+            if 'env' in deserialized:
                 try:
-                    env_pk = int(request.REQUEST['env'])
+                    env_pk = int(deserialized['env'])
                 except:
                     pass
                     
-            if 'area' in request.REQUEST:
+            if 'area' in deserialized:
                 try:
-                    area_pk = int(request.REQUEST['area'])
+                    area_pk = int(deserialized['area'])
                 except:
                     pass
             
@@ -27,10 +39,10 @@ class AnnotationAuthorization(Authorization):
                 currentArea = user.context.currentArea
                 
                 ## if the user wants to make/get an annotation on/of an area and he is checked in at that area
-                if area_pk and area_pk == currentArea:
+                if area_pk and area_pk == currentArea.pk:
                     return True
                 ## alternatively he wants to make/get an annotation for/of the environment in which he is checked in 
-                elif env_pk and env_pk == currentEnv:
+                elif env_pk and env_pk == currentEnv.pk:
                     return True
                 
             except UserContext.DoesNotExist:

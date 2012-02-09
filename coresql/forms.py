@@ -89,7 +89,7 @@ class AnnotationForm(forms.ModelForm):
 
     class Meta:
         model = Annotation
-        exclude = ("timestamp", )
+        exclude = ("timestamp", "user",)
 
 
 class UpdateAnnotationForm(AnnotationForm):
@@ -131,8 +131,8 @@ class UpdateAnnouncementForm(AnnouncementForm):
 
 
 class CheckinForm(forms.Form):
-    area = forms.IntegerField()
-    env = forms.IntegerField()
+    area = forms.IntegerField(required = False)
+    env = forms.IntegerField(required = False)
     
     def clean(self):
         cleaned_data = super(CheckinForm, self).clean()
@@ -148,7 +148,4 @@ class CheckinForm(forms.Form):
         
         return cleaned_data
     
-###########################################################################################################
-#################### Special form fields for Data, TagList, DateTimeList and AreaShape ####################
-###########################################################################################################
         

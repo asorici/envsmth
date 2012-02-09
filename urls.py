@@ -1,4 +1,5 @@
 from django.conf.urls.defaults import patterns, include, url
+from django.views.generic.simple import direct_to_template
 #from coresql import views
 
 from tastypie.api import Api
@@ -30,4 +31,5 @@ urlpatterns = patterns('',
     
     #(r'^envsocial/resources/client/', include(v1_api.urls)),
     (r'^envsocial/client/', include('envsocial.client.urls')),
+    (r'^envsocial/test/$', direct_to_template, {'template': 'test_requests.html'})
 )

@@ -1,7 +1,8 @@
 apache/
+media/
+static/
 *.pyc
 .project
 .pydevproject
-*test.py
 .settings/
 .gitignore
