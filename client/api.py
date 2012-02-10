@@ -1,34 +1,57 @@
 from coresql.models import Environment, Area, Annotation, Announcement, History, UserProfile
 from coresql.forms import AnnotationForm
 from tastypie.resources import ModelResource, ALL, ALL_WITH_RELATIONS
-from tastypie.exceptions import ImmediateHttpResponse
-from tastypie.validation import FormValidation
+from tastypie.exceptions import ImmediateHttpResponse, NotFound
+#from tastypie.validation import FormValidation
 from tastypie import fields, http
 from tastypie.authentication import Authentication
 from tastypie.api import Api
 from client.authorization import AnnotationAuthorization
+from client.validation import AnnotationValidation
 from datetime import datetime
+from django.core.exceptions import MultipleObjectsReturned
 #from tastypie.utils import now
 
 
 class UserResource(ModelResource):
+    first_name = fields.CharField(readonly = True)
+    last_name = fields.CharField(readonly = True)
+    
     class Meta:
         queryset = UserProfile.objects.all()
         resource_name = 'user'
-        #api_name = 'v1/resources'
-        allowed_methods = []
+        allowed_methods = ["get"]
+        excludes = ["id", "fbID", "timestamp", "is_anonymous"]
         
+    def dehydrate_first_name(self, bundle):
+        return bundle.obj.user.first_name
+        
+    def dehydrate_last_name(self, bundle):
+        return bundle.obj.user.last_name
+    
+    def dehydrate(self, bundle):
+        ## if the user is requesting his own data then return his email too as it
+        ## is an identifying element
+        if hasattr(bundle.request, "user") and not bundle.request.user.is_anonymous():
+            user_profile = bundle.request.user.get_profile()
+            if user_profile.pk == bundle.obj.pk:
+                bundle.data['username'] = bundle.obj.user.username
+                bundle.data['email'] = bundle.obj.user.email 
+    
+        return bundle
     
 
 class EnvironmentResource(ModelResource):
     features = fields.ListField()
+    parent = fields.ForeignKey('self', 'parent', null = True)
+    owner = fields.ForeignKey(UserResource, 'owner', full = True)
     
     class Meta:
         queryset = Environment.objects.all()
         resource_name = 'environment'
         #api_name = 'v1/resources'
         #fields = ['name', 'data', 'tags', 'parentID', 'category', 'latitude', 'longitude', 'timestamp']
-        excludes = ['id', 'owner', 'width', 'height']
+        excludes = ['id', 'width', 'height']
         detail_allowed_methods = ['get']
         list_allowed_methods = []
         authentication = Authentication()
@@ -37,6 +60,7 @@ class EnvironmentResource(ModelResource):
     def dehydrate_tags(self, bundle):
         return bundle.obj.tags.to_serializable()
     
+    
     def dehydrate_features(self, bundle):
         ## return a list of dictionary values from the features of this environment
         feature_list = []
@@ -46,24 +70,31 @@ class EnvironmentResource(ModelResource):
         return feature_list
     
     
+    def dehydrate(self, bundle):
+        """
+        append layout url if a level filter exists in the request 
+        """
+        if "level" in bundle.request.GET:
+            level = int(bundle.request.GET["level"])
+            bundle.data["layout_url"] = bundle.obj.layouts.get(level=level).mapURL
+        
+        return bundle
+    
 
 class AreaResource(ModelResource):
-    env = fields.ForeignKey(EnvironmentResource, 'env')
-    level = fields.IntegerField()
-    layout_url = fields.CharField()
+    parent = fields.ForeignKey(EnvironmentResource, 'env')
     
     features = fields.ListField()
     
     class Meta:
         queryset = Area.objects.all()
         resource_name = 'area'
-        #api_name = 'v1/resources'
         allowed_methods = ['get']
-        #fields = ['name', 'data', 'category', 'tags']
-        excludes = ['id', 'env', 'shape', 'layout']
+        excludes = ['id', 'shape', 'layout']
         filtering = {
-            'env': ['exact'],
-            'level': ['exact']
+            'parent': ['exact'],
+            ##'level': ['exact']
+            ## TODO - fix filtering by level as it has to be done manually !!!
         }
         authentication = Authentication()
         
@@ -71,20 +102,25 @@ class AreaResource(ModelResource):
     def get_list(self, request, **kwargs):
         ## override the list retrieval part to verify additionally that an ``env`` filter exists
         ## otherwise reject the call with a HttpMethodNotAllowed
-        if 'env' in request.GET or 'q' in request.GET:
+        if 'parent' in request.GET or 'q' in request.GET:
             return super(AreaResource, self).get_list(request, **kwargs)
         else:
             raise ImmediateHttpResponse(response=http.HttpMethodNotAllowed())
     
     
-    def dehydrate_level(self, bundle):
-        ## get level data from the layout reference of the Area obj
-        return bundle.obj.layout.level
-            
-    
-    def dehydrate_layout_url(self, bundle):
-        ## get layout-url data from the layout reference of the Area obj
-        return bundle.obj.layout.mapURL
+    def build_filters(self, filters = None):
+        """
+        enable filtering by level (which does not have its own field)
+        """
+        if filters is None:
+            filters = {}
+        
+        orm_filters = super(AreaResource, self).build_filters(filters)
+        
+        if "level" in filters:
+            orm_filters["layout__level"] = int(filters["level"])
+        
+        return orm_filters
     
     
     def dehydrate_tags(self, bundle):
@@ -98,9 +134,17 @@ class AreaResource(ModelResource):
             feature_list.append({'category': feature.category, 'data': feature.data.to_serializable()})
 
         return feature_list
+    
+    
+    def dehydrate(self, bundle):
+        """
+        append level data from the layout reference of the Area obj
+        """
+        bundle.data['level'] = bundle.obj.layout.level
+        return bundle
+    
         
     
-
 class AnnouncementResource(ModelResource):
     env = fields.ForeignKey(EnvironmentResource, 'env')
     area = fields.ForeignKey(AreaResource, 'area', null = True)
@@ -108,7 +152,6 @@ class AnnouncementResource(ModelResource):
     class Meta:
         queryset = Announcement.objects.all()
         resource_name = 'announcement'
-        #api_name = 'v1/resources'
         allowed_methods = ['get']
         fields = ['data', 'timestamp']
         excludes = ['id']
@@ -189,7 +232,7 @@ class AnnouncementResource(ModelResource):
             return announcement_obj_list.filter(id__in = id_list)
                     
         except Exception:
-                raise ImmediateHttpResponse(response=http.HttpMethodNotAllowed())
+            raise ImmediateHttpResponse(response=http.HttpMethodNotAllowed())
     
     
 
@@ -200,7 +243,6 @@ class AnnotationResource(ModelResource):
     class Meta:
         queryset = Annotation.objects.all()
         resource_name = 'annotation'
-        #api_name = 'v1/resources'
         allowed_methods = ['get', 'post', 'put', 'delete']
         fields = ['data', 'timestamp']
         #excludes = ['id', 'area']
@@ -212,7 +254,9 @@ class AnnotationResource(ModelResource):
         ordering = ['timestamp']
         authentication = Authentication()
         authorization = AnnotationAuthorization()
-        validation = FormValidation(form_class = AnnotationForm)
+        #validation = FormValidation(form_class = AnnotationForm)
+        validation = AnnotationValidation()
+        
         
     def get_list(self, request, **kwargs):
         ## override the list retrieval part to verify additionally that an ``area`` or ``env`` filter exists
@@ -228,11 +272,42 @@ class AnnotationResource(ModelResource):
         user_profile = request.user.get_profile()
         return super(AnnotationResource, self).obj_create(bundle, request, user=user_profile)
         
-    
+    """
     def obj_update(self, bundle, request=None, **kwargs):
         ## because of the AnnotationAuthorization class, request.user will have a profile
         user_profile = request.user.get_profile()
-        return super(AnnotationResource, self).obj_update(bundle, request, user=user_profile)
+        print "obj update UserProfile: " + str(user_profile)
+        kwargs['user'] = user_profile
+        bundle = super(AnnotationResource, self).obj_update(bundle, request, **kwargs)
+        print bundle.data
+        return bundle
+    """
+    
+    def obj_get(self, request=None, **kwargs):
+        """
+        A ORM-specific implementation of ``obj_get``.
+
+        Takes optional ``kwargs``, which are used to narrow the query to find
+        the instance.
+        """
+        try:
+            print kwargs
+            base_object_list = self.get_object_list(request).filter(**kwargs)
+            
+            print base_object_list
+            object_list = self.apply_authorization_limits(request, base_object_list)
+            stringified_kwargs = ', '.join(["%s=%s" % (k, v) for k, v in kwargs.items()])
+
+            if len(object_list) <= 0:
+                raise self._meta.object_class.DoesNotExist("Couldn't find an instance of '%s' which matched '%s'." % (self._meta.object_class.__name__, stringified_kwargs))
+            elif len(object_list) > 1:
+                raise MultipleObjectsReturned("More than '%s' matched '%s'." % (self._meta.object_class.__name__, stringified_kwargs))
+
+            return object_list[0]
+        except ValueError:
+            raise NotFound("Invalid resource lookup data provided (mismatched type).")
+    
+    
         
 
 class HistoryResource(ModelResource):
@@ -242,7 +317,6 @@ class HistoryResource(ModelResource):
     
     class Meta:
         resource_name = 'history'
-        #api_name = 'v1/resources'
         queryset = History.objects.all()
         excludes = ['user']
         allowed_methods = ['get']

@@ -8,8 +8,8 @@ def checkin(request):
     ## and will correspond to the user field in UserProfile
     
     ## run check to see if all required fields are present
-    #check_form = CheckinForm(request.POST)
-    check_form = CheckinForm(request.REQUEST)
+    check_form = CheckinForm(request.POST)
+    #check_form = CheckinForm(request.REQUEST)
     if check_form.is_valid():
         ## access area id from check_f.cleaned_data
         area_id = check_form.cleaned_data['area']

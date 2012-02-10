@@ -12,6 +12,9 @@ class UserProfile(models.Model):
     timestamp = models.DateTimeField(auto_now = True)
     is_anonymous = models.BooleanField(default = False)
 
+    def __unicode__(self):
+        return self.user.username + ": anonymous=" + str(self.is_anonymous)
+
     @models.permalink
     def get_absolute_url(self):
         return ('handle-user', [str(self.user.id)])
@@ -23,7 +26,6 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 post_save.connect(create_user_profile, sender=User)
     
-
 
 class Environment(models.Model):
     CATEGORY_CHOICES = (
@@ -37,7 +39,7 @@ class Environment(models.Model):
     #category = models.CharField(max_length=50, choices = CATEGORY_CHOICES)
     #data = fields.DataField()
     
-    parentID = models.IntegerField(null = True, blank = True)
+    parent = models.ForeignKey('self', null = True, blank = True, related_name="children")
     tags = fields.TagListField(null = True, blank = True)
     width = models.IntegerField(null = True, blank = True)
     height = models.IntegerField(null = True, blank = True)
@@ -135,9 +137,11 @@ class Annotation(models.Model):
     def get_absolute_url(self):
         return ('dispatch-annotation', (), {
             'annID': str(self.id)})
-
-
-
+    
+    
+    def __unicode__(self):
+        return str(self.user) + " - " + self.area.name
+    
 class History(models.Model):
     user = models.ForeignKey(UserProfile)
     area = models.ForeignKey(Area)

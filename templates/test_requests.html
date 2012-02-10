@@ -1,0 +1,115 @@
+<html>
+	<head>
+		<script src="/static/jquery.js" type="text/javascript" > </script>
+		<title>Test Page </title>
+	</head>
+	<body>
+		<script type="text/javascript">
+			$(document).ready(function() {
+  				// make here a checkin request
+  				// if successfull - post an annotation
+  				checkin_data = {'clientrequest':'true', 'area':2}
+  				$.post('/envsocial/client/v1/actions/checkin/', checkin_data, 
+  					function(response){
+  						$( "#checkin_result" ).empty().append( response );
+  						if (response.success) {
+  							//post_annotation();
+  							//delete_annotation("/envsocial/client/v1/resources/annotation/16/");
+  							put_annotation("/envsocial/client/v1/resources/annotation/17/");
+  						}
+  					},
+  					"json"
+  				)
+			});
+			
+			function post_annotation() {
+				var ann_data = {"order_menu":
+									[{"category": "Andrei\'s Beer", 
+										"items": 
+											[{"name": "RedBeer", "description": "Coolest beer in town!", "price": "free"}, 
+											{"name": "YelloBeer", "description": "Coolest beer in town!", "price": "free"}, 
+											{"name": "BlueBeer", "description": "Coolest beer in town!", "price": "free"}
+											]}, 
+									{"category": "Andrei\'s Chips", 
+										"items": 
+											[{"name": "RedChips", "description": "Coolest chips in town!", "price": "free"}, 
+											{"name": "YelloChips", "description": "Coolest chips in town!", "price": "free"}, 
+											{"name": "BlueChips", "description": "Coolest chips in town!", "price": "free"}
+											]}
+									]}
+				
+				var content = {"area": "/envsocial/client/v1/resources/area/2/", "data" : ann_data}
+				
+				$.ajax({
+					url: "/envsocial/client/v1/resources/annotation/",
+					success: function(response){
+  						console.log(response);
+  						$( "#annotation_result" ).empty().append( response );
+  					},
+  					error: function(response){
+  						console.log(response);
+  						$("#annotation_result").empty().append( response );
+  					},
+  					data: JSON.stringify(content),
+  					contentType: "application/json",
+  					dataType: "json",
+  					type: "POST"
+  				})
+			}
+			
+			function delete_annotation(ann_uri) {
+				$.ajax({
+					url: ann_uri,
+					success: function(response){
+  						console.log(response);
+  						$( "#annotation_result" ).empty().append( response );
+  					},
+  					error: function(response){
+  						console.log(response);
+  						$("#annotation_result").empty().append( response );
+  					},
+  					contentType: "application/json",
+  					dataType: "json",
+  					type: "DELETE"
+  				})
+			}
+			
+			function put_annotation(ann_uri) {
+				var ann_data = {"order_menu":
+									[{"category": "Alex\'s Beer", 
+										"items": 
+											[{"name": "RedAlexBeer", "description": "Coolest beer in town!", "price": "free"}, 
+											{"name": "YellowAlexBeer", "description": "Coolest beer in town!", "price": "free"}, 
+											{"name": "BlueAlexBeer", "description": "Coolest beer in town!", "price": "free"}
+											]}, 
+									{"category": "Andrei\'s Chips", 
+										"items": 
+											[{"name": "RedChips", "description": "Coolest chips in town!", "price": "free"}, 
+											{"name": "YelloChips", "description": "Coolest chips in town!", "price": "free"}, 
+											{"name": "BlueChips", "description": "Coolest chips in town!", "price": "free"}
+											]}
+									]}
+				
+				var content = {"area": "/envsocial/client/v1/resources/area/2/", "data" : ann_data}
+				
+				$.ajax({
+					url: ann_uri,
+					success: function(response){
+  						console.log(response);
+  						$( "#annotation_result" ).empty().append( response );
+  					},
+  					error: function(response){
+  						console.log(response);
+  						$("#annotation_result").empty().append( response );
+  					},
+  					contentType: "application/json",
+  					dataType: "json",
+  					data: JSON.stringify(content),
+  					type: "PUT"
+  				})
+			}
+		</script>
+		<div id="checkin_result" ></div>
+		<div id="annotation_result"></div>
+	</body>
+</html>
