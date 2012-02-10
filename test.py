@@ -76,14 +76,14 @@ def test_Q():
 
 
 def dummy_sql_insert():
-    create_users = False
-    create_env = False
-    create_env_features = False
-    create_layout = False
-    create_areas = False
-    create_area_features = False
-    create_announcements = False
-    create_annotations = False
+    create_users = True
+    create_env = True
+    create_env_features = True
+    create_layout = True
+    create_areas = True
+    create_area_features = True
+    create_announcements = True
+    create_annotations = True
     
     ## 1) first lets create some users
     if create_users:
