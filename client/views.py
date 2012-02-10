@@ -8,8 +8,8 @@ def checkin(request):
     ## and will correspond to the user field in UserProfile
     
     ## run check to see if all required fields are present
-    check_form = CheckinForm(request.POST)
-    #check_form = CheckinForm(request.REQUEST)
+    #check_form = CheckinForm(request.POST)
+    check_form = CheckinForm(request.REQUEST)
     if check_form.is_valid():
         ## access area id from check_f.cleaned_data
         area_id = check_form.cleaned_data['area']
@@ -31,7 +31,7 @@ def checkin(request):
         
         ## is no valid area and environment data has been found => fail the checkin 
         if area is None and env is None:
-            return checkin_failed(data = {"msg": "No area ("+ str(area_id) +") or environment (" + str(env_id) + ") found." })
+            return checkin_failed(request, data = {"msg": "No area ("+ str(area_id) +") or environment (" + str(env_id) + ") found." })
         
         ## get user and correct env
         user = request.user.get_profile()   ## should point to a UserProfile model
