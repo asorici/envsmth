@@ -1,4 +1,4 @@
-from coresql.forms import CheckinForm
+from coresql.forms import CheckinForm, LoginForm
 from coresql.models import Environment, Area, UserContext
 from client.decorators import allow_anonymous_profile
 
@@ -6,17 +6,16 @@ from client.decorators import allow_anonymous_profile
 def login(request):
     from django.contrib.auth import authenticate, login
     
-    username = request.POST.get("email")
-    password = request.POST.get("password")
+    form = LoginForm(request.REQUEST)
+    #form = LoginForm(request.POST)
     
-    if username and password:
-        user = authenticate(username = username, password = password)
+    if form.is_valid():
+        user = form.get_user()
         if not user is None:
-            ## TODO maybe later treat enabled vs. disabled accounts
             login(request, user)
             return login_succeeded(request, user)
     
-    return login_failed(request)
+    return login_failed(request, data = form.errors)
 
 
 @allow_anonymous_profile
@@ -105,24 +104,24 @@ def checkout(request):
 
 
 def login_succeeded(request, user):
-    from django.http import HttpResponse
+    response = {"success": True, "code": 200, "data" : {}}
+    return view_response(request, response, 200)
     
     ## TODO maybe include data about user
-    return HttpResponse(status = 200)
+    return view_response(request, response, 200)
 
 
-def login_failed(request):
-    from tastypie import http
-    from tastypie.exceptions import ImmediateHttpResponse
+def login_failed(request, data = None):
+    response = {"success": False, "code": 401, "data": {"msg": "Login failed."}}
     
-    return ImmediateHttpResponse(http.HttpUnauthorized())
+    if not data is None:
+        response['data'].update(data)
+    
+    return view_response(request, response, 401)
 
 
 def checkin_succeeded(request, area = None, env = None):
-    from django.http import HttpResponse
     from client.api import AreaResource, EnvironmentResource
-    from tastypie.serializers import Serializer
-    from tastypie.utils.mime import determine_format
     
     ## default is to just return an 200 OK http response
     response = {"success": True, "code": 200, "data" : {}}
@@ -145,50 +144,35 @@ def checkin_succeeded(request, area = None, env = None):
         env_data = {"location_type" : "environment", "location_data" : envr.full_dehydrate(envr_bundle).data}
         response['data'].update(env_data)
     
-    serdes = Serializer(formats = ['json', 'xml'])
-    mimetype = determine_format(request, serdes)
-    response = serdes.serialize(response, mimetype)
-    del serdes
-    
-    http_response = HttpResponse(response, mimetype=mimetype)
-    http_response.status_code = 200
-    return http_response
-
-
-def checkout_succeeded(request):
-    from django.http import HttpResponse
-    from tastypie.serializers import Serializer
-    from tastypie.utils.mime import determine_format
-    
-    ## default is to just return an 200 OK http response
-    response = {"success": True, "code": 200, "data" : {}}
-    serdes = Serializer(formats = ['json', 'xml'])
-    mimetype = determine_format(request, serdes)
-    response = serdes.serialize(response, mimetype)
-    del serdes
-    
-    http_response = HttpResponse(response, mimetype=mimetype)
-    http_response.status_code = 200
-    return http_response
+    return view_response(request, response, 200)
 
 
 def checkin_failed(request, data = None):
-    from django.http import HttpResponse
-    from tastypie.serializers import Serializer
-    from tastypie.utils.mime import determine_format
-    
     response = {"success": False, "code": 400, "data": {"msg": "Checkin failed."}}
     
     if not data is None:
         response['data'].update(data)
     
+    return view_response(request, response, 400)
+
+
+def checkout_succeeded(request):
+    ## default is to just return an 200 OK http response
+    response = {"success": True, "code": 200, "data" : {}}
+    return view_response(request, response, 200)
+
+
+def view_response(request, response, code):
+    from django.http import HttpResponse
+    from tastypie.serializers import Serializer
+    from tastypie.utils.mime import determine_format
+    
     serdes = Serializer(formats = ['json', 'xml'])
     mimetype = determine_format(request, serdes)
     response = serdes.serialize(response, mimetype)
     del serdes
     
     http_response = HttpResponse(response, mimetype=mimetype)
-    http_response.status_code = 400
+    http_response.status_code = code
     return http_response
-
     

@@ -1,5 +1,4 @@
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm
 from coresql.models import Environment, Area, Annotation, Announcement
 
 
@@ -152,20 +151,36 @@ class CheckinForm(forms.Form):
 
 class LoginForm(forms.Form):
     email = forms.EmailField(required = True)
-    password = forms.
+    password = forms.CharField(required = True)
+    
+    def __init__(self, *args, **kwargs):
+        self.user_cache = None
+        super(LoginForm, self).__init__(*args, **kwargs)
     
     def clean(self):
-        cleaned_data = super(CheckinForm, self).clean()
-        env = cleaned_data.get("env")
-        area = cleaned_data.get("area")
-    
-        if env is None and area is None:
-            raise forms.ValidationError("Environment and Area data are both missing. At least one is required.")
+        from django.contrib.auth import authenticate
+        from django.utils.translation import ugettext_lazy as _
         
-        if env and area and area.env != env:
-            raise forms.ValidationError("Environment and Area data is contradictory." + 
-                                        "Environment and Area.Environment don't match.")
+        cleaned_data = super(LoginForm, self).clean()
         
-        return cleaned_data
+        email = cleaned_data.get('email')
+        password = cleaned_data.get('password')
 
-     
+        if email and password:
+            self.user_cache = authenticate(username=email, password=password)
+            if self.user_cache is None:
+                raise forms.ValidationError(_("Please enter a correct username and password. Note that both fields are case-sensitive."))
+            elif not self.user_cache.is_active:
+                raise forms.ValidationError(_("This account is inactive."))
+            
+        return cleaned_data
+    
+    
+    def get_user_id(self):
+        if self.user_cache:
+            return self.user_cache.id
+        return None
+
+    
+    def get_user(self):
+        return self.user_cache

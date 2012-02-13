@@ -1,6 +1,6 @@
 from coresql.models import Environment, Area, Annotation, Announcement, History, UserProfile
 #from coresql.forms import AnnotationForm
-from tastypie.resources import ModelResource, NOT_AVAILABLE
+from tastypie.resources import ModelResource
 from tastypie.exceptions import ImmediateHttpResponse, NotFound
 #from tastypie.validation import FormValidation
 from tastypie import fields, http
@@ -9,8 +9,7 @@ from tastypie.api import Api
 from client.authorization import AnnotationAuthorization
 from client.validation import AnnotationValidation
 from datetime import datetime
-from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
-#from tastypie.utils import now
+from django.core.exceptions import MultipleObjectsReturned
 
 
 class UserResource(ModelResource):
@@ -51,7 +50,7 @@ class EnvironmentResource(ModelResource):
         resource_name = 'environment'
         #api_name = 'v1/resources'
         #fields = ['name', 'data', 'tags', 'parentID', 'category', 'latitude', 'longitude', 'timestamp']
-        excludes = ['id', 'width', 'height']
+        excludes = ['width', 'height']
         detail_allowed_methods = ['get']
         list_allowed_methods = []
         authentication = Authentication()
@@ -90,7 +89,7 @@ class AreaResource(ModelResource):
         queryset = Area.objects.all()
         resource_name = 'area'
         allowed_methods = ['get']
-        excludes = ['id', 'shape', 'layout']
+        excludes = ['shape', 'layout']
         filtering = {
             'parent': ['exact'],
             ##'level': ['exact']
