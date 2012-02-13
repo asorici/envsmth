@@ -30,7 +30,7 @@ class AnnotationValidation(Validation):
                 errors['env'] = ['No or wrong environment uri']
                 errors['area'] = ['No or wrong area uri']
                 
-            if not env_obj is None and area_obj.env != env_obj:
+            if not env_obj is None and not area_obj is None and area_obj.env != env_obj:
                 errors['env'] = ["Environment resource mismatches parent environment of area resource."]
             
         ## TODO - some additional validation of the data field might also be possible
