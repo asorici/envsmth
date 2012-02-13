@@ -107,35 +107,35 @@ def dummy_sql_insert():
         env_data = {'owner': owner, 'name': 'Environment1', 
                     'tags': u'tag1;tag2;tag3', 'width': 500, 'height': 500
                     }
-        env = Environment(**env_data)
-        env.save()
+        environment = Environment(**env_data)
+        environment.save()
 
     ## 3) create env features
     if create_env_features:
-        env = Environment.objects.get(name='Environment1')
-        feature_data = {'env': env, 'category': 'default', 
+        environment = Environment.objects.get(name='Environment1')
+        feature_data = {'environment': environment, 'category': 'default', 
                     'data': u'test data for environment1'}
         feature = Feature(**feature_data)
         feature.save()
         
     ## 4) create a layout
     if create_layout:
-        env = Environment.objects.get(name='Environment1')
-        layout_data = {'env': env, 'mapURL': 'http://acme.aquasoft.com/some-dummy-layout-url'}
-        env_layout = Layout(**layout_data)
-        env_layout.save()
+        environment = Environment.objects.get(name='Environment1')
+        layout_data = {'environment': environment, 'mapURL': 'http://acme.aquasoft.com/some-dummy-layout-url'}
+        environment_layout = Layout(**layout_data)
+        environment_layout.save()
         
     ## 5) create some test areas for the environment
     if create_areas:
         # create 4 areas
-        env_layout = Layout.objects.get(env__name = 'Environment1')
-        env = env_layout.env
+        environment_layout = Layout.objects.get(environment__name = 'Environment1')
+        environment = environment_layout.environment
         area_shape = AreaShape(AreaShape.TYPE_POLYGON, Point2D(10.0,10.0), Point2D(100.0,400.0))
          
         for i in range(4):
             area_data = {'name': 'area_' + str(i + 1), 'areaType': 'interest',
                          'tags': u'tag1;tag2;tag3', 
-                         'layout': env_layout, 'env': env, 'shape': area_shape
+                         'layout': environment_layout, 'environment': environment, 'shape': area_shape
                          }
             area = Area(**area_data)
             area.save()
@@ -161,12 +161,12 @@ def dummy_sql_insert():
             triggers1 = [now + timedelta(hours=-10), now + timedelta(hours=-8)]
             trigger_list1 = DateTimeList(triggers = triggers1) 
             
-            ann1 = Announcement(env = area.env, area=area, triggers = trigger_list1, repeatEvery = "day", 
+            ann1 = Announcement(environment = area.environment, area=area, triggers = trigger_list1, repeatEvery = "day", 
                                  data = u'some announcement data 1')
             
             triggers2 = [now + timedelta(days=1, hours=-10), now + timedelta(days = 2, hours=-8)]
             trigger_list2 = DateTimeList(triggers = triggers2)
-            ann2 = Announcement(env = area.env, area=area, triggers = trigger_list2, repeatEvery = "week", 
+            ann2 = Announcement(environment = area.environment, area=area, triggers = trigger_list2, repeatEvery = "week", 
                                  data = u'some announcement data 2')
             
             ann1.save()
