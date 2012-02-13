@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.forms import AuthenticationForm
 from coresql.models import Environment, Area, Annotation, Announcement
 
 
@@ -148,4 +149,23 @@ class CheckinForm(forms.Form):
         
         return cleaned_data
     
+
+class LoginForm(forms.Form):
+    email = forms.EmailField(required = True)
+    password = forms.
+    
+    def clean(self):
+        cleaned_data = super(CheckinForm, self).clean()
+        env = cleaned_data.get("env")
+        area = cleaned_data.get("area")
+    
+        if env is None and area is None:
+            raise forms.ValidationError("Environment and Area data are both missing. At least one is required.")
         
+        if env and area and area.env != env:
+            raise forms.ValidationError("Environment and Area data is contradictory." + 
+                                        "Environment and Area.Environment don't match.")
+        
+        return cleaned_data
+
+     

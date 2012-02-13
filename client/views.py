@@ -2,6 +2,23 @@ from coresql.forms import CheckinForm
 from coresql.models import Environment, Area, UserContext
 from client.decorators import allow_anonymous_profile
 
+
+def login(request):
+    from django.contrib.auth import authenticate, login
+    
+    username = request.POST.get("email")
+    password = request.POST.get("password")
+    
+    if username and password:
+        user = authenticate(username = username, password = password)
+        if not user is None:
+            ## TODO maybe later treat enabled vs. disabled accounts
+            login(request, user)
+            return login_succeeded(request, user)
+    
+    return login_failed(request)
+
+
 @allow_anonymous_profile
 def checkin(request):
     ## request.user will have been filled in by whatever backend
@@ -81,9 +98,25 @@ def checkout(request):
     logout(request)
     
     return checkout_succeeded(request)
+
     
 ###############################################################################################################
 ###############################################################################################################
+
+
+def login_succeeded(request, user):
+    from django.http import HttpResponse
+    
+    ## TODO maybe include data about user
+    return HttpResponse(status = 200)
+
+
+def login_failed(request):
+    from tastypie import http
+    from tastypie.exceptions import ImmediateHttpResponse
+    
+    return ImmediateHttpResponse(http.HttpUnauthorized())
+
 
 def checkin_succeeded(request, area = None, env = None):
     from django.http import HttpResponse

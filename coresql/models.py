@@ -140,7 +140,12 @@ class Annotation(models.Model):
     
     
     def __unicode__(self):
-        return str(self.user) + " - " + self.area.name
+        if self.user and self.area:
+            return str(self.user) + " - " + self.area.name
+        elif self.area:
+            return "annotation for area " + self.area.name + " but empty user field"
+        else:
+            return "empty annotation object"
     
 class History(models.Model):
     user = models.ForeignKey(UserProfile)

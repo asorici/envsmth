@@ -1,6 +1,6 @@
 from coresql.models import Environment, Area, Annotation, Announcement, History, UserProfile
-from coresql.forms import AnnotationForm
-from tastypie.resources import ModelResource, ALL, ALL_WITH_RELATIONS
+#from coresql.forms import AnnotationForm
+from tastypie.resources import ModelResource, NOT_AVAILABLE
 from tastypie.exceptions import ImmediateHttpResponse, NotFound
 #from tastypie.validation import FormValidation
 from tastypie import fields, http
@@ -9,7 +9,7 @@ from tastypie.api import Api
 from client.authorization import AnnotationAuthorization
 from client.validation import AnnotationValidation
 from datetime import datetime
-from django.core.exceptions import MultipleObjectsReturned
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 #from tastypie.utils import now
 
 
@@ -239,11 +239,13 @@ class AnnouncementResource(ModelResource):
 class AnnotationResource(ModelResource):
     env = fields.ForeignKey(EnvironmentResource, 'env', null = True)
     area = fields.ForeignKey(AreaResource, 'area', null = True)
+    user = fields.ForeignKey(UserResource, 'user')
     
     class Meta:
         queryset = Annotation.objects.all()
         resource_name = 'annotation'
-        allowed_methods = ['get', 'post', 'put', 'delete']
+        detail_allowed_methods = ['get', 'put', 'delete']
+        list_allowed_methods = ['get', 'post']
         fields = ['data', 'timestamp']
         #excludes = ['id', 'area']
         filtering = {
@@ -272,41 +274,17 @@ class AnnotationResource(ModelResource):
         user_profile = request.user.get_profile()
         return super(AnnotationResource, self).obj_create(bundle, request, user=user_profile)
         
-    """
+    
     def obj_update(self, bundle, request=None, **kwargs):
-        ## because of the AnnotationAuthorization class, request.user will have a profile
-        user_profile = request.user.get_profile()
-        print "obj update UserProfile: " + str(user_profile)
-        kwargs['user'] = user_profile
-        bundle = super(AnnotationResource, self).obj_update(bundle, request, **kwargs)
-        print bundle.data
-        return bundle
-    """
-    
-    def obj_get(self, request=None, **kwargs):
         """
-        A ORM-specific implementation of ``obj_get``.
-
-        Takes optional ``kwargs``, which are used to narrow the query to find
-        the instance.
-        """
+        Could be an intentional bug that the default obj_update treats DoesNotExist and MultipleObjectReturned
+        as acceptible exceptions which get transformed into a CREATE operation.
+        We don't want such a behavior. So we catch does exceptions and throw an Authorization required message
+        """    
         try:
-            print kwargs
-            base_object_list = self.get_object_list(request).filter(**kwargs)
-            
-            print base_object_list
-            object_list = self.apply_authorization_limits(request, base_object_list)
-            stringified_kwargs = ', '.join(["%s=%s" % (k, v) for k, v in kwargs.items()])
-
-            if len(object_list) <= 0:
-                raise self._meta.object_class.DoesNotExist("Couldn't find an instance of '%s' which matched '%s'." % (self._meta.object_class.__name__, stringified_kwargs))
-            elif len(object_list) > 1:
-                raise MultipleObjectsReturned("More than '%s' matched '%s'." % (self._meta.object_class.__name__, stringified_kwargs))
-
-            return object_list[0]
-        except ValueError:
-            raise NotFound("Invalid resource lookup data provided (mismatched type).")
-    
+            super(AnnotationResource, self).obj_update(bundle, request, **kwargs)
+        except (NotFound, MultipleObjectsReturned):
+            raise ImmediateHttpResponse(http.HttpUnauthorized())
     
         
 
@@ -353,7 +331,7 @@ class ClientApi(Api):
         
         from django.conf.urls.defaults import url, include, patterns
         from tastypie.utils import trailing_slash
-        from client.views import checkin, checkout
+        from client.views import checkin, checkout, login
         
         pattern_list = [
             url(r"^(?P<api_name>%s)%s$" % (self.api_name, trailing_slash()), self.wrap_view('top_level'), name="api_%s_top_level" % self.api_name),
@@ -365,6 +343,7 @@ class ClientApi(Api):
 
         ## then add the actions
         pattern_list.extend([
+            url(r"^%s/actions/login/$" % self.api_name, login, name="login"),
             url(r"^%s/actions/checkin/$" % self.api_name, checkin, name="checkin"),
             url(r"^%s/actions/checkout/$" % self.api_name, checkout, name="checkout")
         ])
@@ -379,15 +358,15 @@ def get_timestamp_from_url(date_string):
     timestamp = None
     try:
         ## first try the format %Y-%m-%dT%H:%M:%S
-        format = "%Y-%m-%dT%H:%M:%S"
-        timestamp = datetime.strptime(date_string, format)
+        time_format = "%Y-%m-%dT%H:%M:%S"
+        timestamp = datetime.strptime(date_string, time_format)
     except ValueError:
         pass
     
     try:
         ## then try the format %Y-%m-%d %H:%M:%S
-        format = "%Y-%m-%d %H:%M:%S"
-        timestamp = datetime.strptime(date_string, format)
+        time_format = "%Y-%m-%d %H:%M:%S"
+        timestamp = datetime.strptime(date_string, time_format)
     except ValueError:
         pass
     
