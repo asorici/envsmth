@@ -81,7 +81,7 @@ class EnvironmentResource(ModelResource):
     
 
 class AreaResource(ModelResource):
-    parent = fields.ForeignKey(EnvironmentResource, 'env')
+    parent = fields.ForeignKey(EnvironmentResource, 'environment')
     
     features = fields.ListField()
     
@@ -99,7 +99,7 @@ class AreaResource(ModelResource):
         
     
     def get_list(self, request, **kwargs):
-        ## override the list retrieval part to verify additionally that an ``env`` filter exists
+        ## override the list retrieval part to verify additionally that an ``environment`` filter exists
         ## otherwise reject the call with a HttpMethodNotAllowed
         if 'parent' in request.GET or 'q' in request.GET:
             return super(AreaResource, self).get_list(request, **kwargs)
@@ -145,7 +145,7 @@ class AreaResource(ModelResource):
         
     
 class AnnouncementResource(ModelResource):
-    env = fields.ForeignKey(EnvironmentResource, 'env')
+    environment = fields.ForeignKey(EnvironmentResource, 'environment')
     area = fields.ForeignKey(AreaResource, 'area', null = True)
     
     class Meta:
@@ -156,16 +156,16 @@ class AnnouncementResource(ModelResource):
         excludes = ['id']
         filtering = {
             'area': ['exact'],
-            'env': ['exact'],
+            'environment': ['exact'],
             'timestamp': ['gt', 'gte'],
         }
         authentication = Authentication()
     
     
     def get_list(self, request, **kwargs):
-        ## override the list retrieval part to verify additionally that an ``env`` or ``area`` filter exists
+        ## override the list retrieval part to verify additionally that an ``environment`` or ``area`` filter exists
         ## otherwise reject the call with a HttpMethodNotAllowed
-        if 'env' in request.GET or 'area' in request.GET:
+        if 'environment' in request.GET or 'area' in request.GET:
             return super(AnnouncementResource, self).get_list(request, **kwargs)
         else:
             raise ImmediateHttpResponse(response=http.HttpMethodNotAllowed())
@@ -179,11 +179,11 @@ class AnnouncementResource(ModelResource):
         ## get default object list
         announcement_obj_list = super(AnnouncementResource, self).get_object_list(request)
         
-        if 'env' in request.GET:
+        if 'environment' in request.GET:
             try:
-                env_id = request.GET['env']
+                env_id = request.GET['environment']
                 environ = Environment.objects.get(id=env_id)
-                announcement_obj_list = announcement_obj_list.filter(env=environ)
+                announcement_obj_list = announcement_obj_list.filter(environment=environ)
             except Exception:
                 pass
             
@@ -236,7 +236,7 @@ class AnnouncementResource(ModelResource):
     
 
 class AnnotationResource(ModelResource):
-    env = fields.ForeignKey(EnvironmentResource, 'env', null = True)
+    environment = fields.ForeignKey(EnvironmentResource, 'environment', null = True)
     area = fields.ForeignKey(AreaResource, 'area', null = True)
     user = fields.ForeignKey(UserResource, 'user')
     
@@ -249,7 +249,7 @@ class AnnotationResource(ModelResource):
         #excludes = ['id', 'area']
         filtering = {
             'area': ['exact'],
-            'env': ['exact'],
+            'environment': ['exact'],
             'timestamp': ['gt', 'gte'],
         }
         ordering = ['timestamp']
@@ -260,9 +260,9 @@ class AnnotationResource(ModelResource):
         
         
     def get_list(self, request, **kwargs):
-        ## override the list retrieval part to verify additionally that an ``area`` or ``env`` filter exists
+        ## override the list retrieval part to verify additionally that an ``area`` or ``environment`` filter exists
         ## otherwise reject the call with a HttpMethodNotAllowed
-        if 'area' in request.GET or 'env' in request.GET:
+        if 'area' in request.GET or 'environment' in request.GET:
             return super(AnnotationResource, self).get_list(request, **kwargs)
         else:
             raise ImmediateHttpResponse(response=http.HttpMethodNotAllowed())
@@ -288,7 +288,7 @@ class AnnotationResource(ModelResource):
         
 
 class HistoryResource(ModelResource):
-    env = fields.ForeignKey(EnvironmentResource, 'env')
+    environment = fields.ForeignKey(EnvironmentResource, 'environment')
     area = fields.ForeignKey(AreaResource, 'area')
     user = fields.ForeignKey(UserResource, 'user')
     

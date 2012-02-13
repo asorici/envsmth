@@ -8,14 +8,14 @@
 			$(document).ready(function() {
   				// make here a checkin request
   				// if successfull - post an annotation
-  				checkin_data = {'clientrequest':'true', 'env':1}
+  				checkin_data = {'clientrequest':'true', 'environment':1}
   				$.post('/envsocial/client/v1/actions/checkin/', checkin_data, 
   					function(response){
   						$( "#checkin_result" ).empty().append( response );
   						if (response.success) {
-  							post_annotation();
+  							//post_annotation();
   							//delete_annotation("/envsocial/client/v1/resources/annotation/16/");
-  							//put_annotation("/envsocial/client/v1/resources/annotation/36/");
+  							put_annotation("/envsocial/client/v1/resources/annotation/39/");
   						}
   					},
   					"json"
@@ -90,7 +90,7 @@
 											]}
 									]}
 				
-				var content = {"area": "/envsocial/client/v1/resources/area/2/", "data" : ann_data}
+				var content = {"environment": "/envsocial/client/v1/resources/environment/1/", "data" : ann_data}
 				
 				$.ajax({
 					url: ann_uri,

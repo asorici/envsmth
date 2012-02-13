@@ -54,7 +54,7 @@ class Environment(models.Model):
             
 
 class Layout(models.Model):
-    env = models.ForeignKey(Environment, related_name = "layouts")
+    environment = models.ForeignKey(Environment, related_name = "layouts")
     level = models.IntegerField(default = 0)
     mapURL = models.URLField()
     timestamp = models.DateTimeField(auto_now = True)
@@ -71,7 +71,7 @@ class Area(models.Model):
         ("non-interest", "non-interest")
     )
     
-    env = models.ForeignKey(Environment, related_name = "areas")
+    environment = models.ForeignKey(Environment, related_name = "areas")
     areaType = models.CharField(max_length=50, choices = TYPE_CHOICES)
     name = models.CharField(max_length=140)
     
@@ -97,7 +97,7 @@ class Feature(models.Model):
     )
     
     area = models.ForeignKey(Area, null = True, blank = True, related_name = "features")
-    env = models.ForeignKey(Environment, null = True, blank = True, related_name = "features")
+    environment = models.ForeignKey(Environment, null = True, blank = True, related_name = "features")
     category = models.CharField(max_length=50, choices = CATEGORY_CHOICES)
     data = fields.DataField(null = True, blank = True)
 
@@ -111,7 +111,7 @@ class Announcement(models.Model):
     )
     
     area = models.ForeignKey(Area, null = True, blank = True, related_name = "announcements")
-    env = models.ForeignKey(Environment, null = True, blank = True, related_name = "announcements")
+    environment = models.ForeignKey(Environment, null = True, blank = True, related_name = "announcements")
     
     data = fields.DataField()
     repeatEvery = models.CharField(max_length=50, choices = REPEAT_EVERY_CHOICES, default = "none")
@@ -128,7 +128,7 @@ class Announcement(models.Model):
 
 class Annotation(models.Model):
     area = models.ForeignKey(Area, null = True, blank = True, related_name = "annotations")
-    env = models.ForeignKey(Environment, null = True, blank = True, related_name = "annotations")
+    environment = models.ForeignKey(Environment, null = True, blank = True, related_name = "annotations")
     user = models.ForeignKey(UserProfile, null = True, blank = True, on_delete=models.SET_NULL)
     data = fields.DataField()
     timestamp = models.DateTimeField(auto_now = True)
@@ -150,7 +150,7 @@ class Annotation(models.Model):
 class History(models.Model):
     user = models.ForeignKey(UserProfile)
     area = models.ForeignKey(Area)
-    env = models.ForeignKey(Environment)
+    environment = models.ForeignKey(Environment)
     timestamp = models.DateTimeField(auto_now = True)
     
     @models.permalink
@@ -161,12 +161,12 @@ class History(models.Model):
 
 class Privacy(models.Model):
     user = models.ForeignKey(UserProfile)
-    env = models.ForeignKey(Environment)
+    environment = models.ForeignKey(Environment)
     relation = models.CharField(max_length=50)
     
 
 class UserContext(models.Model):
     user = models.OneToOneField(UserProfile, related_name='context')
-    currentEnv = models.ForeignKey(Environment, null = True, blank = True)
+    currentEnvironment = models.ForeignKey(Environment, null = True, blank = True)
     currentArea = models.ForeignKey(Area, null = True, blank = True)
     

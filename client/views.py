@@ -29,7 +29,7 @@ def checkin(request):
     if check_form.is_valid():
         ## access area id from check_f.cleaned_data
         area_id = check_form.cleaned_data['area']
-        env_id = check_form.cleaned_data['env']
+        env_id = check_form.cleaned_data['environment']
         area = None 
         env = None
         area_env = None     ## keep a double
@@ -60,11 +60,11 @@ def checkin(request):
         try:
             context = UserContext.objects.get(user=user)
             context.currentArea = area
-            context.currentEnv = area_env
+            context.currentEnvironment = area_env
             context.save()
         except UserContext.DoesNotExist:
             ## an entry does not yet exist so assign one now
-            context = UserContext(user=user, currentArea=area, currentEnv=area_env)
+            context = UserContext(user=user, currentArea=area, currentEnvironment=area_env)
             context.save()
         
         return checkin_succeeded(request, area = area, env = env)

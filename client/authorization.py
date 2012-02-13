@@ -23,10 +23,10 @@ class AnnotationAuthorization(Authorization):
                 if deserialized is None:
                     return False
                     
-                if 'env' in deserialized:
+                if 'environment' in deserialized:
                     try:
                         #env_pk = int(deserialized['env'])
-                        env_obj = EnvironmentResource().get_via_uri(deserialized['env']) 
+                        env_obj = EnvironmentResource().get_via_uri(deserialized['environment']) 
                     except:
                         env_obj = None
                             
@@ -38,9 +38,9 @@ class AnnotationAuthorization(Authorization):
                         area_obj = None
             
             elif request.method.upper() == "GET":
-                if 'env' in request.GET:
+                if 'environment' in request.GET:
                     try:
-                        env_obj = Environment.objects.get(pk=request.GET['env'])
+                        env_obj = Environment.objects.get(pk=request.GET['environment'])
                     except:
                         env_obj = None
                         
@@ -54,7 +54,7 @@ class AnnotationAuthorization(Authorization):
                 ann_res_uri = request.path
                 try:
                     ann_obj = AnnotationResource().get_via_uri(ann_res_uri)
-                    env_obj = ann_obj.env
+                    env_obj = ann_obj.environment
                     area_obj = ann_obj.area
                 except:
                     env_obj = None
@@ -63,7 +63,7 @@ class AnnotationAuthorization(Authorization):
             
             user = request.user.get_profile()       ## will be an instance of UserProfile => available context
             try:
-                currentEnv = user.context.currentEnv
+                currentEnvironment = user.context.currentEnvironment
                 currentArea = user.context.currentArea
                     
                 ## if the user wants to make/get an annotation on/of an area and he is checked in at that area
@@ -72,7 +72,7 @@ class AnnotationAuthorization(Authorization):
                     return True
                 ## alternatively he wants to make/get an annotation for/of the environment in which he is checked in 
                 #elif env_pk and env_pk == currentEnv.pk:
-                elif not env_obj is None and env_obj == currentEnv:  
+                elif not env_obj is None and env_obj == currentEnvironment:  
                     return True
                     
             except UserContext.DoesNotExist:
@@ -98,8 +98,8 @@ class AnnotationAuthorization(Authorization):
                 print "[authorization] Objectlist: ", object_list
                 
                 q1 = Q(user = user)
-                q2 = Q(area__env__owner = user)
-                q3 = Q(env__owner = user)
+                q2 = Q(area__environment__owner = user)
+                q3 = Q(environment__owner = user)
                 
                 object_list = object_list.filter(q1 | q2 | q3)
                 #return object_list.filter(q1 | q2 | q3)

@@ -60,7 +60,7 @@ class AreaForm(forms.ModelForm):
 
 class UpdateAreaForm(AreaForm):
     class Meta(AreaForm.Meta):
-        exclude = ("timestamp", "areaType", "layout", "shape", "env")
+        exclude = ("timestamp", "areaType", "layout", "shape", "environment")
 
 
 
@@ -75,13 +75,13 @@ class AnnotationForm(forms.ModelForm):
     
     def clean(self):
         cleaned_data = super(AnnotationForm, self).clean()
-        env = cleaned_data.get("env")
+        env = cleaned_data.get("environment")
         area = cleaned_data.get("area")
         
         if env is None and area is None:
             raise forms.ValidationError("Environment and Area data are both missing. At least one is required.")
         
-        if env and area and area.env != env:
+        if env and area and area.environment != env:
             raise forms.ValidationError("Environment and Area data is contradictory." + 
                                         "Environment and Area.Environment don't match.")
         
@@ -94,7 +94,7 @@ class AnnotationForm(forms.ModelForm):
 
 class UpdateAnnotationForm(AnnotationForm):
     class Meta(AnnotationForm.Meta):
-        exclude = ("timestamp", "env", "area", "user")
+        exclude = ("timestamp", "environment", "area", "user")
 
 
 
@@ -108,7 +108,7 @@ class AnnouncementForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(AnnouncementForm, self).clean()
-        env = cleaned_data.get("env")
+        env = cleaned_data.get("environment")
         area = cleaned_data.get("area")
         
         if env is None and area is None:
@@ -127,22 +127,22 @@ class AnnouncementForm(forms.ModelForm):
 
 class UpdateAnnouncementForm(AnnouncementForm):
     class Meta(AnnouncementForm.Meta):
-        exclude = ("timestamp", "env", "area")
+        exclude = ("timestamp", "environment", "area")
 
 
 class CheckinForm(forms.Form):
     area = forms.IntegerField(required = False)
-    env = forms.IntegerField(required = False)
+    environment = forms.IntegerField(required = False)
     
     def clean(self):
         cleaned_data = super(CheckinForm, self).clean()
-        env = cleaned_data.get("env")
+        environment = cleaned_data.get("environment")
         area = cleaned_data.get("area")
     
-        if env is None and area is None:
+        if environment is None and area is None:
             raise forms.ValidationError("Environment and Area data are both missing. At least one is required.")
         
-        if env and area and area.env != env:
+        if environment and area and area.environment != environment:
             raise forms.ValidationError("Environment and Area data is contradictory." + 
                                         "Environment and Area.Environment don't match.")
         

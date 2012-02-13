@@ -13,9 +13,9 @@ class AnnotationValidation(Validation):
             env_obj = None
             area_obj = None
             
-            if 'env' in bundle.data:
+            if 'environment' in bundle.data:
                 try:
-                    env_obj = EnvironmentResource().get_via_uri(bundle.data['env']) 
+                    env_obj = EnvironmentResource().get_via_uri(bundle.data['environment']) 
                 except:
                     env_obj = None
                     
@@ -27,11 +27,11 @@ class AnnotationValidation(Validation):
         
             
             if env_obj is None and area_obj is None:
-                errors['env'] = ['No or wrong environment uri']
+                errors['environment'] = ['No or wrong environment uri']
                 errors['area'] = ['No or wrong area uri']
                 
             if not env_obj is None and not area_obj is None and area_obj.env != env_obj:
-                errors['env'] = ["Environment resource mismatches parent environment of area resource."]
+                errors['environment'] = ["Environment resource mismatches parent environment of area resource."]
             
         ## TODO - some additional validation of the data field might also be possible
         if not 'data' in bundle.data or not bundle.data['data']:
