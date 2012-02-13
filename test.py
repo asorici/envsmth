@@ -188,9 +188,26 @@ def dummy_sql_insert():
                 annotation.save()
 
 
+def generate_qrcodes():
+    from coresql.utils.qrcodegen import QRCodeManager
+    
+    ## generate qrcodes for all environments
+    environment_list = Environment.objects.all()
+    for environment in environment_list:
+        environment_url = QRCodeManager.generate_qr_code(environment=environment)
+        print environment_url
+        
+    ## generate qrcodes for all areas
+    area_list = Area.objects.all()
+    for area in area_list:
+        area_url = QRCodeManager.generate_qr_code(area=area)
+        print area_url
+
+
 if __name__ == "__main__":
     #main()
     #test_Q()
-    dummy_sql_insert()
+    #dummy_sql_insert()
+    generate_qrcodes()
     
     
