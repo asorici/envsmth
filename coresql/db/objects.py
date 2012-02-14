@@ -67,8 +67,7 @@ class DateTimeList(ListWrapper):
 
 def dbencode(value):
     from django.utils import simplejson
-    #d = {'value': value}
-    return simplejson.dumps(value, ensure_ascii = False)
+    return simplejson.dumps(value, ensure_ascii=True)
     #return unicode(value)
 
 
@@ -77,10 +76,10 @@ class Data(object):
     XML = "xml"
     JSON = "json"
     
-    def __init__(self, data, encode_func=dbencode, format = TEXT):
+    def __init__(self, data, encode_func=dbencode, data_format = TEXT):
         self.data = data
         self.encode_func = encode_func
-        self.format = format
+        self.data_format = data_format
     
     def dbEncode(self):
         return str(self.encode_func(self.data))
@@ -108,17 +107,19 @@ class Data(object):
         
         if val is None:
             try:
-                val = serdes.from_json(dataString)
+                from django.utils import simplejson
+                #val = serdes.from_json(dataString)
+                val = simplejson.loads(encoding='utf-8')
             except Exception:
                 val = None
             
             if not isinstance(val, (dict, list)):
-                val = dataString
-                dataobj = Data(val, format = Data.TEXT)
+                val = str(dataString)
+                dataobj = Data(val, data_format = Data.TEXT)
             else:
-                dataobj = Data(val, format = Data.JSON)
+                dataobj = Data(val, data_format = Data.JSON)
         else:
-            dataobj = Data(val, format = Data.XML)
+            dataobj = Data(val, data_format = Data.XML)
         
         ## then clean up after myself
         del serdes

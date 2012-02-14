@@ -245,12 +245,13 @@ class AnnotationResource(ModelResource):
         resource_name = 'annotation'
         detail_allowed_methods = ['get', 'put', 'delete']
         list_allowed_methods = ['get', 'post']
-        fields = ['data', 'timestamp']
+        fields = ['data', 'category', 'timestamp']
         #excludes = ['id', 'area']
         filtering = {
             'area': ['exact'],
             'environment': ['exact'],
             'timestamp': ['gt', 'gte'],
+            'category': ['exact'],
         }
         ordering = ['timestamp']
         authentication = Authentication()
@@ -320,7 +321,16 @@ class AnnotationResource(ModelResource):
             if not bundle.obj.area is None:
                 ## make the area response a dictionary, containing resource_uri and name
                 bundle.data['area'] = {'resource_uri': bundle.data['area'], 'name': bundle.obj.area.name}
-                
+        
+        """
+        now remove also null area/environment data
+        """
+        if not bundle.data['environment']:
+            del bundle.data['environment']
+            
+        if not bundle.data['area']:
+            del bundle.data['area']
+        
         return bundle
             
     

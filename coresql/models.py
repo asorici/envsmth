@@ -3,8 +3,13 @@ from coresql.db import fields
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 
+CATEGORY_CHOICES = (
+    ("default", "default"), 
+    ("ordering", "ordering")
+)
+    
 
-#class User(DjangoUser):
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User)
     
@@ -29,11 +34,6 @@ post_save.connect(create_user_profile, sender=User)
     
 
 class Environment(models.Model):
-    CATEGORY_CHOICES = (
-        ("default", "default"), 
-        ("ordering", "ordering")
-    )
-    
     owner = models.ForeignKey(UserProfile)
     name = models.CharField(max_length=140)
     
@@ -48,10 +48,6 @@ class Environment(models.Model):
     longitude = models.FloatField(null = True, blank = True)
     timestamp = models.DateTimeField(auto_now = True)
 
-    @models.permalink
-    def get_absolute_url(self):
-        return ('dispatch-env', (), {
-            'id': str(self.id)})
             
 
 class Layout(models.Model):
@@ -62,11 +58,6 @@ class Layout(models.Model):
 
 
 class Area(models.Model):
-    CATEGORY_CHOICES = (
-        ("default", "default"), 
-        ("ordering", "ordering")
-    )
-    
     TYPE_CHOICES = (
         ("interest", "interest"), 
         ("non-interest", "non-interest")
@@ -76,27 +67,15 @@ class Area(models.Model):
     areaType = models.CharField(max_length=50, choices = TYPE_CHOICES)
     name = models.CharField(max_length=140)
     
-    #category = models.CharField(max_length=50, choices = CATEGORY_CHOICES)
-    #data = fields.DataField(null = True, blank = True)
-    
     tags = fields.TagListField(null = True, blank = True)
     layout = models.ForeignKey(Layout, related_name = "areas", blank = True)
     
     shape = fields.AreaShapeField(blank = True, null = True)
     timestamp = models.DateTimeField(auto_now = True)
 
-    @models.permalink
-    def get_absolute_url(self):
-        return ('dispatch-area', (), {
-            'areaID': str(self.id)})
 
 
 class Feature(models.Model):
-    CATEGORY_CHOICES = (
-        ("default", "default"), 
-        ("ordering", "ordering")
-    )
-    
     area = models.ForeignKey(Area, null = True, blank = True, related_name = "features")
     environment = models.ForeignKey(Environment, null = True, blank = True, related_name = "features")
     category = models.CharField(max_length=50, choices = CATEGORY_CHOICES)
@@ -119,11 +98,6 @@ class Announcement(models.Model):
     
     triggers = fields.DateTimeListField()
     timestamp = models.DateTimeField(auto_now = True)
-    
-    @models.permalink
-    def get_absolute_url(self):
-        return ('dispatch-announcement', (), {
-            'announceID': str(self.id)})
 
 
 
@@ -132,13 +106,8 @@ class Annotation(models.Model):
     environment = models.ForeignKey(Environment, null = True, blank = True, related_name = "annotations")
     user = models.ForeignKey(UserProfile, null = True, blank = True, on_delete=models.SET_NULL)
     data = fields.DataField()
+    category = models.CharField(max_length=50, choices = CATEGORY_CHOICES, default="default")
     timestamp = models.DateTimeField(auto_now = True)
-    
-    @models.permalink
-    def get_absolute_url(self):
-        return ('dispatch-annotation', (), {
-            'annID': str(self.id)})
-    
     
     def __unicode__(self):
         if self.user and self.area:
@@ -147,6 +116,7 @@ class Annotation(models.Model):
             return "annotation for area " + self.area.name + " but empty user field"
         else:
             return "empty annotation object"
+
     
 class History(models.Model):
     user = models.ForeignKey(UserProfile)
@@ -154,10 +124,6 @@ class History(models.Model):
     environment = models.ForeignKey(Environment)
     timestamp = models.DateTimeField(auto_now = True)
     
-    @models.permalink
-    def get_absolute_url(self):
-        return ('handle-history', [str(self.user.id)])
-
 
 
 class Privacy(models.Model):

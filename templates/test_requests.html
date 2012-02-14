@@ -13,9 +13,9 @@
   					function(response){
   						$( "#checkin_result" ).empty().append( response );
   						if (response.success) {
-  							//post_annotation();
+  							post_annotation();
   							//delete_annotation("/envsocial/client/v1/resources/annotation/16/");
-  							put_annotation("/envsocial/client/v1/resources/annotation/39/");
+  							//put_annotation("/envsocial/client/v1/resources/annotation/39/");
   						}
   					},
   					"json"
@@ -38,7 +38,7 @@
 											]}
 									]}
 				
-				var content = {"env": "/envsocial/client/v1/resources/environment/1/", "data" : ann_data}
+				var content = {"environment": "/envsocial/client/v1/resources/environment/1/", "data" : ann_data}
 				
 				$.ajax({
 					url: "/envsocial/client/v1/resources/annotation/",

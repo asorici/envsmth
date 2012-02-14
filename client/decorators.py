@@ -1,5 +1,5 @@
 from functools import wraps
-from django.contrib.auth import login, get_user, authenticate, SESSION_KEY
+from django.contrib.auth import login, authenticate, SESSION_KEY
 import uuid
 
 USER_AGENT_BLACKLIST = []
@@ -22,7 +22,7 @@ def allow_anonymous_profile(func):
         # If there's already a valid user (returned either by session or by auth-key middleware), then
         # we don't need to do anything. If the user isn't valid, then
         # request.user will return an anonymous user
-        if get_user(request).is_anonymous() and not ignore:
+        if request.user.is_anonymous() and not ignore:
             # If not, then we have to create a temporary user
             user, username = create_anonymous_user_profile()
             request.user = None
