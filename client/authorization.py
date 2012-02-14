@@ -80,7 +80,6 @@ class AnnotationAuthorization(Authorization):
                 return False
         
         return False
-        #return False
             
     
     def apply_limits(self, request, object_list):
@@ -89,13 +88,10 @@ class AnnotationAuthorization(Authorization):
         only the owner of the environment and authenticated senders of the comment
         can modify or delete a comment 
         """
-        print "[authorization] Objectlist outside IF: ", object_list
         
         if request and (request.method.upper() in ["PUT", "DELETE"]):
             if hasattr(request, 'user') and not request.user.is_anonymous():
                 user = request.user.get_profile()
-                print "[authorization] user_profile:", user
-                print "[authorization] Objectlist: ", object_list
                 
                 q1 = Q(user = user)
                 q2 = Q(area__environment__owner = user)
@@ -103,7 +99,6 @@ class AnnotationAuthorization(Authorization):
                 
                 object_list = object_list.filter(q1 | q2 | q3)
                 #return object_list.filter(q1 | q2 | q3)
-                print object_list
                 
                 return object_list
             else:

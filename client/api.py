@@ -266,7 +266,63 @@ class AnnotationResource(ModelResource):
             return super(AnnotationResource, self).get_list(request, **kwargs)
         else:
             raise ImmediateHttpResponse(response=http.HttpMethodNotAllowed())
+    
+    """
+    The following methods combined ensure that the environment=1&all=true query is handled successfully
+    """
+    def build_filters(self, filters = None):
+        if filters is None:
+            filters = {}
         
+        if 'environment' in filters and 'all' in filters and filters['all'] == 'true':
+            """
+            if environment and all are in the filters, don't apply them any more because it will have
+            already been handled in get_object_list
+            """
+            del filters['environment']
+            del filters['all']
+            
+            orm_filters = super(AnnotationResource, self).build_filters(filters)
+            return orm_filters
+        else:
+            orm_filters = super(AnnotationResource, self).build_filters(filters)
+            return orm_filters
+    
+    
+    def get_object_list(self, request):
+        from django.db.models import Q
+        
+        if 'environment' in request.GET and 'all' in request.GET and request.GET['all'] == 'true':
+            try:
+                environment_pk = request.GET['environment']
+                environment = Environment.objects.get(pk=environment_pk)
+                q1 = Q(environment=environment)
+                q2 = Q(area__in=list(environment.areas.all()))
+                
+                return super(AnnotationResource, self).get_object_list(request).filter(q1 | q2)
+            except Exception, ex:
+                print ex
+                raise ImmediateHttpResponse(response=http.HttpBadRequest())
+        
+        return super(AnnotationResource, self).get_object_list(request)
+    
+    
+    def dehydrate(self, bundle):
+        """
+        if we are treating an environment=<env_pk>&all=true request, return additionally for each annotation
+        bundle the name of the environment/area for which the annotation was made
+        """
+        if 'environment' in bundle.request.GET and 'all' in bundle.request.GET and bundle.request.GET['all'] == 'true':
+            if not bundle.obj.environment is None:
+                ## make the environment response a dictionary, containing resource_uri and name
+                bundle.data['environment'] = {'resource_uri': bundle.data['environment'], 'name': bundle.obj.environment.name}
+            
+            if not bundle.obj.area is None:
+                ## make the area response a dictionary, containing resource_uri and name
+                bundle.data['area'] = {'resource_uri': bundle.data['area'], 'name': bundle.obj.area.name}
+                
+        return bundle
+            
     
     def obj_create(self, bundle, request=None, **kwargs):
         ## because of the AnnotationAuthorization class, request.user will have a profile

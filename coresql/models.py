@@ -11,6 +11,7 @@ class UserProfile(models.Model):
     fbID = models.CharField(max_length=50)
     timestamp = models.DateTimeField(auto_now = True)
     is_anonymous = models.BooleanField(default = False)
+    c2dm_id = models.CharField(max_length=256, null = True, blank = True)
 
     def __unicode__(self):
         return self.user.username + ": anonymous=" + str(self.is_anonymous)
