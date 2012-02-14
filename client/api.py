@@ -302,7 +302,7 @@ class AnnotationResource(ModelResource):
                 
                 return super(AnnotationResource, self).get_object_list(request).filter(q1 | q2)
             except Exception, ex:
-                print ex
+                #print ex
                 raise ImmediateHttpResponse(response=http.HttpBadRequest())
         
         return super(AnnotationResource, self).get_object_list(request)
@@ -337,7 +337,9 @@ class AnnotationResource(ModelResource):
     def obj_create(self, bundle, request=None, **kwargs):
         ## because of the AnnotationAuthorization class, request.user will have a profile
         user_profile = request.user.get_profile()
-        return super(AnnotationResource, self).obj_create(bundle, request, user=user_profile)
+        updated_bundle = super(AnnotationResource, self).obj_create(bundle, request, user=user_profile)
+        #self._make_c2dm_notification(updated_bundle)
+        return updated_bundle
         
     
     def obj_update(self, bundle, request=None, **kwargs):
@@ -347,10 +349,46 @@ class AnnotationResource(ModelResource):
         We don't want such a behavior. So we catch does exceptions and throw an Authorization required message
         """    
         try:
-            super(AnnotationResource, self).obj_update(bundle, request, **kwargs)
+            updated_bundle = super(AnnotationResource, self).obj_update(bundle, request, **kwargs)
+            #self._make_c2dm_notification(updated_bundle)
+            return updated_bundle
         except (NotFound, MultipleObjectsReturned):
             raise ImmediateHttpResponse(http.HttpUnauthorized())
     
+    
+    def _make_c2dm_notification(self, bundle):
+        import socket, pickle
+        from c2dm import C2DMServer
+        
+        user_profile = None
+        if not bundle.obj.environment is None:
+            user_profile = bundle.obj.environment.owner
+            
+        if not bundle.obj.area is None:
+            user_profile = bundle.obj.area.env.owner
+            
+        if not user_profile is None:
+            registration_id = user_profile.c2dm_id
+            collapse_key = "annotation_" + bundle.obj.category
+            resource_uri = self.get_resource_uri(bundle)
+            
+            data = pickle.dumps((registration_id, collapse_key, resource_uri))
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            
+            try:
+                # Connect to server and send data
+                sock.connect((C2DMServer.HOST, C2DMServer.PORT))
+                sock.sendall(data + "\n")
+            
+                # Receive data from the server and shut down
+                received = sock.recv(1024)
+                
+                if received == 1:
+                    print "Notification enqueued"
+                else:
+                    print "Notification NOT enqueued"
+            finally:
+                sock.close()
         
 
 class HistoryResource(ModelResource):

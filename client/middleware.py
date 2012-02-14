@@ -11,7 +11,6 @@ class ClientCheckinUrlRedirectMiddleware(object):
     def __init__(self):
         ## set checkin url regex
         self.checkin_pattern = urlresolvers.reverse("checkin")
-        print self.checkin_pattern
     
     def process_request(self, request):
         path = request.get_full_path()
