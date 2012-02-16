@@ -80,7 +80,7 @@ class AnnotationAuthorization(Authorization):
                 ## alternatively he wants to make/get an annotation for/of the environment in which he is checked in 
                 #elif env_pk and env_pk == currentEnv.pk:
                 elif not env_obj is None:
-                    owner = env_obj.environment.owner
+                    owner = env_obj.owner
                     if (env_obj == currentEnvironment) or (owner == user and (currentEnvironment or currentArea)):  
                         return True
                 
