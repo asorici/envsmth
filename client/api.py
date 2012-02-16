@@ -20,7 +20,7 @@ class UserResource(ModelResource):
         queryset = UserProfile.objects.all()
         resource_name = 'user'
         detail_allowed_methods = ["get", "put"]
-        excludes = ["id", "fbID", "timestamp", "is_anonymous", "c2dm_id"]
+        excludes = ["id", "fbID", "timestamp", "is_anonymous"]
         authentication = Authentication()
         authorization = UserAuthorization()
         
@@ -34,6 +34,11 @@ class UserResource(ModelResource):
     def dehydrate(self, bundle):
         ## if the user is requesting his own data then return his email too as it
         ## is an identifying element
+        
+        ## remove c2dm data from bundle
+        if 'c2dm_id' in bundle.data:
+            del bundle.data['c2dm_id']
+            
         if hasattr(bundle.request, "user") and not bundle.request.user.is_anonymous():
             user_profile = bundle.request.user.get_profile()
             if user_profile.pk == bundle.obj.pk:
@@ -42,6 +47,7 @@ class UserResource(ModelResource):
     
         return bundle
 
+    
     
     def obj_update(self, bundle, request=None, **kwargs):
         """
@@ -371,7 +377,7 @@ class AnnotationResource(ModelResource):
         ## because of the AnnotationAuthorization class, request.user will have a profile
         user_profile = request.user.get_profile()
         updated_bundle = super(AnnotationResource, self).obj_create(bundle, request, user=user_profile)
-        #self._make_c2dm_notification(updated_bundle)
+        self._make_c2dm_notification(updated_bundle)
         return updated_bundle
         
     
@@ -383,7 +389,7 @@ class AnnotationResource(ModelResource):
         """    
         try:
             updated_bundle = super(AnnotationResource, self).obj_update(bundle, request, **kwargs)
-            #self._make_c2dm_notification(updated_bundle)
+            self._make_c2dm_notification(updated_bundle)
             return updated_bundle
         except (NotFound, MultipleObjectsReturned):
             raise ImmediateHttpResponse(http.HttpBadRequest())
@@ -397,16 +403,22 @@ class AnnotationResource(ModelResource):
             user_profile = bundle.obj.environment.owner
             
         if not bundle.obj.area is None:
-            user_profile = bundle.obj.area.env.owner
+            user_profile = bundle.obj.area.environment.owner
             
-        if not user_profile is None:
+        if not user_profile is None and not user_profile.c2dm_id is None:
             registration_id = user_profile.c2dm_id
             collapse_key = "annotation_" + bundle.obj.category
             resource_uri = self.get_resource_uri(bundle)
             
-            data = pickle.dumps((registration_id, collapse_key, resource_uri))
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            environment = bundle.obj.environment
+            if not bundle.obj.area is None:
+                environment = bundle.obj.area.environment 
             
+            location_uri = EnvironmentResource().get_resource_uri(environment)
+            feature = bundle.obj.category
+            
+            data = pickle.dumps((registration_id, collapse_key, location_uri, resource_uri, feature))
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 # Connect to server and send data
                 sock.connect((c2dm.C2DMServer.HOST, c2dm.C2DMServer.PORT))
@@ -415,10 +427,12 @@ class AnnotationResource(ModelResource):
                 # Receive data from the server and shut down
                 received = sock.recv(1024)
                 
-                if received == 1:
-                    print "Notification enqueued"
+                if received == "OK":
+                    print "[Annotation C2DM] Notification enqueued"
                 else:
-                    print "Notification NOT enqueued"
+                    print "[Annotation C2DM] Notification NOT enqueued"
+            except Exception, ex:
+                print "[Annotation C2DM] failure enqueueing annotation: ", ex
             finally:
                 sock.close()
         

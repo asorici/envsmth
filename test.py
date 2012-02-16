@@ -204,10 +204,24 @@ def generate_qrcodes():
         print area_url
 
 
+class A(object):
+    from Queue import Queue
+    queue = Queue(5)
+
+
+def import_testing():
+    A.queue.put(1)
+    A.queue.put(2)
+    print A.queue
+
+    import test
+
+    print test.A.queue
+
 if __name__ == "__main__":
     #main()
     #test_Q()
     #dummy_sql_insert()
-    generate_qrcodes()
-    
+    #generate_qrcodes()
+    import_testing() 
     

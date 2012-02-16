@@ -9,11 +9,32 @@ from django.conf import settings
 admin.autodiscover()
 
 ## before adding the patterns let's start our two c2dm helper threads
-import c2dm
+def setup_c2dm_logger():
+    import logging 
+    
+    logger = logging.getLogger("c2dm")
+    logger.setLevel(logging.INFO)
+    
+    fh = logging.FileHandler("c2dm_requests.log")
+    fh.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+    
+def get_c2dm_queue():
+    from Queue import Queue
+    return Queue(1024)
 
-c2dm_server_thread = c2dm.C2DMServerThread()
+c2dm_queue = get_c2dm_queue()
+setup_c2dm_logger()
+
+import c2dm
+c2dm_server_thread = c2dm.C2DMServerThread(c2dm_queue)
 c2dm_server_thread.start()
 
+c2dm_client_thread = c2dm.C2DMClientThread(c2dm_queue)
+c2dm_client_thread.c2dm_login()
+c2dm_client_thread.start()
 
 urlpatterns = patterns('',
     # Examples:
