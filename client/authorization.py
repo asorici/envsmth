@@ -114,3 +114,29 @@ class AnnotationAuthorization(Authorization):
                 return object_list.none()
         
         return object_list
+    
+    
+    
+class UserAuthorization(Authorization):
+    def is_authorized(self, request, object=None):
+        from client.api import UserResource
+        
+        if request.method.upper() == "PUT":
+            if hasattr(request, 'user') and not request.user.is_anonymous():
+                user_res_uri = request.path
+                user_obj = None
+                try:
+                    user_obj = UserResource().get_via_uri(user_res_uri, request=request)
+                    #print "[User authorization] user_obj: ", user_obj
+                except Exception:
+                    #print "[User authorization] exception in getting user resource for update: ", ex
+                    user_obj = None
+                    
+                ## now test for equality between request.user and user_obj
+                if request.user.get_profile() == user_obj:
+                    return True
+                
+        elif request.method.upper() == "GET":
+            return True
+        
+        return False

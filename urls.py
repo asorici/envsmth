@@ -8,6 +8,13 @@ from django.contrib import admin
 from django.conf import settings
 admin.autodiscover()
 
+## before adding the patterns let's start our two c2dm helper threads
+import c2dm
+
+c2dm_server_thread = c2dm.C2DMServerThread()
+c2dm_server_thread.start()
+
+
 urlpatterns = patterns('',
     # Examples:
     # url(r'^$', 'envsocial.views.home', name='home'),

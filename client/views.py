@@ -4,7 +4,7 @@ from client.decorators import allow_anonymous_profile
 
 
 def login(request):
-    from django.contrib.auth import authenticate, login
+    from django.contrib.auth import login
     
     form = LoginForm(request.REQUEST)
     #form = LoginForm(request.POST)
@@ -50,7 +50,7 @@ def checkin(request):
             return checkin_failed(request, data = {"msg": "No area ("+ str(area_id) +") or environment (" + str(env_id) + ") found." })
         
         ## get user and correct env
-        user = request.user.get_profile()   ## should point to a UserProfile model
+        user_profile = request.user.get_profile()   ## should point to a UserProfile model
         
         ## if a valid area was found, use it's env field as corresponding environment
         if area:
@@ -58,13 +58,13 @@ def checkin(request):
         
         ## update UserContext entry
         try:
-            context = UserContext.objects.get(user=user)
+            context = UserContext.objects.get(user=user_profile)
             context.currentArea = area
             context.currentEnvironment = area_env
             context.save()
         except UserContext.DoesNotExist:
             ## an entry does not yet exist so assign one now
-            context = UserContext(user=user, currentArea=area, currentEnvironment=area_env)
+            context = UserContext(user=user_profile, currentArea=area, currentEnvironment=area_env)
             context.save()
         
         return checkin_succeeded(request, area = area, env = env)
@@ -104,9 +104,14 @@ def checkout(request):
 
 
 def login_succeeded(request, user):
-    response = {"success": True, "code": 200, "data" : {}}
-    return view_response(request, response, 200)
+    from client.api import UserResource
     
+    response = {"success": True, "code": 200, "data" : {}}
+    
+    if not user.get_profile().is_anonymous:
+        user_res_uri = UserResource().get_resource_uri(user.get_profile())
+        response['data'].update({'resource_uri' : user_res_uri})
+        
     ## TODO maybe include data about user
     return view_response(request, response, 200)
 

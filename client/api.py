@@ -6,7 +6,7 @@ from tastypie.exceptions import ImmediateHttpResponse, NotFound
 from tastypie import fields, http
 from tastypie.authentication import Authentication
 from tastypie.api import Api
-from client.authorization import AnnotationAuthorization
+from client.authorization import AnnotationAuthorization, UserAuthorization
 from client.validation import AnnotationValidation
 from datetime import datetime
 from django.core.exceptions import MultipleObjectsReturned
@@ -19,8 +19,11 @@ class UserResource(ModelResource):
     class Meta:
         queryset = UserProfile.objects.all()
         resource_name = 'user'
-        allowed_methods = ["get"]
+        detail_allowed_methods = ["get", "put"]
         excludes = ["id", "fbID", "timestamp", "is_anonymous", "c2dm_id"]
+        authentication = Authentication()
+        authorization = UserAuthorization()
+        
         
     def dehydrate_first_name(self, bundle):
         return bundle.obj.user.first_name
@@ -38,7 +41,37 @@ class UserResource(ModelResource):
                 bundle.data['email'] = bundle.obj.user.email 
     
         return bundle
+
     
+    def obj_update(self, bundle, request=None, **kwargs):
+        """
+        Could be an intentional bug that the default obj_update treats DoesNotExist and MultipleObjectReturned
+        as acceptable exceptions which get transformed into a CREATE operation.
+        We don't want such a behavior. So we catch does exceptions and throw an BadRequest message
+        """ 
+        from tastypie.serializers import Serializer
+           
+        try:
+            serdes = Serializer()
+            deserialized = None
+            try:
+                deserialized = serdes.deserialize(request.raw_post_data, format=request.META.get('CONTENT_TYPE', 'application/json'))
+            except Exception:
+                deserialized = None
+            del serdes
+                    
+            if deserialized is None:
+                return ImmediateHttpResponse(http.HttpBadRequest())
+            
+            if 'unregister_c2dm' in deserialized and deserialized['unregister_c2dm'] == True:
+                bundle.data['c2dm_id'] = None
+            
+            updated_bundle = super(UserResource, self).obj_update(bundle, request, **kwargs)
+            return updated_bundle
+        except (NotFound, MultipleObjectsReturned):
+            raise ImmediateHttpResponse(http.HttpBadRequest())
+    
+
 
 class EnvironmentResource(ModelResource):
     features = fields.ListField()
@@ -301,7 +334,7 @@ class AnnotationResource(ModelResource):
                 q2 = Q(area__in=list(environment.areas.all()))
                 
                 return super(AnnotationResource, self).get_object_list(request).filter(q1 | q2)
-            except Exception, ex:
+            except Exception:
                 #print ex
                 raise ImmediateHttpResponse(response=http.HttpBadRequest())
         
@@ -345,15 +378,15 @@ class AnnotationResource(ModelResource):
     def obj_update(self, bundle, request=None, **kwargs):
         """
         Could be an intentional bug that the default obj_update treats DoesNotExist and MultipleObjectReturned
-        as acceptible exceptions which get transformed into a CREATE operation.
-        We don't want such a behavior. So we catch does exceptions and throw an Authorization required message
+        as acceptable exceptions which get transformed into a CREATE operation.
+        We don't want such a behavior. So we catch does exceptions and throw an BadRequest message
         """    
         try:
             updated_bundle = super(AnnotationResource, self).obj_update(bundle, request, **kwargs)
             #self._make_c2dm_notification(updated_bundle)
             return updated_bundle
         except (NotFound, MultipleObjectsReturned):
-            raise ImmediateHttpResponse(http.HttpUnauthorized())
+            raise ImmediateHttpResponse(http.HttpBadRequest())
     
     
     def _make_c2dm_notification(self, bundle):

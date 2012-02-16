@@ -78,7 +78,7 @@ class C2DMClientThread(threading.Thread):
         self.running = False
         
         
-    def _c2dm_request(self, notification, trial_ct):
+    def c2dm_request(self, notification, trial_ct):
         #from gdata.client import GDClient
         #from gdata.auth import ClientLoginToken
         
@@ -128,7 +128,7 @@ class C2DMClientThread(threading.Thread):
             logging.critical("Tried to recover 10 times from failure sending notification: " + str(notification) + ". Aborting!")
     
     
-    def _c2dm_login(self):
+    def c2dm_login(self):
         from gdata.client import GDClient
         
         email = 'aqua.envsocial@gmail.com'

@@ -13,8 +13,8 @@
   					function(response){
   						$( "#checkin_result" ).empty().append( response );
   						if (response.success) {
-  							//post_annotation();
-  							delete_annotation("/envsocial/client/v1/resources/annotation/30/");
+  							post_annotation();
+  							//delete_annotation("/envsocial/client/v1/resources/annotation/30/");
   							//put_annotation("/envsocial/client/v1/resources/annotation/39/");
   						}
   					},
