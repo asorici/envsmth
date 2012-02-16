@@ -48,6 +48,8 @@ class Environment(models.Model):
     longitude = models.FloatField(null = True, blank = True)
     timestamp = models.DateTimeField(auto_now = True)
 
+    def __unicode__(self):
+        return self.name + "(" + str(self.id) + ")"
             
 
 class Layout(models.Model):
@@ -72,6 +74,9 @@ class Area(models.Model):
     
     shape = fields.AreaShapeField(blank = True, null = True)
     timestamp = models.DateTimeField(auto_now = True)
+    
+    def __unicode__(self):
+        return self.name + "(" + str(self.id) + ")"
 
 
 

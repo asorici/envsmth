@@ -20,7 +20,7 @@ class UserResource(ModelResource):
         queryset = UserProfile.objects.all()
         resource_name = 'user'
         allowed_methods = ["get"]
-        excludes = ["id", "fbID", "timestamp", "is_anonymous"]
+        excludes = ["id", "fbID", "timestamp", "is_anonymous", "c2dm_id"]
         
     def dehydrate_first_name(self, bundle):
         return bundle.obj.user.first_name
@@ -357,8 +357,7 @@ class AnnotationResource(ModelResource):
     
     
     def _make_c2dm_notification(self, bundle):
-        import socket, pickle
-        from c2dm import C2DMServer
+        import socket, pickle, c2dm
         
         user_profile = None
         if not bundle.obj.environment is None:
@@ -377,7 +376,7 @@ class AnnotationResource(ModelResource):
             
             try:
                 # Connect to server and send data
-                sock.connect((C2DMServer.HOST, C2DMServer.PORT))
+                sock.connect((c2dm.C2DMServer.HOST, c2dm.C2DMServer.PORT))
                 sock.sendall(data + "\n")
             
                 # Receive data from the server and shut down
