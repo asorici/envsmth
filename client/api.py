@@ -20,8 +20,10 @@ class UserResource(ModelResource):
         queryset = UserProfile.objects.all()
         resource_name = 'user'
         detail_allowed_methods = ["get", "put"]
-        fields = ['first_name']
-        #excludes = ["id", "facebook_id", "timestamp", "is_anonymous"]
+        #fields = ['first_name']
+        excludes = ["id", "facebook_id", "timestamp", "is_anonymous", "about_me", "facebook_id", "access_token",
+                    "facebook_name", "facebook_profile_url", "website_url", "blog_url", "image", "date_of_birth",
+                    "raw_data"]
         authentication = Authentication()
         authorization = UserAuthorization()
         

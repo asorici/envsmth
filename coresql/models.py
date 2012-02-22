@@ -6,7 +6,7 @@ from django_facebook.models import FacebookProfileModel
 
 CATEGORY_CHOICES = (
     ("default", "default"), 
-    ("ordering", "ordering")
+    ("order", "order")
 )
 
 
