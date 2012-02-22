@@ -23,3 +23,18 @@ class AnonymousProfileBackend(ModelBackend):
         else:
             user.backend = 'client.backends.AnonymousProfileBackend'
         return user
+    
+    
+class EmailModelBackend(ModelBackend):
+    """
+    just overrides ModelBackend to authenticate user based on email and password instead of
+    username because the username field in django.contrib.auth.models.User has a max_len of 30 characters
+    """
+    def authenticate(self, email=None, password=None):
+        try:
+            user = User.objects.get(email=email)
+            if user.check_password(password):
+                return user
+        except User.DoesNotExist:
+            return None
+    

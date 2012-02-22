@@ -1,7 +1,36 @@
-from coresql.forms import CheckinForm, LoginForm
+from coresql.forms import CheckinForm, LoginForm, ClientRegistrationForm
 from coresql.models import Environment, Area, UserContext
 from client.decorators import allow_anonymous_profile
 
+def register(request):
+    from django_facebook.connect import connect_user
+    from django.contrib.auth import login
+    
+    #if request.method.upper() == "POST":
+    if request.method.upper() in ["POST", "GET"]:
+        new_user = None
+        
+        form = ClientRegistrationForm(data=request.REQUEST)
+        #form = ClientRegistrationForm(data=request.POST)
+        if form.is_valid():
+            new_user = form.save()
+            ## we have created new user, now let's log them in
+            ## we already have the user instance so for authentication 
+            ## just set the backend as django.contrib.auth.backends.ModelBackend
+            new_user.backend = 'django.contrib.auth.backends.ModelBackend'
+            login(request, new_user)
+            
+            fb_access_token = request.POST.get('fb_access_token')
+            if fb_access_token:
+                ## if we have a fb_access_token then we should also try to connect the data from facebook to
+                ## the user's profile
+                connect_user(request, fb_access_token)
+                
+            return register_succeeded(request, new_user)
+    
+        return register_failed(request, data = form.errors)
+    
+    return register_failed(request)
 
 def login(request):
     from django.contrib.auth import login
@@ -16,6 +45,39 @@ def login(request):
             return login_succeeded(request, user)
     
     return login_failed(request, data = form.errors)
+
+
+def logout(request):
+    from django.contrib.auth import logout
+    
+    ## log the user out
+    user = getattr(request, 'user', None)
+    
+    ## when logging out we also checkout from the current location
+    try:
+        if not user is None and not request.user.is_anonymous():
+            user = request.user.get_profile()
+            
+            user.context.currentEnv = None
+            user.context.currentArea = None
+            user.context.save()
+            
+    except UserContext.DoesNotExist:
+        ## graceful error handling, if no context exists don't freak out, just ignore
+        pass
+    
+    
+    if hasattr(user, 'is_authenticated') and user.is_authenticated():
+        ## it is not a django AnonymousUser - so it has a profile
+        if user.get_profile().is_anonymous:
+            ## if the user was anonymous, delete that user entry
+            user.delete()
+    
+    ## set request.user to AnonymousUser and flush the session 
+    logout(request)
+    
+    return logout_succeeded(request)
+    
 
 
 @allow_anonymous_profile
@@ -74,13 +136,11 @@ def checkin(request):
             
 
 def checkout(request):
-    from django.contrib.auth import logout
-    
     """
     TODO: Don't know if anonymous users should be deleted here
     but at least we log them out
     """
-    ## checkout is done by default from the current area in the user context
+    ## checkout is done by default from the current area or current env in the user context
     try:
         if not request.user.is_anonymous():
             user = request.user.get_profile()
@@ -93,14 +153,29 @@ def checkout(request):
         ## graceful error handling, if no context exists don't freak out, just ignore
         pass
     
-    ## let's also logout the user
-    logout(request)
-    
     return checkout_succeeded(request)
 
     
 ###############################################################################################################
 ###############################################################################################################
+
+def register_succeeded(request, user):
+    from client.api import UserResource
+    response = {"success": True, "code": 200, "data" : {}}
+    
+    if not user.get_profile().is_anonymous:
+        user_res_uri = UserResource().get_resource_uri(user.get_profile())
+        response['data'].update({'resource_uri' : user_res_uri})
+        
+    return view_response(request, response, 200)
+
+
+def register_failed(request, data = None):
+    response = {"success": False, "code": 400, "data" : {}}
+    if not data is None:
+        response['data'].update(data)
+    
+    return view_response(request, response, 400)
 
 
 def login_succeeded(request, user):
@@ -113,6 +188,12 @@ def login_succeeded(request, user):
         response['data'].update({'resource_uri' : user_res_uri})
         
     ## TODO maybe include data about user
+    return view_response(request, response, 200)
+
+
+def logout_succeeded(request):
+    ## default is to just return an 200 OK http response
+    response = {"success": True, "code": 200, "data" : {}}
     return view_response(request, response, 200)
 
 

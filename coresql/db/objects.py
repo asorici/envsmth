@@ -67,8 +67,12 @@ class DateTimeList(ListWrapper):
 
 def dbencode(value):
     from django.utils import simplejson
+    
+    ## if value is just a string, save it ``as is`` in the database
+    if isinstance(value, basestring):
+        return value 
+    
     return simplejson.dumps(value, ensure_ascii=True)
-    #return unicode(value)
 
 
 class Data(object):

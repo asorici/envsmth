@@ -2,28 +2,25 @@ from django.db import models
 from coresql.db import fields
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
+from django_facebook.models import FacebookProfileModel
 
 CATEGORY_CHOICES = (
     ("default", "default"), 
     ("ordering", "ordering")
 )
-    
 
 
-class UserProfile(models.Model):
+#class UserProfile(models.Model):
+class UserProfile(FacebookProfileModel):
     user = models.OneToOneField(User)
     
-    fbID = models.CharField(max_length=50)
+    #facebook_id = models.BigIntegerField(blank=True, unique=True, null=True)
     timestamp = models.DateTimeField(auto_now = True)
     is_anonymous = models.BooleanField(default = False)
     c2dm_id = models.CharField(max_length=256, null = True, blank = True)
 
     def __unicode__(self):
         return self.user.username + ": anonymous=" + str(self.is_anonymous)
-
-    @models.permalink
-    def get_absolute_url(self):
-        return ('handle-user', [str(self.user.id)])
 
 
 def create_user_profile(sender, instance, created, **kwargs):

@@ -1,6 +1,7 @@
 import sys, os
 from coresql.db.objects import DateTimeList, AreaShape
 from coresql.utils.geo import Point2D
+
 #from pycassa.system_manager import *
 #from pycassa.columnfamily import ColumnFamily
 
@@ -76,6 +77,8 @@ def test_Q():
 
 
 def dummy_sql_insert():
+    import re
+    
     create_users = True
     create_env = True
     create_env_features = True
@@ -85,13 +88,15 @@ def dummy_sql_insert():
     create_announcements = True
     create_annotations = True
     
+    username_pattern = re.compile('\W+')
+    
     ## 1) first lets create some users
     if create_users:
         user_list = []
         for i in range(10):
-            username = 'user_' + str(i + 1)
+            email = 'user_' + str(i + 1) + '@email.com'
             password = 'pass_' + str(i + 1)
-            email = 'user_' + str(i + 1) + '@email.com' 
+            username = username_pattern.sub('_', email)
             user_list.append((username, password, email))
             
         for username, password, email in user_list:
@@ -100,7 +105,7 @@ def dummy_sql_insert():
         
     ## 2) create a dummy environment
     if create_env:
-        owner = User.objects.get(username = 'user_1').get_profile()
+        owner = User.objects.get(email = 'user_1@email.com').get_profile()
         print owner.user.username
         print owner.user.id
         print owner.id  
@@ -114,7 +119,26 @@ def dummy_sql_insert():
     if create_env_features:
         environment = Environment.objects.get(name='Environment1')
         feature_data = {'environment': environment, 'category': 'default', 
-                    'data': u'test data for environment1'}
+                    'data': "test data for environment1"}
+        feature = Feature(**feature_data)
+        feature.save()
+        
+        feature_data = {'environment': environment, 'category': 'ordering', 
+                    'data':  {"order_menu":
+                                    [{"category": "Andrei\'s Beer", 
+                                        "items": 
+                                            [{"name": "RedBeer", "description": "Coolest beer in town!", "price": "free"}, 
+                                            {"name": "YellowBeer", "description": "Coolest beer in town!", "price": "free"}, 
+                                            {"name": "BlueBeer", "description": "Coolest beer in town!", "price": "free"}
+                                            ]}, 
+                                    {"category": "Andrei\'s Chips", 
+                                        "items": 
+                                            [{"name": "RedChips", "description": "Coolest chips in town!", "price": "free"}, 
+                                            {"name": "YellowChips", "description": "Coolest chips in town!", "price": "free"}, 
+                                            {"name": "BlueChips", "description": "Coolest chips in town!", "price": "free"}
+                                            ]}
+                                ]}
+                        }
         feature = Feature(**feature_data)
         feature.save()
         
@@ -204,24 +228,27 @@ def generate_qrcodes():
         print area_url
 
 
-class A(object):
-    from Queue import Queue
-    queue = Queue(5)
-
-
-def import_testing():
-    A.queue.put(1)
-    A.queue.put(2)
-    print A.queue
-
-    import test
-
-    print test.A.queue
+def urllib_header_test():
+    import urllib2, time
+    import email.utils as eut
+    from datetime import datetime
+    
+    f = urllib2.urlopen("http://127.0.0.1:8000/envsocial/client/v1/resources/environment/1/?format=xml")
+    print f.code
+    header_info = f.info()
+    h_date = header_info.get('Date')
+    print h_date
+    print eut.parsedate_tz(h_date)
+    
+    t = time.mktime(eut.parsedate_tz(h_date)[:9])
+    now = time.mktime(time.gmtime())
+    
+    
 
 if __name__ == "__main__":
     #main()
     #test_Q()
-    #dummy_sql_insert()
+    dummy_sql_insert()
     #generate_qrcodes()
-    import_testing() 
+    #urllib_header_test()
     

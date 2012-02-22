@@ -116,8 +116,10 @@ MIDDLEWARE_CLASSES = (
 )
 
 AUTHENTICATION_BACKENDS = (
+    'client.backends.EmailModelBackend',
     'client.backends.AnonymousProfileBackend',
-    'django.contrib.auth.backends.ModelBackend',
+    'django_facebook.auth_backends.FacebookBackend',
+    #'django.contrib.auth.backends.ModelBackend',
 )
 
 ROOT_URLCONF = 'envsocial.urls'
@@ -148,6 +150,8 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     'coresql',
     'tastypie',
+    'registration',
+    'django_facebook',
 )
 
 # A sample logging configuration. The only tangible logging

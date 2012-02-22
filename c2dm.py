@@ -18,7 +18,7 @@ class C2DMRequestEnqeueing(SocketServer.BaseRequestHandler):
             logger.info("[C2DMReqEnqueue] enqueued the following data: " + str(self.data))
             self.request.sendall("OK") ## signal OK
         except Full:
-            logger.error("Sorry: queue is full, this request has to be dropped: " + str(self.data))
+            logger.error("[C2DMReqEnqueue] Sorry: queue is full, this request has to be dropped: " + str(self.data))
             self.request.sendall("NOK")
         
     
@@ -82,7 +82,7 @@ class C2DMClientThread(threading.Thread):
         #from gdata.client import GDClient
         #from gdata.auth import ClientLoginToken
         
-        import urllib, urllib2, random, time
+        import urllib, urllib2
         from urllib2 import HTTPError
         
         if trial_ct < 10:
@@ -110,28 +110,22 @@ class C2DMClientThread(threading.Thread):
                 f = urllib2.urlopen(r)
                 content = f.read()
                 
-                logger.info("Response to c2dm request (" + str(resource_uri) + "): " + content)
+                self._handle_content(content, notification, trial_ct)
             except HTTPError as e:
                 if e.code == 401:
                     ## get new authentication token and try again
-                    self._c2dm_login()
-                    self._c2dm_request(notification, trial_ct + 1)
+                    self.c2dm_login()
+                    self.c2dm_request(notification, trial_ct + 1)
                 elif e.code == 503:
-                    ## do exponential backoff
-                    wait_time = random.randint(0, 2**trial_ct)
-                    if wait_time / 10 < 1:
-                        wait_time = 1
-                    
-                    time.sleep(wait_time)
-                    self._c2dm_request(notification, trial_ct + 1)
+                    self._handle503(e, notification, trial_ct)
                 else:
                     ## some other unexpected code - log it
-                    logger.critical("Unexpected http error for c2dm request (" + str(notification) + "): " + str(e.code) + " - " + e.read())
+                    logger.critical("[C2DM HTTP ERROR] Encountered at c2dm request (" + str(notification) + "): " + str(e.code) + " - " + e.read())
             except Exception, e:
-                logger.critical("Unexpected exception for c2dm request (" + str(notification) + "): " + str(e))
+                logger.critical("[C2DM EXCEPTION] Encountered at c2dm request (" + str(notification) + "): " + str(e))
             
         else:
-            logger.critical("Tried to recover 10 times from failure sending notification: " + str(notification) + ". Aborting!")
+            logger.critical("[C2DM TIMEOUT ERROR] Tried to recover 10 times from failure sending notification: " + str(notification) + ". Aborting!")
     
     
     def c2dm_login(self):
@@ -146,11 +140,107 @@ class C2DMClientThread(threading.Thread):
             client.client_login(email=email, password=password, source=application_name, 
                             service="ac2dm", account_type="GOOGLE", captcha_token=None, captcha_response=None)
         except Exception, ex:
-            logger.critical("ERROR while logging in to GData service: " + str(ex))
+            logger.critical("[C2DM LOGIN ERROR] Error while logging into GData service: " + str(ex))
             
-        logger.info("client.auth_token is: " + str(client.auth_token))
-        print "client.auth_token is: " + str(client.auth_token)
         
         if client.auth_token:
-            print "client token string:", client.auth_token.token_string
+            #print "client token string:", client.auth_token.token_string
+            logger.info("client.auth_token is: " + str(client.auth_token.token_string))
             self.update_auth_token(client.auth_token.token_string)
+       
+    
+    def _handle_content(self, content, notification, trial_ct):
+        import time
+        
+        content = content.strip()
+        ## parse the simple content string
+        response_bits = content.split("=")
+        
+        if response_bits[0] == "id":
+            ## if we got a message id it means the transmission was successful
+            logger.info("[C2DM SUCCESS] Successful transmission of notification (" + str(notification) + "). Response: " + content)
+        
+        elif response_bits[0].lower() == "error":
+            ## an error occurred, let's see if we can handle it
+            if response_bits[1] == "QuotaExceeded" or response_bits[1] == "DeviceQuotaExceeded":
+                """
+                We're in trouble here. We won't block the thread until the next day, but instead log the message
+                as critical. 
+                """
+                logger.critical("[C2DM " + response_bits[1] + " ERROR] Encountered at notification request: " + str(notification))
+                time.sleep(30)
+                
+            elif response_bits[1] == "InvalidRegistration" or response_bits[1] == "NotRegistered":
+                """
+                Either the owner has turned off notifications (NotRegistered) or 
+                there is a problem with the registration_id (InvalidRegistration).
+                In both cases, log the error and set the corresponding registration_id to null in the UserProfile
+                """
+                from coresql.models import UserProfile
+                
+                registration_id = notification[0]
+                try:
+                    user_profile = UserProfile.objects.get(c2dm_id = registration_id)
+                    user_profile.c2dm_id = None
+                    user_profile.save()
+                except Exception:
+                    pass
+                
+                logger.error("[C2DM " + response_bits[1] + " ERROR] Encountered at notification request: " + str(notification))
+            else:
+                """
+                Any other error that should normally not be encountered because of the internal business logic: 
+                MissingRegistration, MismatchSenderId, MessageTooBig, MissingCollapseKey 
+                """
+                logger.error("[C2DM " + response_bits[1] + " ERROR] Encountered at notification request: " + str(notification))
+    
+        
+    def _handle503(self, e, notification, trial_ct):
+        import random, time
+        import email.utils as eut
+        
+        ## first try and see if there is a Retry-After header
+        header_info = e.info()
+        retry_after_header = header_info.get("Retry-After")
+        
+        perform_retry_after = False
+        
+        if not retry_after_header is None:
+            ## see if it's a number
+            retry_after = None
+            try:
+                retry_after = float(retry_after_header)
+            except ValueError:
+                pass
+            
+            if retry_after:
+                perform_retry_after = True
+                time.sleep(int(retry_after) + 1)
+            else:
+                t_tuple = None
+                try:
+                    t_tuple = eut.parsedate_tz(retry_after_header)
+                except Exception:
+                    pass
+                
+                if t_tuple:
+                    t = time.mktime(t_tuple[:9])
+                    t += t_tuple[9]                     ## this should be seconds since epoch in UTC timezone
+                    
+                    now = time.mktime(time.gmtime())    ## this should be current time ins seoconds since epoch UTC
+                    t_diff = t - now
+                    if t_diff > 0 and t_diff < 100:    ## if a valid time diff results - perform retry-after
+                        perform_retry_after = True
+                        time.sleep(t_diff)
+                    
+        
+        if not perform_retry_after:    
+            ## if not, do exponential backoff
+            wait_time = random.randint(0, 2**trial_ct)
+            wait_time = wait_time / 5
+            if wait_time < 1:
+                wait_time = 1
+            
+            time.sleep(wait_time)
+        
+        self.c2dm_request(notification, trial_ct + 1)

@@ -20,7 +20,8 @@ class UserResource(ModelResource):
         queryset = UserProfile.objects.all()
         resource_name = 'user'
         detail_allowed_methods = ["get", "put"]
-        excludes = ["id", "fbID", "timestamp", "is_anonymous"]
+        fields = ['first_name']
+        #excludes = ["id", "facebook_id", "timestamp", "is_anonymous"]
         authentication = Authentication()
         authorization = UserAuthorization()
         
@@ -42,7 +43,6 @@ class UserResource(ModelResource):
         if hasattr(bundle.request, "user") and not bundle.request.user.is_anonymous():
             user_profile = bundle.request.user.get_profile()
             if user_profile.pk == bundle.obj.pk:
-                bundle.data['username'] = bundle.obj.user.username
                 bundle.data['email'] = bundle.obj.user.email 
     
         return bundle
@@ -131,8 +131,6 @@ class AreaResource(ModelResource):
         excludes = ['shape', 'layout']
         filtering = {
             'parent': ['exact'],
-            ##'level': ['exact']
-            ## TODO - fix filtering by level as it has to be done manually !!!
         }
         authentication = Authentication()
         
@@ -480,7 +478,7 @@ class ClientApi(Api):
         
         from django.conf.urls.defaults import url, include, patterns
         from tastypie.utils import trailing_slash
-        from client.views import checkin, checkout, login
+        from client.views import checkin, checkout, login, logout, register
         
         pattern_list = [
             url(r"^(?P<api_name>%s)%s$" % (self.api_name, trailing_slash()), self.wrap_view('top_level'), name="api_%s_top_level" % self.api_name),
@@ -492,7 +490,9 @@ class ClientApi(Api):
 
         ## then add the actions
         pattern_list.extend([
+            url(r"^%s/actions/register/$" % self.api_name, register, name="register"),
             url(r"^%s/actions/login/$" % self.api_name, login, name="login"),
+            url(r"^%s/actions/logout/$" % self.api_name, logout, name="logout"),
             url(r"^%s/actions/checkin/$" % self.api_name, checkin, name="checkin"),
             url(r"^%s/actions/checkout/$" % self.api_name, checkout, name="checkout")
         ])

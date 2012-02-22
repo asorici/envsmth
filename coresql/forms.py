@@ -1,6 +1,10 @@
 from django import forms
+from django.utils.translation import ugettext_lazy as _
 from coresql.models import Environment, Area, Annotation, Announcement
+import re
 
+username_pattern = re.compile('\W+')
+attrs_dict = { 'class': 'required' }
 
 class EnvironmentForm(forms.ModelForm):
     """
@@ -167,7 +171,7 @@ class LoginForm(forms.Form):
         password = cleaned_data.get('password')
 
         if email and password:
-            self.user_cache = authenticate(username=email, password=password)
+            self.user_cache = authenticate(email=email, password=password)
             if self.user_cache is None:
                 raise forms.ValidationError(_("Please enter a correct username and password. Note that both fields are case-sensitive."))
             elif not self.user_cache.is_active:
@@ -184,3 +188,92 @@ class LoginForm(forms.Form):
     
     def get_user(self):
         return self.user_cache
+    
+
+class RegistrationForm(forms.Form):
+    """
+    Form for registering a new user account.   
+    Subclasses should feel free to add any additional validation they
+    need, but should either preserve the base ``save()`` or implement
+    a ``save()`` which accepts the ``profile_callback`` keyword
+    argument and passes it through to
+    ``RegistrationProfile.objects.create_inactive_user()``.
+    
+    """
+    email = forms.EmailField(required = True)
+    password1 = forms.CharField(required = True)
+    password2 = forms.CharField(required = True)
+    
+    
+    def clean_email(self):
+        from django.contrib.auth.models import User
+        """
+        Validate that the supplied email address is unique for the
+        site.
+        
+        """
+        if User.objects.filter(email__iexact=self.cleaned_data['email']):
+            raise forms.ValidationError(_(u'This email address is already in use. Please supply a different email address.'))
+        return self.cleaned_data['email']
+    
+    
+    def clean(self):
+        """
+        Verifiy that the values entered into the two password fields
+        match. Note that an error here will end up in
+        ``non_field_errors()`` because it doesn't apply to a single
+        field.
+        
+        """
+        if 'password1' in self.cleaned_data and 'password2' in self.cleaned_data:
+            if self.cleaned_data['password1'] != self.cleaned_data['password2']:
+                raise forms.ValidationError(_(u'You must type the same password each time'))
+        return self.cleaned_data
+    
+    
+    def save(self, profile_callback=None):
+        from registration.models import RegistrationProfile
+        """
+        Create the new ``User`` and ``RegistrationProfile``, and
+        returns the ``User``.
+        
+        This is essentially a light wrapper around
+        ``RegistrationProfile.objects.create_inactive_user()``,
+        feeding it the form data and a profile callback
+        
+        The ``username`` is a trimmed down version of the email with all 
+        non-alfanumeric characters substituted by a ``_`` 
+        """
+        username = self.cleaned_data['email']
+        username = username.split("@")[0]
+        if len(username) > 30:
+            username = username[:30]
+        username = username_pattern.sub('_', username)
+        
+        new_user = RegistrationProfile.objects.create_inactive_user(username=username,
+                                                                    password=self.cleaned_data['password1'],
+                                                                    email=self.cleaned_data['email'],
+                                                                    profile_callback=profile_callback)
+        
+        return new_user
+    
+    
+class ClientRegistrationForm(RegistrationForm):
+    def save(self, profile_callback=None):
+        from registration.models import RegistrationProfile
+        from django.contrib.auth.models import User
+        
+        username = self.cleaned_data['email']
+        username = username.split("@")[0]
+        if len(username) > 30:
+            username = username[:30]
+        username = username_pattern.sub('_', username)
+        
+        new_user = User.objects.create_user(username, self.cleaned_data['email'], password=self.cleaned_data['password1'])
+        new_user.is_active = True
+        new_user.save()
+        
+        RegistrationProfile.objects.create(user=new_user, activation_key="ALREADY_ACTIVATED")
+        
+        return new_user
+        
