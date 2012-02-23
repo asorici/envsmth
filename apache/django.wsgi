@@ -1,6 +1,6 @@
 import sys
 
-sys.path.insert(0, '/home/alex/aquasoft/testproj/envsocial')
+sys.path.insert(0, '/home/alex/Desktop/aquasoft/testproj/envsocial')
 
 import settings
 
