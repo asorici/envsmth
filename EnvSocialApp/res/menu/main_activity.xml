@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<item android:id="@+id/menu_test"
+	    	android:title="@string/menu_test"
+	    	android:showAsAction="ifRoom|withText" />
+<!--	<item android:id="@+id/menu_test1"
+	    	android:title="@string/menu_test" />
+	<item android:id="@+id/menu_test2"
+	    	android:title="@string/menu_test" />
+	<item android:id="@+id/menu_test3"
+	    	android:title="@string/menu_test" />
+	<item android:id="@+id/menu_test4"
+	    	android:title="@string/menu_test" /> -->
+</menu>
