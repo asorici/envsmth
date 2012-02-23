@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <com.envsocial.android.widget.Tour android:id="@+id/tour"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="2"
+        android:spacing="0dp" />
+    
+    <LinearLayout
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_weight="1"
+	    android:orientation="vertical" >
+	
+	    <Button android:id="@+id/btn_anonymous"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_marginLeft="5dp"
+	        android:layout_marginRight="5dp"
+	        android:text="@string/btn_anonymous" />
+	    
+		<Button android:id="@+id/btn_fbconnect"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_marginLeft="5dp"
+	        android:layout_marginRight="5dp"
+	        android:text="@string/btn_fbconnect" />
+
+	 	<LinearLayout
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:orientation="horizontal" >
+		
+			<Button android:id="@+id/btn_register"
+		        android:layout_weight="1"
+		        android:layout_width="0dp"
+		        android:layout_height="wrap_content"
+		        android:layout_marginLeft="5dp"
+		        android:text="@string/btn_register" />
+		
+			<Button android:id="@+id/btn_login"
+		        android:layout_weight="1"
+		        android:layout_width="0dp"
+		        android:layout_height="wrap_content"
+	        	android:layout_marginRight="5dp"
+		        android:text="@string/btn_login" />
+		
+		</LinearLayout>
+	
+	</LinearLayout>
+
+</LinearLayout>
+
+<!-- 
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+
+    <envsocial.android.widget.Tour android:id="@+id/gallery"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:spacing="0dp" />
+    
+    <LinearLayout
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentBottom="true"
+	    android:orientation="vertical" >
+	
+	    <Button android:id="@+id/btn_anonymous"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_marginLeft="5dp"
+	        android:layout_marginRight="5dp"
+	        android:text="@string/btn_anonymous" />
+	    
+		<Button android:id="@+id/btn_fbconnect"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_marginLeft="5dp"
+	        android:layout_marginRight="5dp"
+	        android:text="@string/btn_fbconnect" />
+
+	 	<LinearLayout
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:orientation="horizontal" >
+		
+			<Button android:id="@+id/btn_register"
+		        android:layout_weight="1"
+		        android:layout_width="fill_parent"
+		        android:layout_height="wrap_content"
+		        android:layout_marginLeft="5dp"
+		        android:text="@string/btn_register" />
+		
+			<Button android:id="@+id/btn_login"
+		        android:layout_weight="1"
+		        android:layout_width="fill_parent"
+		        android:layout_height="wrap_content"
+	        	android:layout_marginRight="5dp"
+		        android:text="@string/btn_login" />
+		
+		</LinearLayout>
+	
+	</LinearLayout>
+
+</RelativeLayout> -->

@@ -75,7 +75,6 @@ class UserResource(ModelResource):
                 bundle.data['c2dm_id'] = None
             
             updated_bundle = super(UserResource, self).obj_update(bundle, request, **kwargs)
-            
             return updated_bundle
         except (NotFound, MultipleObjectsReturned):
             raise ImmediateHttpResponse(http.HttpBadRequest())
