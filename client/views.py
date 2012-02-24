@@ -1,7 +1,8 @@
 from coresql.forms import CheckinForm, LoginForm, ClientRegistrationForm
 from coresql.models import Environment, Area, UserContext
-from client.decorators import allow_anonymous_profile
+from client.decorators import allow_anonymous_profile, secure_required
 
+@secure_required
 def register(request):
     from django_facebook.connect import connect_user
     from django.contrib.auth import login
@@ -32,6 +33,8 @@ def register(request):
     
     return register_failed(request)
 
+
+@secure_required
 def login(request):
     from django.contrib.auth import login
     

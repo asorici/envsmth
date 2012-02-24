@@ -71,19 +71,10 @@ class UserResource(ModelResource):
             if deserialized is None:
                 return ImmediateHttpResponse(http.HttpBadRequest())
             
-            
             if 'unregister_c2dm' in deserialized and deserialized['unregister_c2dm'] == True:
                 bundle.data['c2dm_id'] = None
             
             updated_bundle = super(UserResource, self).obj_update(bundle, request, **kwargs)
-            print deserialized
-            """
-            print deserialized
-            updated_bundle = super(UserResource, self).obj_update(bundle, request, **kwargs)
-            if 'unregister_c2dm' in deserialized and deserialized['unregister_c2dm'] == True:
-                bundle.obj.c2dm_id = None
-                bundle.obj.save()
-            """
             return updated_bundle
         except (NotFound, MultipleObjectsReturned):
             raise ImmediateHttpResponse(http.HttpBadRequest())
