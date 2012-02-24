@@ -459,6 +459,9 @@ containing a value of this type.
     }
     public static final class string {
         public static final int abs__tab_under_ab_tag=0x7f090000;
+        /**  Action strings 
+         */
+        public static final int action_notification=0x7f090023;
         public static final int app_name=0x7f090002;
         /**  Button labels 
          */

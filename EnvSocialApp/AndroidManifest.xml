@@ -9,7 +9,11 @@
     
     <permission android:name="com.envsocial.android.permission.C2D_MESSAGE" 
         android:protectionLevel="signature" />
+    <permission android:name="com.envsocial.android.permission.NOTIFICATION" 
+        android:protectionLevel="signature" />
+    
     <uses-permission android:name="com.envsocial.android.permission.C2D_MESSAGE" />
+    <uses-permission android:name="com.envsocial.android.permission.NOTIFICATION" />
     
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -25,7 +29,6 @@
             android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -54,9 +57,10 @@
         </receiver>
         
         <receiver android:name=".utils.NotificationReceiver"
-            android:permission="com.envsocial.android.permission.NOTIFICATION" >
+            android:permission="com.envsocial.android.permission.SEND_NOTIFICATION" >
             <intent-filter>
-                <action android:name="com.envsocial.android.intent.RECEIVE_NOTIFICATION" />
+                <action android:name="@string/action_notification" />
+                <category android:name="com.envsocial.android" />
             </intent-filter>
         </receiver>
     </application>

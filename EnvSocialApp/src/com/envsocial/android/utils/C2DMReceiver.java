@@ -12,8 +12,6 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 
-import com.envsocial.android.DetailsActivity;
-import com.envsocial.android.EnvSocialAppActivity;
 import com.envsocial.android.R;
 import com.envsocial.android.api.ActionHandler;
 import com.google.android.c2dm.C2DMBaseReceiver;
@@ -74,6 +72,7 @@ public class C2DMReceiver extends C2DMBaseReceiver {
 //		generateNotification(context, locationUri, "New order", launcher);
 		dispatchNotification(context, locationUri, feature, resourceUri, params);
 //		generateNotification(context, locationUri, "New order", new Intent(this, DetailsActivity.class));
+		sendOrderedBroadcast(launcher, "com.envsocial.android.permission.NOTIFICATION");
 	}
 
 	@Override
