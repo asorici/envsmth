@@ -62,7 +62,7 @@ def logout(request):
         if not user is None and not request.user.is_anonymous():
             user = request.user.get_profile()
             
-            user.context.currentEnv = None
+            user.context.currentEnvironment = None
             user.context.currentArea = None
             user.context.save()
             
@@ -149,7 +149,7 @@ def checkout(request):
         if not request.user.is_anonymous():
             user = request.user.get_profile()
             
-            user.context.currentEnv = None
+            user.context.currentEnvironment = None
             user.context.currentArea = None
             user.context.save()
             
