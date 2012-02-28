@@ -33,7 +33,7 @@ public class OrderFragment extends Fragment implements OnClickListener {
 	
 	private OrderMenu mOrderMenu;
 	private Button mBtnOrder;
-
+	
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -44,28 +44,28 @@ public class OrderFragment extends Fragment implements OnClickListener {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 							Bundle savedInstanceState) {
 		// Inflate layout for this fragment.
-		View v = inflater.inflate(R.layout.order, container, false);
+		View v = inflater.inflate(R.layout.catalog, container, false);
 		
 		try {
 			mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
 			String menuJSON = mLocation.getFeatureData(Location.FEATURE_ORDER);
 			mOrderMenu = new OrderMenu(menuJSON);
-		
+			
 			// Create custom expandable list adapter
-			OrderExpandableListAdapter adapter = new OrderExpandableListAdapter(getActivity(),
+			CatalogListAdapter adapter = new CatalogListAdapter(getActivity(),
 		    		mOrderMenu.getCategoryData(),
-		    		R.layout.order_group,
+		    		R.layout.catalog_group,
 		    		new String[] { OrderMenu.CATEGORY },
 		    		new int[] { R.id.orderGroup },
 		    		mOrderMenu.getItemData(),
-		    		R.layout.order_item,
+		    		R.layout.catalog_item,
 		    		new String[] { OrderMenu.ITEM_NAME },
 		    		new int[] { R.id.orderItem },
 		    		mOrderMenu.getCounter()
 		    		);
-	    
+			
 		    // Set adapter
-		    ExpandableListView listView = (ExpandableListView) v.findViewById(R.id.order_list);
+		    ExpandableListView listView = (ExpandableListView) v.findViewById(R.id.catalog);
 		    listView.setAdapter(adapter);
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -163,5 +163,5 @@ public class OrderFragment extends Fragment implements OnClickListener {
 		}
 		
 	}
-
+	
 }

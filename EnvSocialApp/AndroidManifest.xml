@@ -45,7 +45,7 @@
             android:exported="false" />
         
         <receiver android:name="com.google.android.c2dm.C2DMBroadcastReceiver"
-            android:permission="com.google.android.c2dm.permission.SEND">
+            android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
                 <category android:name="com.envsocial.android" />
@@ -57,9 +57,9 @@
         </receiver>
         
         <receiver android:name=".utils.NotificationReceiver"
-            android:permission="com.envsocial.android.permission.SEND_NOTIFICATION" >
+            android:permission="com.envsocial.android.permission.NOTIFICATION" >
             <intent-filter>
-                <action android:name="@string/action_notification" />
+                <action android:name="com.envsocial.android.intent.RECEIVE_NOTIFICATION" />
                 <category android:name="com.envsocial.android" />
             </intent-filter>
         </receiver>

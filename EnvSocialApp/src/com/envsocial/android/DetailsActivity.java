@@ -16,7 +16,7 @@ import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.features.Feature;
 import com.envsocial.android.features.order.OrderFragment;
-import com.envsocial.android.features.order.OrderManagementFragment;
+import com.envsocial.android.features.order.OrderManagerFragment;
 import com.envsocial.android.fragment.DefaultFragment;
 import com.envsocial.android.utils.C2DMReceiver;
 import com.envsocial.android.utils.Preferences;
@@ -102,8 +102,8 @@ public class DetailsActivity extends FragmentActivity {
 	        if (loggedIn != null && mLocation.isOwnerByEmail(loggedIn)) {
 	        	mOrderManagementTab = actionBar.newTab()
 				.setText(R.string.tab_order_manager)
-				.setTabListener(new TabListener<OrderManagementFragment>(
-						this, ORDER_MANAGEMENT_FEATURE, OrderManagementFragment.class, mLocation));
+				.setTabListener(new TabListener<OrderManagerFragment>(
+						this, ORDER_MANAGEMENT_FEATURE, OrderManagerFragment.class, mLocation));
 		        actionBar.addTab(mOrderManagementTab);
 	        }
         }
