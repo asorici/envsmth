@@ -123,8 +123,8 @@ class EnvironmentResource(ModelResource):
 
 class AreaResource(ModelResource):
     parent = fields.ForeignKey(EnvironmentResource, 'environment')
-    
     features = fields.ListField()
+    owner = fields.DictField()
     
     class Meta:
         queryset = Area.objects.all()
@@ -164,6 +164,12 @@ class AreaResource(ModelResource):
     def dehydrate_tags(self, bundle):
         return bundle.obj.tags.to_serializable()
     
+    def dehydrate_owner(self, bundle):
+        user_res = UserResource()
+        user_bundle = user_res.build_bundle(bundle.obj.environment.owner, request=bundle.request)
+        user_bundle = user_res.full_dehydrate(user_bundle)
+        
+        return user_bundle.data
     
     def dehydrate_features(self, bundle):
         ## return a list of dictionary values from the features of this environment
