@@ -37,7 +37,7 @@
 	            android:text="@string/btn_call_waiter" />
 		</LinearLayout> -->
     </LinearLayout>
-	<ExpandableListView android:id="@+id/order_list"
+	<ExpandableListView android:id="@+id/catalog"
 	    android:layout_above="@id/footer"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />

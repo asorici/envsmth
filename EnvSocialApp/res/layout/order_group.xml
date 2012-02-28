@@ -3,7 +3,7 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal" >
-    <TextView android:id="@+id/orderGroup"
+    <TextView android:id="@+id/order_group"
         android:layout_width="fill_parent"
         android:layout_height="45dip"
         android:textStyle="bold"

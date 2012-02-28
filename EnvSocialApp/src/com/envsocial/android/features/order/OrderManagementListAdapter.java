@@ -23,13 +23,13 @@ import android.widget.TextView;
 import com.envsocial.android.R;
 import com.envsocial.android.api.Annotation;
 
-public class OrderManagementAdapter extends BaseAdapter {
+public class OrderManagementListAdapter extends BaseAdapter {
 
 	private Context mContext;
 	private LayoutInflater mInflater;
 	private LinkedList<Map<String,String>> mData;
 	
-	public OrderManagementAdapter(Context context, LinkedList<Map<String,String>> data) {
+	public OrderManagementListAdapter(Context context, LinkedList<Map<String,String>> data) {
 		mContext = context;
 		mInflater = LayoutInflater.from(context);
 		mData = data;
@@ -55,6 +55,11 @@ public class OrderManagementAdapter extends BaseAdapter {
 	
 	public long getItemId(int position) {
 		return position;
+	}
+	
+	public void reloadList(LinkedList<Map<String,String>> list) {
+		mData = list;
+		notifyDataSetChanged();
 	}
 	
 	public View getView(int position, View convertView, ViewGroup parent) {
@@ -83,9 +88,9 @@ public class OrderManagementAdapter extends BaseAdapter {
 	
 	private void bind(ViewHolder holder, int position) {
 		Map<String,String> data = getItem(position);
-		String annotationUri = data.get(OrderManagementFragment.RESOURCE_URI);
-		String locationName = data.get(OrderManagementFragment.LOCATION_NAME);
-		String orderDetails = data.get(OrderManagementFragment.ORDER_DETAILS);
+		String annotationUri = data.get(OrderManagementListFragment.RESOURCE_URI);
+		String locationName = data.get(OrderManagementListFragment.LOCATION_NAME);
+		String orderDetails = data.get(OrderManagementListFragment.ORDER_DETAILS);
 		holder.position = position;
 		holder.annotationUri = annotationUri;
 		holder.locationName.setText(locationName);

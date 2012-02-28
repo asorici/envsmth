@@ -14,7 +14,7 @@ import android.widget.TextView;
 
 import com.envsocial.android.R;
 
-public class OrderExpandableListAdapter extends SimpleExpandableListAdapter {
+public class CatalogListAdapter extends SimpleExpandableListAdapter {
 
 	private List<? extends List<? extends Map<String,?>>> mChildData;
 	private String[] mChildFrom;
@@ -22,7 +22,7 @@ public class OrderExpandableListAdapter extends SimpleExpandableListAdapter {
 
 	private Map<Integer,Map<Integer,Integer>> mQuantityData;
 	
-	public OrderExpandableListAdapter(Context context,
+	public CatalogListAdapter(Context context,
 			List<? extends Map<String, ?>> groupData, int groupLayout,
 			String[] groupFrom, int[] groupTo,
 			List<? extends List<? extends Map<String, ?>>> childData,
@@ -135,7 +135,7 @@ public class OrderExpandableListAdapter extends SimpleExpandableListAdapter {
 		return convertView;
 	}
 	
-	static class ChildViewHolder {
+	private static class ChildViewHolder {
 		int groupPosition;
 		int childPosition;
 		TextView orderItem;
@@ -147,9 +147,9 @@ public class OrderExpandableListAdapter extends SimpleExpandableListAdapter {
 	static class QuantityClickListener implements OnClickListener {
 		
 		private ChildViewHolder mParentView;
-		private OrderExpandableListAdapter mAdapter;
+		private CatalogListAdapter mAdapter;
 		
-		QuantityClickListener(OrderExpandableListAdapter adapter, ChildViewHolder view) {
+		QuantityClickListener(CatalogListAdapter adapter, ChildViewHolder view) {
 			mAdapter = adapter;
 			mParentView = view;
 		}

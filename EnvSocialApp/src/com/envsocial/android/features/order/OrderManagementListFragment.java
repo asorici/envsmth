@@ -9,6 +9,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
@@ -20,21 +24,43 @@ import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Annotation;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.features.Feature;
+import com.envsocial.android.utils.C2DMReceiver;
 
-public class OrderManagementFragment extends ListFragment {
+public class OrderManagementListFragment extends ListFragment {
 
 	public static final String RESOURCE_URI = "resource_uri";
 	public static final String LOCATION_NAME = "location_name";
 	public static final String ORDER_DETAILS = "order_details";
 	
-	Location mLocation;
+	private Location mLocation;
+	
+	private OrderManagementListAdapter mAdapter;
+	private OrderReceiver mOrderReceiver;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 	    mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
-	    setListAdapter(new OrderManagementAdapter(getActivity(), getOrders()));
+	    mAdapter = new OrderManagementListAdapter(getActivity(), getOrders());
+	    setListAdapter(mAdapter);
 	}
+	
+	@Override
+	public void onStart() {
+		super.onStart();
+		mOrderReceiver = new OrderReceiver();
+		IntentFilter filter = new IntentFilter();
+		filter.addAction(C2DMReceiver.ACTION_RECEIVE_NOTIFICATION);
+		filter.setPriority(1);
+		getActivity().registerReceiver(mOrderReceiver, filter);
+	}
+	
+	@Override
+	public void onStop() {
+		super.onStop();
+		getActivity().unregisterReceiver(mOrderReceiver);
+	}
+	
 	
 	private LinkedList<Map<String,String>> getOrders() {
 		
@@ -96,6 +122,18 @@ public class OrderManagementFragment extends ListFragment {
 							Bundle savedInstanceState) {
 		// Inflate layout for this fragment.
 		return inflater.inflate(R.layout.m_order, container, false);
+	}
+	
+	
+	private class OrderReceiver extends BroadcastReceiver {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			System.out.println("[DEBUG]>> App on receive");
+			mAdapter.reloadList(getOrders());
+			abortBroadcast();
+		}
+		
 	}
 	
 }
