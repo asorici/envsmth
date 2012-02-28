@@ -1,6 +1,5 @@
 from django.conf.urls.defaults import patterns, include, url
 from django.views.generic.simple import direct_to_template
-#from coresql import views
 
 
 # Uncomment the next two lines to enable the admin:
@@ -37,10 +36,6 @@ c2dm_client_thread.c2dm_login()
 c2dm_client_thread.start()
 
 urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'envsocial.views.home', name='home'),
-    # url(r'^envsocial/', include('envsocial.foo.urls')),
-
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
@@ -50,5 +45,12 @@ urlpatterns = patterns('',
     
     #(r'^envsocial/resources/client/', include(v1_api.urls)),
     (r'^envsocial/client/', include('envsocial.client.urls')),
-    (r'^envsocial/test/$', direct_to_template, {'template': 'test_requests.html'})
+    (r'^envsocial/test/$', direct_to_template, {'template': 'test_requests.html'}),
+    
+    ## connecting with facebook for registration, login, connection
+    (r'^facebook/', include('django_facebook.urls')),
+    
+    ## normal (email, password based) registration, login, activation, password change
+    (r'^accounts/', include('frontend.registration_urls')),
+    
 )

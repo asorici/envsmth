@@ -119,7 +119,7 @@ AUTHENTICATION_BACKENDS = (
     'client.backends.EmailModelBackend',
     'client.backends.AnonymousProfileBackend',
     'django_facebook.auth_backends.FacebookBackend',
-    #'django.contrib.auth.backends.ModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
 )
 
 ROOT_URLCONF = 'envsocial.urls'
@@ -132,8 +132,26 @@ TEMPLATE_DIRS = (
 )
 
 
+TEMPLATE_CONTEXT_PROCESSORS = (
+    "django.contrib.auth.context_processors.auth",
+    "django.core.context_processors.debug",
+    "django.core.context_processors.i18n",
+    "django.core.context_processors.media",
+    "django.core.context_processors.static",
+    "django.contrib.messages.context_processors.messages",
+    "django_facebook.context_processors.facebook",
+)
+
+
 AUTH_PROFILE_MODULE = 'coresql.UserProfile'
 CLIENT_LANDING_PAGE_URL = '/envsocial/'
+
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGIN_URL = "/registration/login/"
+
+FACEBOOK_APP_ID = '251555358262576'
+FACEBOOK_APP_SECRET = 'b8a93ab6523eb235ac4b2cca1722e20e'
+
 #SESSION_COOKIE_AGE = 10800
 
 INSTALLED_APPS = (

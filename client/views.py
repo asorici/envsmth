@@ -7,6 +7,7 @@ def register(request):
     from django_facebook.connect import connect_user
     from django.contrib.auth import login
     
+    
     #if request.method.upper() == "POST":
     if request.method.upper() in ["POST", "GET"]:
         new_user = None
@@ -119,7 +120,7 @@ def checkin(request):
         
         ## if a valid area was found, use it's env field as corresponding environment
         if area:
-            area_env = area.env
+            area_env = area.environment
         
         ## update UserContext entry
         try:
