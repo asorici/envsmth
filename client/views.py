@@ -17,7 +17,7 @@ def register(request):
         if form.is_valid():
             new_user = form.save()
             ## we have created new user, now let's log them in
-            ## we already have the user instance so for authentication 
+            ## we already have the user instance, so for authentication 
             ## just set the backend as django.contrib.auth.backends.ModelBackend
             new_user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, new_user)

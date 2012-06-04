@@ -50,7 +50,6 @@ class UserResource(ModelResource):
         return bundle
 
     
-    
     def obj_update(self, bundle, request=None, **kwargs):
         """
         Could be an intentional bug that the default obj_update treats DoesNotExist and MultipleObjectReturned
