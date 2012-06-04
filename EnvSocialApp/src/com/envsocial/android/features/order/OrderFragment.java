@@ -48,7 +48,7 @@ public class OrderFragment extends Fragment implements OnClickListener {
 		
 		try {
 			mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
-			String menuJSON = mLocation.getFeatureData(Location.FEATURE_ORDER);
+			String menuJSON = mLocation.getFeatureData(Feature.ORDER);
 			mOrderMenu = new OrderMenu(menuJSON);
 			
 			// Create custom expandable list adapter
@@ -92,7 +92,7 @@ public class OrderFragment extends Fragment implements OnClickListener {
 		dialog.dismiss();
 		try {
 			Annotation order = new Annotation(getActivity(), mLocation, 
-					Feature.ORDER_FEATURE, orderJSON);
+					Feature.ORDER, orderJSON);
 			order.post();
 		} catch (Exception e) {
 			e.printStackTrace();

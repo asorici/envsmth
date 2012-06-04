@@ -17,6 +17,7 @@ import com.envsocial.android.api.Location;
 import com.envsocial.android.features.Feature;
 import com.envsocial.android.features.order.OrderFragment;
 import com.envsocial.android.features.order.OrderManagerFragment;
+import com.envsocial.android.features.program.ProgramFragment;
 import com.envsocial.android.fragment.DefaultFragment;
 import com.envsocial.android.utils.C2DMReceiver;
 import com.envsocial.android.utils.Preferences;
@@ -30,6 +31,7 @@ public class DetailsActivity extends FragmentActivity {
 	private Location mLocation;
 	
 	private Tab mDefaultTab;
+	private Tab mProgramTab;
 	private Tab mOrderTab;
 	private Tab mOrderManagementTab;
 	
@@ -81,19 +83,28 @@ public class DetailsActivity extends FragmentActivity {
 	private void addFeatureTabs() {
         // Add tabs based on features
         ActionBar actionBar = getSupportActionBar();
-        if (mLocation.hasFeature(Location.FEATURE_DEFAULT)) {
+        
+        if (mLocation.hasFeature(Feature.DEFAULT)) {
         	mDefaultTab = actionBar.newTab()
 			.setText(R.string.tab_default)
 			.setTabListener(new TabListener<DefaultFragment>(
-					this, Feature.DEFAULT_FEATURE, DefaultFragment.class, mLocation));
+					this, Feature.DEFAULT, DefaultFragment.class, mLocation));
         	actionBar.addTab(mDefaultTab);	
         }
         
-        if (mLocation.hasFeature(Location.FEATURE_ORDER)) {
+        if (mLocation.hasFeature(Feature.PROGRAM)) {
+        	mProgramTab = actionBar.newTab()
+			.setText(R.string.tab_program)
+			.setTabListener(new TabListener<ProgramFragment>(
+					this, Feature.PROGRAM, ProgramFragment.class, mLocation));
+        	actionBar.addTab(mProgramTab);	
+        }
+        
+        if (mLocation.hasFeature(Feature.ORDER)) {
         	mOrderTab = actionBar.newTab()
 			.setText(R.string.tab_order)
 			.setTabListener(new TabListener<OrderFragment>(
-					this, Feature.ORDER_FEATURE, OrderFragment.class, mLocation));
+					this, Feature.ORDER, OrderFragment.class, mLocation));
 	        actionBar.addTab(mOrderTab);
 	        
 	        System.out.println("[DEBUG]>> owner email: " + mLocation.getOwnerEmail());

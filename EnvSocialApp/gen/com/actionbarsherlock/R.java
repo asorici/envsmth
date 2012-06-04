@@ -462,7 +462,7 @@ containing a value of this type.
         public static final int abs__tab_under_ab_tag=0x7f090000;
         /**  Action strings 
          */
-        public static final int action_notification=0x7f090023;
+        public static final int action_notification=0x7f090024;
         public static final int app_name=0x7f090002;
         /**  Button labels 
          */
@@ -484,7 +484,7 @@ containing a value of this type.
         public static final int hello=0x7f090001;
         /**  Notifications 
          */
-        public static final int incoming_order=0x7f090022;
+        public static final int incoming_order=0x7f090023;
         public static final int lbl_email=0x7f090014;
         public static final int lbl_group=0x7f090016;
         public static final int lbl_item=0x7f090017;
@@ -496,17 +496,18 @@ containing a value of this type.
         public static final int lbl_order_details=0x7f090019;
         public static final int lbl_password=0x7f090015;
         public static final int menu_test=0x7f090003;
-        public static final int msg_bad_checkin_response=0x7f09001f;
+        public static final int msg_bad_checkin_response=0x7f090020;
         /**  Message 
          */
-        public static final int msg_malformed_checkin_url=0x7f09001e;
-        public static final int msg_service_unavailable=0x7f090021;
-        public static final int msg_unauthorized_login=0x7f090020;
+        public static final int msg_malformed_checkin_url=0x7f09001f;
+        public static final int msg_service_unavailable=0x7f090022;
+        public static final int msg_unauthorized_login=0x7f090021;
         /**  Tabs 
          */
         public static final int tab_default=0x7f09001b;
-        public static final int tab_order=0x7f09001c;
-        public static final int tab_order_manager=0x7f09001d;
+        public static final int tab_order=0x7f09001d;
+        public static final int tab_order_manager=0x7f09001e;
+        public static final int tab_program=0x7f09001c;
     }
     public static final class style {
         public static final int Internal_Widget_Sherlock_ActionBar=0x7f0b001c;

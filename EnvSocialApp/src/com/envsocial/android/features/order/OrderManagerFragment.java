@@ -128,7 +128,7 @@ public class OrderManagerFragment extends Fragment {
 		try {
 			List<Annotation> orders = Annotation.getAllAnnotationsForEnvironment(getActivity(), 
 					mLocation.getId(), 
-					Feature.ORDER_FEATURE
+					Feature.ORDER
 					);
 			System.out.println("[DEBUG]>> received orders: " + orders);
 			
@@ -144,7 +144,7 @@ public class OrderManagerFragment extends Fragment {
 	// TODO paginatie
 	private void parseOrders(List<Annotation> list) throws JSONException {
 		for (Annotation annotation : list) {
-			if (annotation.getCategory().compareTo(Feature.ORDER_FEATURE) != 0) {
+			if (annotation.getCategory().compareTo(Feature.ORDER) != 0) {
 				continue;
 			}
 			

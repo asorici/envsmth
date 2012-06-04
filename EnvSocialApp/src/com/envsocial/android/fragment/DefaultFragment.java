@@ -10,6 +10,7 @@ import android.widget.TextView;
 import com.envsocial.android.R;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Location;
+import com.envsocial.android.features.Feature;
 
 public class DefaultFragment extends Fragment {
 	
@@ -27,7 +28,7 @@ public class DefaultFragment extends Fragment {
 		// Inflate layout for this fragment.
 		View v = inflater.inflate(R.layout.description, container, false);
 		TextView t = (TextView) v.findViewById(R.id.details);
-		t.setText(mData.getFeatureData(Location.FEATURE_DEFAULT));
+		t.setText(mData.getFeatureData(Feature.DEFAULT));
 		
 	    return v;
 	}
