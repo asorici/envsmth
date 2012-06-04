@@ -9,15 +9,11 @@ from django.core.handlers.wsgi import STATUS_CODE_TEXT
 from django.core.paginator import QuerySetPaginator, InvalidPage
 # the correct paginator for Model objects is the QuerySetPaginator,
 # not the Paginator! (see Django doc)
-from django.core.xheaders import populate_xheaders
-from django import forms
-from django.http import Http404, HttpResponse
+from django.http import HttpResponse
 from django.forms.util import ErrorDict
-from django.shortcuts import render_to_response
-from django.template import loader, RequestContext
 from django.utils import simplejson
 from django.utils.xmlutils import SimplerXMLGenerator
-from django.views.generic.simple import direct_to_template
+
 
 class SerializeResponder(object):
     """

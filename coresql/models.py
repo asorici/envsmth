@@ -6,7 +6,8 @@ from django_facebook.models import FacebookProfileModel
 
 CATEGORY_CHOICES = (
     ("default", "default"), 
-    ("order", "order")
+    ("order", "order"),
+    ("program", "program")
 )
 
 
@@ -76,13 +77,12 @@ class Area(models.Model):
         return self.name + "(" + str(self.id) + ")"
 
 
-
 class Feature(models.Model):
     area = models.ForeignKey(Area, null = True, blank = True, related_name = "features")
     environment = models.ForeignKey(Environment, null = True, blank = True, related_name = "features")
     category = models.CharField(max_length=50, choices = CATEGORY_CHOICES)
     data = fields.DataField(null = True, blank = True)
-
+    timestamp = models.DateTimeField(auto_now = True)
 
 
 class Announcement(models.Model):

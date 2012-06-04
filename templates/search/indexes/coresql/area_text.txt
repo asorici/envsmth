@@ -1,0 +1,7 @@
+{{ object.name }}
+{{ object.tags.getList|join:" " }}
+{% for feat in object.features.all %}
+	{% if feat.category == "default" %}
+		{{ feat.data.to_serializable }}
+	{% endif %}
+{% endfor %}
