@@ -30,7 +30,7 @@ public class NotificationDispatcher {
 		mResourceUri = resourceUri;
 		mParams = params;
 		
-		if (mFeature.compareTo(Feature.ORDER_FEATURE) == 0) {
+		if (mFeature.compareTo(Feature.ORDER) == 0) {
 			mId = R.string.incoming_order;
 			mIconId = R.drawable.ic_launcher;
 			mTitle = mContext.getResources().getString(R.string.incoming_order);

@@ -17,9 +17,6 @@ public class Location implements Serializable {
 	public static final String ENVIRONMENT = "environment";
 	public static final String AREA = "area";
 	
-	public static final String FEATURE_DEFAULT = "default";
-	public static final String FEATURE_ORDER = "order";
-	
 	private static final int TYPE_ENVIRONMENT = 0;
 	private static final int TYPE_AREA = 1;
 	
@@ -116,7 +113,6 @@ public class Location implements Serializable {
 			}
 		} else if (isArea()) {
 			mAreaType = locationData.getString("areaType");
-			mLayoutUrl = locationData.getString("layout_url");
 			mLevel = locationData.getInt("level");
 		}
 	}

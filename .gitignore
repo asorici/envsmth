@@ -6,3 +6,6 @@ static/
 .pydevproject
 .settings/
 .gitignore
+EnvSocialApp/bin/
+c2dm_requests.log
+.metadata/

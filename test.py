@@ -79,14 +79,14 @@ def test_Q():
 def dummy_sql_insert():
     import re
     
-    create_users = True
-    create_env = True
-    create_env_features = True
-    create_layout = True
-    create_areas = True
+    create_users = False
+    create_env = False
+    create_env_features = False
+    create_layout = False
+    create_areas = False
     create_area_features = True
-    create_announcements = True
-    create_annotations = True
+    create_announcements = False
+    create_annotations = False
     
     username_pattern = re.compile('\W+')
     
@@ -123,7 +123,7 @@ def dummy_sql_insert():
         feature = Feature(**feature_data)
         feature.save()
         
-        feature_data = {'environment': environment, 'category': 'ordering', 
+        feature_data = {'environment': environment, 'category': 'order', 
                     'data':  {"order_menu":
                                     [{"category": "Andrei\'s Beer", 
                                         "items": 
@@ -171,7 +171,26 @@ def dummy_sql_insert():
             feature_data = {'area': area, 'category': 'default', 
                         'data': u'test data for ' + area.name}
             feature = Feature(**feature_data)
-            feature.save()    
+            feature.save()
+            
+            feature_data = {'area': area, 'category': 'order', 
+                    'data':  {"order_menu":
+                                    [{"category": "Andrei\'s Beer", 
+                                        "items": 
+                                            [{"name": "RedBeer", "description": "Coolest beer in town!", "price": "free"}, 
+                                            {"name": "YellowBeer", "description": "Coolest beer in town!", "price": "free"}, 
+                                            {"name": "BlueBeer", "description": "Coolest beer in town!", "price": "free"}
+                                            ]}, 
+                                    {"category": "Andrei\'s Chips", 
+                                        "items": 
+                                            [{"name": "RedChips", "description": "Coolest chips in town!", "price": "free"}, 
+                                            {"name": "YellowChips", "description": "Coolest chips in town!", "price": "free"}, 
+                                            {"name": "BlueChips", "description": "Coolest chips in town!", "price": "free"}
+                                            ]}
+                                ]}
+                        }
+            feature = Feature(**feature_data)
+            feature.save()
         
     ## 7) create a set of announcements
     if create_announcements:
@@ -248,7 +267,7 @@ def urllib_header_test():
 if __name__ == "__main__":
     #main()
     #test_Q()
-    dummy_sql_insert()
-    #generate_qrcodes()
+    #dummy_sql_insert()
+    generate_qrcodes()
     #urllib_header_test()
     
