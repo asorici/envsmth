@@ -149,6 +149,7 @@ CLIENT_LANDING_PAGE_URL = '/envsocial/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGIN_URL = "/registration/login/"
 
+FACEBOOK_REGISTRATION_BACKEND = 'registration.backends.default.DefaultBackend'
 FACEBOOK_APP_ID = '251555358262576'
 FACEBOOK_APP_SECRET = 'b8a93ab6523eb235ac4b2cca1722e20e'
 
