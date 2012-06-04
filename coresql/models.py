@@ -8,6 +8,7 @@ CATEGORY_CHOICES = (
     ("default", "default"), 
     ("order", "order"),
     ("program", "program")
+
 )
 
 
