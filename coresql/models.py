@@ -8,9 +8,14 @@ CATEGORY_CHOICES = (
     ("default", "default"), 
     ("order", "order"),
     ("program", "program")
-
 )
 
+class ResearchProfileModel(models.Model):
+    affiliation = models.CharField(max_length = 256, null = True, blank = True)
+    research_interests = fields.TagListField(null = True, blank = True)
+    
+    class Meta:
+        abstract = True
 
 #class UserProfile(models.Model):
 class UserProfile(FacebookProfileModel):
