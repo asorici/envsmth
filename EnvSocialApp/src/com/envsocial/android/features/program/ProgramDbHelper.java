@@ -201,15 +201,15 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 		}
 		c.close();
 		
-		/*
+		
 		System.out.println("[DEBUG] >> #entries: " + c.getCount());
 		c.moveToFirst();
 		while (!c.isAfterLast()) {
-			System.out.println("[DEBUG] >> Select entry: " + c.getString(0) + " " + c.getString(2));
+			System.out.println("[DEBUG] >> Select entry: " + c.getString(0) + " " + c.getString(2) + " " + c.getString(4) + " " + c.getString(5));
 			c.moveToNext();
 		}
 		c.close();
-		*/
+		
 		
 		return entries;
 	}
