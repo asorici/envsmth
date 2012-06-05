@@ -1,7 +1,6 @@
 package com.envsocial.android.features.program;
 
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -59,9 +58,6 @@ public class ProgramFragment extends Fragment {
 	
 	public static class Program {
 		
-		//Map<Integer, Session> sessions = new HashMap<Integer, Session>();
-		//Map<Integer, Session> entries = new HashMap<Integer, Session>();
-		
 		Program(Context context, String jsonString) throws JSONException {
 			JSONObject program = (JSONObject) new JSONObject(jsonString).getJSONObject("program");
 			JSONArray sessionsArray = (JSONArray) program.getJSONArray("sessions");
@@ -77,6 +73,7 @@ public class ProgramFragment extends Fragment {
 			
 			System.out.println("[DEBUG] >> Getting entries");
 			programDb.getEntriesByDay("2012-06-13");
+			programDb.getOverlappingEntries("1");
 			
 			programDb.close();
 		}
