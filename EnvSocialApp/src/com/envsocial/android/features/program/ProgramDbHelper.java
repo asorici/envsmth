@@ -134,8 +134,8 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 		return days;
 	}
 	
-	public List<Map<String,String>> getAllSessions() {
-		List<Map<String,String>> sessions = new ArrayList<Map<String,String>>();
+	public Map<String,Map<String,String>> getAllSessions() {
+		Map<String,Map<String,String>> sessions = new HashMap<String,Map<String,String>>();
 		
 		Cursor c = database.query(SESSION_TABLE, new String[] {COL_SESSION_ID, COL_SESSION_TITLE, 
 				COL_SESSION_TAG, COL_SESSION_LOCATION}, null, null, null, null, null);
@@ -147,12 +147,32 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 			ses.put(COL_SESSION_TITLE, c.getString(1));
 			ses.put(COL_SESSION_TAG, c.getString(2));
 			ses.put(COL_SESSION_LOCATION, c.getString(3));
+			sessions.put(c.getString(0), ses);
 			c.moveToNext();
-			sessions.add(ses);
 		}
 		c.close();
 		
 		return sessions;
+	}
+	
+	public List<Map<String,String>> getEntriesByDay(String day) {
+		List<Map<String,String>> entries = new ArrayList<Map<String,String>>();
+		
+		Cursor c = database.rawQuery("SELECT e1.id, e1.sessionId, e1.title, e1.speakers, e1.startTime, e1.endTime FROM entry e1" + 
+				" WHERE SUBSTR(e1.startTime,1,10) = '" + day + "' AND e1.sessionId = (SELECT MIN(e2.sessionId) FROM entry e2 WHERE SUBSTR(e1.startTime,1,10) = '" + 
+				day + "' AND e2.startTime <= e1.startTime AND e2.endTime > e1.startTime);", 
+				null
+				);
+		
+		System.out.println("[DEBUG] >> #entries: " + c.getCount());
+		c.moveToFirst();
+		while (!c.isAfterLast()) {
+			System.out.println("[DEBUG] >> Select entry: " + c.getString(0) + " " + c.getString(2));
+			c.moveToNext();
+		}
+		c.close();
+		
+		return entries;
 	}
 	
 	public Cursor getAllEntries() {
