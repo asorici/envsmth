@@ -176,17 +176,8 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 														  "AND e2." + COL_ENTRY_END_TIME + " > e1." + COL_ENTRY_START_TIME + 
 													");";
 		
-		/*
-		Cursor c = database.rawQuery("SELECT e1.id, e1.sessionId, e1.title, e1.speakers, e1.startTime, e1.endTime FROM entry e1" + 
-				" WHERE SUBSTR(e1.startTime,1,10) = '" + day + "' AND e1.sessionId = (SELECT MIN(e2.sessionId) FROM entry e2 WHERE SUBSTR(e1.startTime,1,10) = '" + 
-				day + "' AND e2.startTime <= e1.startTime AND e2.endTime > e1.startTime);", 
-				null
-				);
-		*/
 		Cursor c = database.rawQuery(queryString, null);
 		c.moveToFirst();
-		
-		System.out.println("[DEBUG] >> #entries: " + c.getCount());
 		
 		while (!c.isAfterLast()) {
 			Map<String,String> entry = new HashMap<String,String>();
@@ -201,8 +192,6 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 			c.moveToNext();
 		}
 		c.close();
-		
-		System.out.println("[DEBUG] >> entries: " + entries);
 		
 		return entries;
 	}
@@ -253,10 +242,13 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 				"e1." + COL_ENTRY_START_TIME + ", " +
 				"e1." + COL_ENTRY_END_TIME + " " + 
 			"FROM entry e1, " +
-				 "(SELECT " + COL_ENTRY_START_TIME + ", " + COL_ENTRY_END_TIME + " " +
-				    "FROM entry WHERE " + COL_ENTRY_ID + " = '" + entryId + "') AS e2" + " " +
+				 "(SELECT " + COL_ENTRY_ID + ", " + COL_ENTRY_SESSIONID + ", " + 
+				 				COL_ENTRY_START_TIME + ", " + COL_ENTRY_END_TIME + " " +
+				    "FROM entry WHERE " + COL_ENTRY_ID + " = '" + entryId + 
+				    "' ORDER BY " + COL_ENTRY_SESSIONID + " ASC) AS e2" + " " +
 			"WHERE " + 
-				"e1." + COL_ENTRY_START_TIME + " <= e2." + COL_ENTRY_START_TIME + " " +
+				"e1." + COL_ENTRY_ID + " <> e2." + COL_ENTRY_ID + " " +
+				"AND e1." + COL_ENTRY_START_TIME + " <= e2." + COL_ENTRY_START_TIME + " " +
 				"AND e1." + COL_ENTRY_END_TIME + " > e2." + COL_ENTRY_START_TIME + ";";
 				
 
@@ -276,13 +268,6 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 			c.moveToNext();
 		}
 		c.close();
-
-		/*
-		 * System.out.println("[DEBUG] >> #entries: " + c.getCount());
-		 * c.moveToFirst(); while (!c.isAfterLast()) {
-		 * System.out.println("[DEBUG] >> Select entry: " + c.getString(0) + " "
-		 * + c.getString(2)); c.moveToNext(); } c.close();
-		 */
 
 		return entries;
 	}

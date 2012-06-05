@@ -73,6 +73,7 @@ public class ProgramFragment extends Fragment {
 			
 			System.out.println("[DEBUG] >> Getting entries");
 			programDb.getEntriesByDay("2012-06-13");
+			programDb.getOverlappingEntries("1");
 			
 			programDb.close();
 		}
