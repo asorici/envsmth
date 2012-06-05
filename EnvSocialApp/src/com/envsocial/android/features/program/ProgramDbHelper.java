@@ -158,12 +158,50 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 	public List<Map<String,String>> getEntriesByDay(String day) {
 		List<Map<String,String>> entries = new ArrayList<Map<String,String>>();
 		
+		String queryString = 	"SELECT " +
+									"e1." + COL_ENTRY_ID + ", " + 
+									"e1." + COL_ENTRY_SESSIONID + ", " +
+									"e1." + COL_ENTRY_TITLE + ", " +
+									"e1." + COL_ENTRY_SPEAKERS + ", " + 
+									"e1." + COL_ENTRY_START_TIME + ", " +
+									"e1." + COL_ENTRY_END_TIME + " " + 
+								"FROM entry e1 " +
+								"WHERE " + 
+									"SUBSTR(e1." + COL_ENTRY_START_TIME + ",1,10) = '" + day + "' " + 
+									"AND e1." + COL_ENTRY_SESSIONID + " = " +
+													"(SELECT MIN(e2." + COL_ENTRY_SESSIONID + ") " +
+														"FROM entry e2 " +
+														"WHERE " +
+														  "SUBSTR(e2." + COL_ENTRY_START_TIME + ",1,10) = '" + day + "' " +
+														  "AND e2." + COL_ENTRY_START_TIME + " <= e1." + COL_ENTRY_START_TIME + " " +
+														  "AND e2." + COL_ENTRY_END_TIME + " > e1." + COL_ENTRY_START_TIME + 
+													");";
+		
+		/*
 		Cursor c = database.rawQuery("SELECT e1.id, e1.sessionId, e1.title, e1.speakers, e1.startTime, e1.endTime FROM entry e1" + 
 				" WHERE SUBSTR(e1.startTime,1,10) = '" + day + "' AND e1.sessionId = (SELECT MIN(e2.sessionId) FROM entry e2 WHERE SUBSTR(e1.startTime,1,10) = '" + 
 				day + "' AND e2.startTime <= e1.startTime AND e2.endTime > e1.startTime);", 
 				null
 				);
+		*/
+		Cursor c = database.rawQuery(queryString, null);
+		c.moveToFirst();
 		
+		while (!c.isAfterLast()) {
+			Map<String,String> entry = new HashMap<String,String>();
+			entry.put(COL_ENTRY_ID, c.getString(0));
+			entry.put(COL_ENTRY_SESSIONID, c.getString(1));
+			entry.put(COL_ENTRY_TITLE, c.getString(2));
+			entry.put(COL_ENTRY_SPEAKERS, c.getString(3));
+			entry.put(COL_ENTRY_START_TIME, c.getString(4));
+			entry.put(COL_ENTRY_END_TIME, c.getString(5));
+			entries.add(entry);
+			
+			c.moveToNext();
+		}
+		c.close();
+		
+		/*
 		System.out.println("[DEBUG] >> #entries: " + c.getCount());
 		c.moveToFirst();
 		while (!c.isAfterLast()) {
@@ -171,7 +209,98 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 			c.moveToNext();
 		}
 		c.close();
+		*/
 		
+		return entries;
+	}
+	
+	public List<Map<String,String>> getEntriesByDay(String day, String sessionId) {
+		List<Map<String,String>> entries = new ArrayList<Map<String,String>>();
+		
+		String queryString = 	"SELECT " +
+									"e1." + COL_ENTRY_ID + ", " + 
+									"e1." + COL_ENTRY_SESSIONID + ", " +
+									"e1." + COL_ENTRY_TITLE + ", " +
+									"e1." + COL_ENTRY_SPEAKERS + ", " + 
+									"e1." + COL_ENTRY_START_TIME + ", " +
+									"e1." + COL_ENTRY_END_TIME + " " + 
+								"FROM entry e1 " +
+								"WHERE " + 
+									"SUBSTR(e1." + COL_ENTRY_START_TIME + ",1,10) = '" + day + "' " + 
+									"AND e1." + COL_ENTRY_SESSIONID + " = '" + sessionId + "';";
+		
+		Cursor c = database.rawQuery(queryString, null);
+		c.moveToFirst();
+		
+		while (!c.isAfterLast()) {
+			Map<String,String> entry = new HashMap<String,String>();
+			entry.put(COL_ENTRY_ID, c.getString(0));
+			entry.put(COL_ENTRY_SESSIONID, c.getString(1));
+			entry.put(COL_ENTRY_TITLE, c.getString(2));
+			entry.put(COL_ENTRY_SPEAKERS, c.getString(3));
+			entry.put(COL_ENTRY_START_TIME, c.getString(4));
+			entry.put(COL_ENTRY_END_TIME, c.getString(5));
+			entries.add(entry);
+			
+			c.moveToNext();
+		}
+		c.close();
+		
+		/*
+		System.out.println("[DEBUG] >> #entries: " + c.getCount());
+		c.moveToFirst();
+		while (!c.isAfterLast()) {
+			System.out.println("[DEBUG] >> Select entry: " + c.getString(0) + " " + c.getString(2));
+			c.moveToNext();
+		}
+		c.close();
+		*/
+		
+		return entries;
+	}
+	
+	public List<Map<String,String>> getOverlappingEntries(String entryId) {
+		List<Map<String,String>> entries = new ArrayList<Map<String,String>>();
+		
+		String queryString = 	"SELECT " +
+				"e1." + COL_ENTRY_ID + ", " + 
+				"e1." + COL_ENTRY_SESSIONID + ", " +
+				"e1." + COL_ENTRY_TITLE + ", " +
+				"e1." + COL_ENTRY_SPEAKERS + ", " + 
+				"e1." + COL_ENTRY_START_TIME + ", " +
+				"e1." + COL_ENTRY_END_TIME + " " + 
+			"FROM entry e1, " +
+				 "(SELECT " + COL_ENTRY_START_TIME + ", " + COL_ENTRY_END_TIME + " " +
+				    "FROM entry WHERE " + COL_ENTRY_ID + " = '" + entryId + "') AS e2" + " " +
+			"WHERE " + 
+				"e1." + COL_ENTRY_START_TIME + " <= e2." + COL_ENTRY_START_TIME + " " +
+				"AND e1." + COL_ENTRY_END_TIME + " > e2." + COL_ENTRY_START_TIME + ";";
+				
+
+		Cursor c = database.rawQuery(queryString, null);
+		c.moveToFirst();
+		
+		while (!c.isAfterLast()) {
+			Map<String, String> entry = new HashMap<String, String>();
+			entry.put(COL_ENTRY_ID, c.getString(0));
+			entry.put(COL_ENTRY_SESSIONID, c.getString(1));
+			entry.put(COL_ENTRY_TITLE, c.getString(2));
+			entry.put(COL_ENTRY_SPEAKERS, c.getString(3));
+			entry.put(COL_ENTRY_START_TIME, c.getString(4));
+			entry.put(COL_ENTRY_END_TIME, c.getString(5));
+			entries.add(entry);
+
+			c.moveToNext();
+		}
+		c.close();
+
+		/*
+		 * System.out.println("[DEBUG] >> #entries: " + c.getCount());
+		 * c.moveToFirst(); while (!c.isAfterLast()) {
+		 * System.out.println("[DEBUG] >> Select entry: " + c.getString(0) + " "
+		 * + c.getString(2)); c.moveToNext(); } c.close();
+		 */
+
 		return entries;
 	}
 	
