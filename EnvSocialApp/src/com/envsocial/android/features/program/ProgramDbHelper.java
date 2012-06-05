@@ -304,11 +304,6 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 		return entries;
 	}
 	
-	public Map<String,String> getOverlappingEntries(String entryId) {
-		// TODO
-		return null;
-	}
-	
 	public Cursor getAllEntries() {
 		Cursor c = database.query(ENTRY_TABLE, null, null, null, null, null, null);
 		return c;
