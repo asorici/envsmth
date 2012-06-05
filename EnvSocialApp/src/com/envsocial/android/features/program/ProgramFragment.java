@@ -1,5 +1,10 @@
 package com.envsocial.android.features.program;
 
+<<<<<<< HEAD
+import com.envsocial.android.R;
+
+import android.os.Bundle;
+=======
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,10 +16,19 @@ import org.json.JSONObject;
 import android.content.Context;
 import android.os.Bundle;
 import android.service.textservice.SpellCheckerService.Session;
+>>>>>>> 4d8778583ff64a7b6d17ab5c4ca1aab1505cb207
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+<<<<<<< HEAD
+
+public class ProgramFragment extends Fragment {
+	
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+	    super.onCreate(savedInstanceState);
+=======
 import android.widget.ListView;
 
 import com.envsocial.android.R;
@@ -31,6 +45,7 @@ public class ProgramFragment extends Fragment {
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 	    mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
+>>>>>>> 4d8778583ff64a7b6d17ab5c4ca1aab1505cb207
 	}
 	
 	@Override
@@ -39,6 +54,10 @@ public class ProgramFragment extends Fragment {
 		// Inflate layout for this fragment.
 		View v = inflater.inflate(R.layout.program, container, false);
 		
+<<<<<<< HEAD
+		return v;
+	}
+=======
 		try {
 			mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
 			String programJSON = mLocation.getFeatureData(Feature.PROGRAM);
@@ -78,4 +97,5 @@ public class ProgramFragment extends Fragment {
 			programDb.close();
 		}
 	}
+>>>>>>> 4d8778583ff64a7b6d17ab5c4ca1aab1505cb207
 }

@@ -2,7 +2,7 @@ from django.db import models
 from coresql.db import fields
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
-from django_facebook.models import FacebookProfileModel
+from django_facebook.models import FacebookProfile
 
 CATEGORY_CHOICES = (
     ("default", "default"), 
@@ -10,22 +10,22 @@ CATEGORY_CHOICES = (
     ("program", "program")
 )
 
-class ResearchProfileModel(models.Model):
+class ResearchProfile(models.Model):
     affiliation = models.CharField(max_length = 256, null = True, blank = True)
     research_interests = fields.TagListField(null = True, blank = True)
     
-    class Meta:
-        abstract = True
-
 #class UserProfile(models.Model):
-class UserProfile(FacebookProfileModel):
+class UserProfile(models.Model):
     user = models.OneToOneField(User)
     
     #facebook_id = models.BigIntegerField(blank=True, unique=True, null=True)
     timestamp = models.DateTimeField(auto_now = True)
     is_anonymous = models.BooleanField(default = False)
     c2dm_id = models.CharField(max_length=256, null = True, blank = True)
-
+    
+    facebook_profile = models.OneToOneField(FacebookProfile, null = True, blank = True, related_name = "user_profile")
+    research_profile = models.OneToOneField(ResearchProfile, null = True, blank = True, related_name = "user_profile")
+    
     def __unicode__(self):
         return self.user.username + ": anonymous=" + str(self.is_anonymous)
 

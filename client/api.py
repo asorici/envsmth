@@ -1,4 +1,4 @@
-from coresql.models import Environment, Area, Annotation, Announcement, History, UserProfile
+from coresql.models import Environment, Area, Annotation, Announcement, History, UserProfile, ResearchProfile
 #from coresql.forms import AnnotationForm
 from tastypie.resources import ModelResource
 from tastypie.exceptions import ImmediateHttpResponse, NotFound
@@ -15,15 +15,14 @@ from django.core.exceptions import MultipleObjectsReturned
 class UserResource(ModelResource):
     first_name = fields.CharField(readonly = True)
     last_name = fields.CharField(readonly = True)
+    research_profile = fields.DictField(readonly = True)
     
     class Meta:
         queryset = UserProfile.objects.all()
         resource_name = 'user'
         detail_allowed_methods = ["get", "put"]
         #fields = ['first_name']
-        excludes = ["id", "facebook_id", "timestamp", "is_anonymous", "about_me", "facebook_id", "access_token",
-                    "facebook_name", "facebook_profile_url", "website_url", "blog_url", "image", "date_of_birth",
-                    "raw_data"]
+        excludes = ["id", "timestamp", "is_anonymous", "facebook_profile_id"]
         authentication = Authentication()
         authorization = UserAuthorization()
         
@@ -33,6 +32,25 @@ class UserResource(ModelResource):
         
     def dehydrate_last_name(self, bundle):
         return bundle.obj.user.last_name
+    
+    def dehydrate_research_profile(self, bundle):
+        import inspect, sys
+        
+        research_dict = {}
+        if bundle.obj.research_profile:
+            for f in ResearchProfile._meta.fields:
+                if not f.primary_key and not hasattr(f, 'foreign_key'):
+                    field_class = f.__class__
+                    extension_classes = inspect.getmembers(sys.modules["coresql.db.fields"], 
+                        lambda c: inspect.isclass(c) and c.__module__ == "coresql.db.fields")
+                    
+                    if (field_class.__name__, field_class) in extension_classes:
+                        research_dict[f.name] = getattr(bundle.obj.research_profile, f.name).to_serializable()
+                    else:
+                        research_dict[f.name] = getattr(bundle.obj.research_profile, f.name)
+        
+        return research_dict
+
     
     def dehydrate(self, bundle):
         ## if the user is requesting his own data then return his email too as it
@@ -52,7 +70,7 @@ class UserResource(ModelResource):
     
     def obj_update(self, bundle, request=None, **kwargs):
         """
-        Could be an intentional bug that the default obj_update treats DoesNotExist and MultipleObjectReturned
+        Could be an intentional action that the default obj_update treats DoesNotExist and MultipleObjectReturned
         as acceptable exceptions which get transformed into a CREATE operation.
         We don't want such a behavior. So we catch does exceptions and throw an BadRequest message
         """ 

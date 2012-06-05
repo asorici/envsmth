@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<<<<<<< HEAD
+<ExpandableListView xmlns:android="http://schemas.android.com/apk/res/android" 
+    android:id="@+id/order_list"
+=======
 <ListView xmlns:android="http://schemas.android.com/apk/res/android" 
     android:id="@+id/program"
+>>>>>>> 4d8778583ff64a7b6d17ab5c4ca1aab1505cb207
     android:layout_width="fill_parent"
     android:layout_height="fill_parent" />
