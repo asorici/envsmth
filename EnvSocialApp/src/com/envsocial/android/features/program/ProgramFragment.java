@@ -1,6 +1,5 @@
 package com.envsocial.android.features.program;
 
-<<<<<<< HEAD
 import com.envsocial.android.R;
 
 import android.os.Bundle;
@@ -45,7 +44,6 @@ public class ProgramFragment extends Fragment {
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 	    mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
->>>>>>> 4d8778583ff64a7b6d17ab5c4ca1aab1505cb207
 	}
 	
 	@Override
@@ -54,10 +52,6 @@ public class ProgramFragment extends Fragment {
 		// Inflate layout for this fragment.
 		View v = inflater.inflate(R.layout.program, container, false);
 		
-<<<<<<< HEAD
-		return v;
-	}
-=======
 		try {
 			mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
 			String programJSON = mLocation.getFeatureData(Feature.PROGRAM);
@@ -100,5 +94,4 @@ public class ProgramFragment extends Fragment {
 			programDb.close();
 		}
 	}
->>>>>>> 4d8778583ff64a7b6d17ab5c4ca1aab1505cb207
 }
