@@ -67,9 +67,6 @@ public class ProgramFragment extends Fragment {
 			JSONArray sessionsArray = (JSONArray) program.getJSONArray("sessions");
 			JSONArray entriesArray = (JSONArray) program.getJSONArray("entries");
 
-			System.out.println("[DEBUG] >>" + sessionsArray);
-			System.out.println("[DEBUG] >>" + entriesArray);
-			
 			ProgramDbHelper programDb = new ProgramDbHelper(context);
 			programDb.insertSessions(sessionsArray);
 			programDb.insertEntries(entriesArray);

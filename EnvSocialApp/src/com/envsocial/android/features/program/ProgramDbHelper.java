@@ -155,6 +155,20 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 		return sessions;
 	}
 	
+	public List<Map<String,String>> getEntriesByDay() {
+		List<Map<String,String>> entries = new ArrayList<Map<String,String>>();
+		
+/*		Cursor c = database.query(ENTRY_TABLE, new String[] {COL_ENTRY_ID, COL_ENTRY_SESSIONID, 
+				COL_ENTRY_TITLE, COL_ENTRY_SPEAKERS, COL_ENTRY_START_TIME, COL_ENTRY_END_TIME}, 
+				COL_ENTRY_SESSIONID + " = 0 OR " + COL_ENTRY_SESSIONID + 
+				" = (SELECT MIN(" + COL_ENTRY_SESSIONID + ") FROM " + ENTRY_TABLE + " WHERE " + COL_ENTRY_SESSIONID + " <> 0)", 
+				null, null, null, null);*/
+		
+		
+		
+		return entries;
+	}
+	
 	public Cursor getAllEntries() {
 		Cursor c = database.query(ENTRY_TABLE, null, null, null, null, null, null);
 		return c;
