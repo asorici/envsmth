@@ -73,8 +73,11 @@ public class ProgramFragment extends Fragment {
 			programDb.insertEntries(entriesArray);
 			
 			List<String> days = programDb.getDays();
-			List<Map<String,String>> sessions = programDb.getAllSessions();
-//			System.out.println("[DEBUG] >> Sessions: " + sessions);
+			Map<String,Map<String,String>> sessions = programDb.getAllSessions();
+			System.out.println("[DEBUG] >> Sessions: " + sessions);
+			
+			System.out.println("[DEBUG] >> Getting entries");
+			programDb.getEntriesByDay("2012-06-13");
 			
 			programDb.close();
 		}
