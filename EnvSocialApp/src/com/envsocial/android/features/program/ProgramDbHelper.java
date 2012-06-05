@@ -139,7 +139,6 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 		
 		Cursor c = database.query(SESSION_TABLE, new String[] {COL_SESSION_ID, COL_SESSION_TITLE, 
 				COL_SESSION_TAG, COL_SESSION_LOCATION}, null, null, null, null, null);
-		System.out.println("[DEBUG] >> #sessions: " + c.getCount());
 		c.moveToFirst();
 		while (!c.isAfterLast()) {
 			Map<String,String> ses = new HashMap<String,String>();
@@ -187,6 +186,8 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 		Cursor c = database.rawQuery(queryString, null);
 		c.moveToFirst();
 		
+		System.out.println("[DEBUG] >> #entries: " + c.getCount());
+		
 		while (!c.isAfterLast()) {
 			Map<String,String> entry = new HashMap<String,String>();
 			entry.put(COL_ENTRY_ID, c.getString(0));
@@ -201,15 +202,7 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 		}
 		c.close();
 		
-		/*
-		System.out.println("[DEBUG] >> #entries: " + c.getCount());
-		c.moveToFirst();
-		while (!c.isAfterLast()) {
-			System.out.println("[DEBUG] >> Select entry: " + c.getString(0) + " " + c.getString(2));
-			c.moveToNext();
-		}
-		c.close();
-		*/
+		System.out.println("[DEBUG] >> entries: " + entries);
 		
 		return entries;
 	}
@@ -245,16 +238,6 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 			c.moveToNext();
 		}
 		c.close();
-		
-		/*
-		System.out.println("[DEBUG] >> #entries: " + c.getCount());
-		c.moveToFirst();
-		while (!c.isAfterLast()) {
-			System.out.println("[DEBUG] >> Select entry: " + c.getString(0) + " " + c.getString(2));
-			c.moveToNext();
-		}
-		c.close();
-		*/
 		
 		return entries;
 	}

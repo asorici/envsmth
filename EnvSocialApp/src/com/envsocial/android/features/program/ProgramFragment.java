@@ -1,7 +1,6 @@
 package com.envsocial.android.features.program;
 
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,10 +8,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
-import android.service.textservice.SpellCheckerService.Session;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -59,9 +57,6 @@ public class ProgramFragment extends Fragment {
 	
 	
 	public static class Program {
-		
-		Map<Integer, Session> sessions = new HashMap<Integer, Session>();
-		Map<Integer, Session> entries = new HashMap<Integer, Session>();
 		
 		Program(Context context, String jsonString) throws JSONException {
 			JSONObject program = (JSONObject) new JSONObject(jsonString).getJSONObject("program");
