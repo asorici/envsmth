@@ -1,8 +1,16 @@
 package com.envsocial.android.features.program;
 
-import org.json.JSONException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.content.Context;
 import android.os.Bundle;
+import android.service.textservice.SpellCheckerService.Session;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,21 +41,10 @@ public class ProgramFragment extends Fragment {
 		
 		try {
 			mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
-			String menuJSON = mLocation.getFeatureData(Feature.ORDER);
-			mProgram= new Program(menuJSON);
+			String programJSON = mLocation.getFeatureData(Feature.PROGRAM);
+			mProgram= new Program(getActivity(), programJSON);
 			
-			// Create custom expandable list adapter
-/*			CatalogListAdapter adapter = new CatalogListAdapter(getActivity(),
-		    		mOrderMenu.getCategoryData(),
-		    		R.layout.catalog_group,
-		    		new String[] { OrderMenu.CATEGORY },
-		    		new int[] { R.id.orderGroup },
-		    		mOrderMenu.getItemData(),
-		    		R.layout.catalog_item,
-		    		new String[] { OrderMenu.ITEM_NAME },
-		    		new int[] { R.id.orderItem },
-		    		mOrderMenu.getCounter()
-		    		);*/
+			// TODO: Create custom list adapter
 			
 		    // Set adapter
 		    ListView listView = (ListView) v.findViewById(R.id.program);
@@ -62,8 +59,26 @@ public class ProgramFragment extends Fragment {
 	
 	public static class Program {
 		
-		Program(String jsonString) throws JSONException {
+		Map<Integer, Session> sessions = new HashMap<Integer, Session>();
+		Map<Integer, Session> entries = new HashMap<Integer, Session>();
+		
+		Program(Context context, String jsonString) throws JSONException {
+			JSONObject program = (JSONObject) new JSONObject(jsonString).getJSONObject("program");
+			JSONArray sessionsArray = (JSONArray) program.getJSONArray("sessions");
+			JSONArray entriesArray = (JSONArray) program.getJSONArray("entries");
+
+			System.out.println("[DEBUG] >>" + sessionsArray);
+			System.out.println("[DEBUG] >>" + entriesArray);
 			
+			ProgramDbHelper programDb = new ProgramDbHelper(context);
+			programDb.insertSessions(sessionsArray);
+			programDb.insertEntries(entriesArray);
+			
+			List<String> days = programDb.getDays();
+			List<Map<String,String>> sessions = programDb.getAllSessions();
+//			System.out.println("[DEBUG] >> Sessions: " + sessions);
+			
+			programDb.close();
 		}
 	}
 }

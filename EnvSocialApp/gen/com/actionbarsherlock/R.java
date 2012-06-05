@@ -402,7 +402,7 @@ containing a value of this type.
         public static final int items=0x7f05003d;
         public static final int listMode=0x7f050002;
         public static final int location_name=0x7f050032;
-        public static final int menu_test=0x7f050040;
+        public static final int menu_test=0x7f050044;
         public static final int normal=0x7f050001;
         public static final int order=0x7f050031;
         public static final int orderGroup=0x7f050021;
@@ -413,11 +413,15 @@ containing a value of this type.
         public static final int program=0x7f05003f;
         public static final int quantity=0x7f050024;
         public static final int quantity_layout=0x7f050022;
+        public static final int session=0x7f050041;
         public static final int showCustom=0x7f050008;
         public static final int showHome=0x7f050005;
         public static final int showTitle=0x7f050007;
+        public static final int speakers=0x7f050043;
         public static final int summary_list=0x7f05003a;
         public static final int tabMode=0x7f050003;
+        public static final int time=0x7f050040;
+        public static final int title=0x7f050042;
         public static final int tour=0x7f050035;
         public static final int txt_email=0x7f05002c;
         public static final int txt_password=0x7f05002d;
@@ -456,6 +460,7 @@ containing a value of this type.
         public static final int order_group=0x7f030019;
         public static final int order_item=0x7f03001a;
         public static final int program=0x7f03001b;
+        public static final int program_entry=0x7f03001c;
     }
     public static final class menu {
         public static final int main_activity=0x7f0c0000;
