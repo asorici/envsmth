@@ -1,4 +1,4 @@
-from coresql.models import Environment, Area, Annotation, Announcement, History, UserProfile, ResearchProfile
+from coresql.models import Environment, Area, Annotation, Announcement, History, UserProfile, ResearchProfile, UserContext
 #from coresql.forms import AnnotationForm
 from tastypie.resources import ModelResource
 from tastypie.exceptions import ImmediateHttpResponse, NotFound
@@ -21,12 +21,40 @@ class UserResource(ModelResource):
         queryset = UserProfile.objects.all()
         resource_name = 'user'
         detail_allowed_methods = ["get", "put"]
+        list_allowed_methods = ["get"]
         #fields = ['first_name']
         excludes = ["id", "timestamp", "is_anonymous", "facebook_profile_id"]
         authentication = Authentication()
         authorization = UserAuthorization()
         
+    
+    def build_filters(self, filters = None):
+        """
+        enable filtering by environment and area (which do not have their own fields in this resource)
+        """
+        if filters is None:
+            filters = {}
         
+        orm_filters = super(UserResource, self).build_filters(filters)
+        
+        if "area" in filters:
+            area_id = filters['area']
+            area = Area.objects.get(id = area_id)
+            
+            #checked_in_user_profiles = [user_ctx.user for user_ctx in UserContext.objects.filter(currentArea = area)]
+            orm_filters["pk__in"] = [user_ctx.user.pk 
+                                     for user_ctx in UserContext.objects.filter(currentArea = area)]
+        
+        elif "environment" in filters:
+            environment_id = filters['environment']
+            environment = Environment.objects.get(id = environment_id)
+            
+            #checked_in_user_profiles = [user_ctx.user for user_ctx in UserContext.objects.filter(currentArea = area)]
+            orm_filters["pk__in"] = [user_ctx.user.pk 
+                                     for user_ctx in UserContext.objects.filter(currentEnvironment = environment)]
+        
+        return orm_filters
+    
     def dehydrate_first_name(self, bundle):
         return bundle.obj.user.first_name
         
@@ -59,6 +87,10 @@ class UserResource(ModelResource):
         ## remove c2dm data from bundle
         if 'c2dm_id' in bundle.data:
             del bundle.data['c2dm_id']
+        
+        if 'research_profile' in bundle.data and not bundle.obj.research_profile:
+            del bundle.data['research_profile']
+            
             
         if hasattr(bundle.request, "user") and not bundle.request.user.is_anonymous():
             user_profile = bundle.request.user.get_profile()
@@ -66,7 +98,19 @@ class UserResource(ModelResource):
                 bundle.data['email'] = bundle.obj.user.email 
     
         return bundle
-
+    
+    
+    def get_list(self, request, **kwargs):
+        ## override the list retrieval part to verify additionally that an ``environment`` or ``area`` filter exists
+        ## otherwise reject the call with a HttpMethodNotAllowed
+        if 'environment' in request.GET or 'area' in request.GET:
+            return super(UserResource, self).get_list(request, **kwargs)
+        else:
+            raise ImmediateHttpResponse(response=http.HttpMethodNotAllowed())
+    
+    def apply_sorting(self, obj_list, options=None):
+        ## apply a default sorting of user by their last_name
+        return obj_list.order_by("user__last_name")
     
     def obj_update(self, bundle, request=None, **kwargs):
         """
@@ -345,11 +389,9 @@ class AnnotationResource(ModelResource):
             del filters['environment']
             del filters['all']
             
-            orm_filters = super(AnnotationResource, self).build_filters(filters)
-            return orm_filters
-        else:
-            orm_filters = super(AnnotationResource, self).build_filters(filters)
-            return orm_filters
+        orm_filters = super(AnnotationResource, self).build_filters(filters)
+        return orm_filters
+        
     
     
     def get_object_list(self, request):
