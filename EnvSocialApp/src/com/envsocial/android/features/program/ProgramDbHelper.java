@@ -248,6 +248,7 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 				    "' ORDER BY " + COL_ENTRY_SESSIONID + " ASC) AS e2" + " " +
 			"WHERE " + 
 				"e1." + COL_ENTRY_ID + " <> e2." + COL_ENTRY_ID + " " +
+//				"AND SUBSTR(e1." + COL_ENTRY_START_TIME + ",1,10) = SUBSTR(e2." + COL_ENTRY_START_TIME + ",1,10) " +
 				"AND e1." + COL_ENTRY_START_TIME + " <= e2." + COL_ENTRY_START_TIME + " " +
 				"AND e1." + COL_ENTRY_END_TIME + " > e2." + COL_ENTRY_START_TIME + ";";
 				
