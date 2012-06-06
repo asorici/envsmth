@@ -268,7 +268,7 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 			c.moveToNext();
 		}
 		c.close();
-
+		
 		return entries;
 	}
 	
