@@ -35,10 +35,12 @@ public class OrderManagementListAdapter extends BaseAdapter {
 		mData = data;
 	}
 	
+	@Override
 	public int getCount() {
 		return mData.size();
 	}
 
+	@Override
 	public Map<String,String> getItem(int position) {
 		return mData.get(position);
 	}
@@ -62,6 +64,7 @@ public class OrderManagementListAdapter extends BaseAdapter {
 		notifyDataSetChanged();
 	}
 	
+	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		
 		ViewHolder holder;
@@ -106,6 +109,7 @@ public class OrderManagementListAdapter extends BaseAdapter {
 			mHolder = holder;
 		}
 		
+		@Override
 		public void onClick(View v) {
 			if (v == mHolder.resolve) {
 				new DeleteAnnotationTask(mHolder).execute();
