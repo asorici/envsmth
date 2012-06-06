@@ -1,14 +1,10 @@
 package com.envsocial.android.features.program;
 
 
-import java.util.List;
-import java.util.Map;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -24,7 +20,6 @@ import com.envsocial.android.features.Feature;
 public class ProgramFragment extends Fragment {
 	
 	private Location mLocation;
-	private Program mProgram;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -41,41 +36,27 @@ public class ProgramFragment extends Fragment {
 		try {
 			mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
 			String programJSON = mLocation.getFeatureData(Feature.PROGRAM);
-			mProgram= new Program(getActivity(), programJSON);
 			
-			// TODO: Create custom list adapter
+			// Parse program's JSON
+			JSONObject program = (JSONObject) new JSONObject(programJSON).getJSONObject("program");
+			JSONArray sessionsArray = (JSONArray) program.getJSONArray("sessions");
+			JSONArray entriesArray = (JSONArray) program.getJSONArray("entries");
+			
+			// Inflate the in-memory database
+			ProgramDbHelper programDb = new ProgramDbHelper(getActivity());
+			programDb.insertSessions(sessionsArray);
+			programDb.insertEntries(entriesArray);
+			
+			// Create adapter
+			ProgramListAdapter adapter = new ProgramListAdapter(getActivity(), programDb);
 			
 		    // Set adapter
 		    ListView listView = (ListView) v.findViewById(R.id.program);
-//		    listView.setAdapter(adapter);
+		    listView.setAdapter(adapter);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 		
 		return v;
-	}
-	
-	
-	public static class Program {
-		
-		Program(Context context, String jsonString) throws JSONException {
-			JSONObject program = (JSONObject) new JSONObject(jsonString).getJSONObject("program");
-			JSONArray sessionsArray = (JSONArray) program.getJSONArray("sessions");
-			JSONArray entriesArray = (JSONArray) program.getJSONArray("entries");
-
-			ProgramDbHelper programDb = new ProgramDbHelper(context);
-			programDb.insertSessions(sessionsArray);
-			programDb.insertEntries(entriesArray);
-			
-			List<String> days = programDb.getDays();
-			Map<String,Map<String,String>> sessions = programDb.getAllSessions();
-			System.out.println("[DEBUG] >> Sessions: " + sessions);
-			
-			System.out.println("[DEBUG] >> Getting entries");
-			programDb.getEntriesByDay("2012-06-13");
-			programDb.getOverlappingEntries("1");
-			
-			programDb.close();
-		}
 	}
 }
