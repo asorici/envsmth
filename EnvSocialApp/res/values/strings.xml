@@ -40,7 +40,7 @@
     <string name="tab_program">Program</string>
     <string name="tab_order">Order</string>
     <string name="tab_order_manager">Order Manager</string>
-    <string name="tab_people">Order Manager</string>
+    <string name="tab_people">People</string>
     
     <!-- Message -->
     <string name="msg_malformed_checkin_url">The scanned QR Code is not an EnvSocial QR code.</string>

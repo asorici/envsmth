@@ -1,12 +1,8 @@
 package com.envsocial.android.features.people;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -17,19 +13,18 @@ import android.widget.ListView;
 import com.envsocial.android.R;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Location;
-import com.envsocial.android.features.Feature;
-import com.envsocial.android.features.program.ProgramFragment.Program;
+import com.envsocial.android.api.User;
+import com.envsocial.android.utils.Preferences;
 
 public class PeopleFragment extends Fragment {
 	private Location mLocation;
-	private UserData mUserData;
+	private List<User> mPeople;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
-	    mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
 	}
-	
+
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 							Bundle savedInstanceState) {
@@ -38,26 +33,43 @@ public class PeopleFragment extends Fragment {
 		
 		try {
 			mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
-			String peopleJSON = mLocation.getFeatureData(Feature.PEOPLE);
-			mUserData = new UserData(peopleJSON);
-			// TODO: Create custom list adapter
+			mPeople = getPeople(getActivity(), mLocation);
+			
+			// Create custom list adapter
+			PeopleListAdapter adapter = new PeopleListAdapter(getActivity(), mPeople);
 			
 		    // Set adapter
 		    ListView listView = (ListView) v.findViewById(R.id.people);
-//		    listView.setAdapter(adapter);
-		} catch (JSONException e) {
+		    listView.setAdapter(adapter);
+		    
+		    listView.setTextFilterEnabled(true);
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
 		return v;
 	}
 	
-	public static class UserData {
-		private List<Map<String, String>> userDetails = new ArrayList<Map<String,String>>();
+	private List<User> getPeople(Context context, Location location) {
+		List<User> checkedInPeople = null;
 		
-		UserData(String jsonString) throws JSONException {
-			JSONObject userDataObject = (JSONObject) new JSONObject(jsonString).getJSONObject("userdata");
-			
-		}
+		// check if we already have a saved mUserData in the preferences for the current location
+	    checkedInPeople = Preferences.getPeopleInLocation(getActivity(), mLocation);
+	    if (checkedInPeople == null) {
+	    	// try and retrieve from server
+	    	
+	    	try {
+				checkedInPeople = User.getUsers(context, location, null);
+				String usersJsonString = User.toJSON(checkedInPeople);
+		    	
+		    	if (usersJsonString != null) {
+		    		Preferences.setPeopleInLocation(context, usersJsonString);
+		    	}
+	    	} catch (Exception e) {
+				e.printStackTrace();
+			}
+	    }
+	    
+	    return checkedInPeople;
 	}
 }

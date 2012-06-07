@@ -1,5 +1,7 @@
 package com.envsocial.android.utils;
 
+import java.util.List;
+
 import org.json.JSONException;
 
 import android.content.Context;
@@ -8,6 +10,7 @@ import android.preference.PreferenceManager;
 
 import com.envsocial.android.api.AppClient;
 import com.envsocial.android.api.Location;
+import com.envsocial.android.api.User;
 
 
 public final class Preferences {
@@ -15,6 +18,7 @@ public final class Preferences {
 	private static final String EMAIL = "email";
 	private static final String USER_URI = "user_uri";
 	private static final String CHECKED_IN_LOCATION = "checked_in_location";
+	private static final String PEOPLE_IN_LOCATION = "people_in_location";
 
 	
 	public static void login(Context context, String email, String uri) {
@@ -26,6 +30,7 @@ public final class Preferences {
 		removeStringPreference(context, EMAIL);
 		removeStringPreference(context, USER_URI);
 		removeStringPreference(context, AppClient.SESSIONID);
+		removeStringPreference(context, PEOPLE_IN_LOCATION);
 	}
 	
 	public static boolean isLoggedIn(Context context) {
@@ -52,6 +57,11 @@ public final class Preferences {
 	
 	public static void checkout(Context context) {
 		removeStringPreference(context, CHECKED_IN_LOCATION);
+		removeStringPreference(context, PEOPLE_IN_LOCATION);
+	}
+	
+	public static void setPeopleInLocation(Context context, String peopleString) {
+		setStringPreference(context, PEOPLE_IN_LOCATION, peopleString);
 	}
 	
 	public static Location getCheckedInLocation(Context context) {
@@ -68,6 +78,25 @@ public final class Preferences {
 		return null;
 	}
 	
+	public static List<User> getPeopleInLocation(Context context, Location location) {
+		if (location == null) {
+			location = getCheckedInLocation(context);
+		}
+		
+		String jsonString = getStringPreference(context, PEOPLE_IN_LOCATION);
+		if (jsonString != null) {
+			try {
+				return User.getUsers(context, location, jsonString);
+			} catch (JSONException e) {
+				e.printStackTrace();
+				removeStringPreference(context, CHECKED_IN_LOCATION);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return null;
+	}
 	
 	public static void setStringPreference(Context context, String name, String value) {
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);

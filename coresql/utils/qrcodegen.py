@@ -1,7 +1,7 @@
 from django.conf import settings
 
 class QRCodeManager(object):
-    HOST = "127.0.0.1:8000"
+    HOST = "192.168.100.108:8800"
     
     @staticmethod
     def generate_qr_code(area = None, environment = None):

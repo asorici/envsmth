@@ -9,8 +9,10 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONStringer;
 
 import android.content.Context;
+import android.util.JsonWriter;
 
 public class User {
 	public static final String TAG = "user";
@@ -32,14 +34,20 @@ public class User {
 	}
 	
 	
-	public static List<User> getUsers(Context context, Location location) throws Exception {
-		String type = (location.isEnvironment()) ? Location.ENVIRONMENT : Location.AREA;
-		Url url = new Url(Url.RESOURCE, TAG);
-		url.setParameters(new String[] { type }, 
-				new String[] { location.getId() }
-		);
-		
-		return getUsersList(context, url.toString(), location);
+	public static List<User> getUsers(Context context, Location location, String jsonString) throws Exception {
+		if (jsonString == null) { 
+			String type = (location.isEnvironment()) ? Location.ENVIRONMENT : Location.AREA;
+			Url url = new Url(Url.RESOURCE, TAG);
+			url.setParameters(new String[] { type }, 
+					new String[] { location.getId() }
+			);
+			
+			//System.err.println("[DEBUG]>> Url for getUSERS: " + url);
+			return getUsersList(context, url.toString(), location);
+		}
+		else {
+			return parse(context, jsonString, location);
+		}
 	}
 	
 	
@@ -52,6 +60,7 @@ public class User {
 		
 		return getUsersList(context, url.toString(), location);
 	}
+	
 	
 	private static List<User> getUsersList(Context context, String url, Location location) throws Exception {
 		AppClient client = new AppClient(context);
@@ -71,7 +80,8 @@ public class User {
 		JSONObject meta = new JSONObject(responseData).getJSONObject("meta");
 		String next = meta.getString("next");
 		
-		if (next != null) {
+		if (next != null && !next.equalsIgnoreCase("null")) {
+			//System.err.println("[DEBUG]>> Next url for list: " + next);
 			users.addAll(getUsersList(context, next, location));
 		}
 		
@@ -82,7 +92,7 @@ public class User {
 	// Parse response to get a list of User objects
 	private static List<User> parse(Context context, String jsonString, 
 			Location location) throws JSONException {
-
+		
 		JSONArray array = new JSONObject(jsonString).getJSONArray("objects");
 		int len = array.length();
 
@@ -96,15 +106,68 @@ public class User {
 			
 			users.add(new User(context, location, userdata, uri));
 		}
-
+		
 		return users;
 	}
+	
+	
+	public static String toJSON(List<User> users) {
+		try {
+			if (users == null) {
+				return null;
+			}
+			
+			JSONArray userListJSON = new JSONArray();
+			int len = users.size();
+			
+			for (int i = 0; i < len; i++) {
+				User userdata = users.get(i);
+				
+				// build research_interests list
+				JSONArray research_interests = new JSONArray();
+				for (int k = 0; k < userdata.getUserData().getResearchInterests().length; k++) {
+					research_interests.put(userdata.getUserData().getResearchInterests()[k]);
+				}
+				
+				//System.err.println("[DEBUG]>> checked in people research_interests: " + research_interests);
+				
+				// build reseatrch_profile hash
+				JSONObject research_profile = new JSONObject();
+				research_profile.put("affiliation", userdata.getUserData().getAffiliation());
+				research_profile.put("research_interests", research_interests);
+				
+				//System.err.println("[DEBUG]>> checked in people research_profile: " + research_profile);
+				
+				// build user object hash
+				JSONObject userJSON = new JSONObject();
+				userJSON.put("resource_uri", userdata.getUri());
+				userJSON.put("first_name", userdata.getUserData().getFirstName());
+				userJSON.put("last_name", userdata.getUserData().getLastName());
+				userJSON.put("research_profile", research_profile);
+				
+				userListJSON.put(userJSON);
+			}
+			
+			JSONObject list = new JSONObject();
+			list.put("objects", userListJSON);
+			String jsonString = list.toString();
+			
+			//System.err.println("[DEBUG]>> created checked in people JSON string: " + jsonString);
+			return jsonString;
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
 	
 	public Location getLocation() {
 		return mLocation;
 	}
 	
-	public UserProfileData getData() {
+	public UserProfileData getUserData() {
 		return mUserData;
 	}
 	
@@ -145,16 +208,24 @@ public class User {
 		public static UserProfileData parseProfileData(JSONObject user) throws JSONException {
 			String firstName = user.getString("first_name");
 			String lastName = user.getString("last_name");
+			String affiliation = "n.a.";
+			String[] researchInterests = {"n.a."};
 			
-			JSONObject research_profile = user.getJSONObject("research_profile");
-			String affiliation = research_profile.getString("affiliation");
+			//System.err.println("[DEBUG]>> user profile JSONObject: " + user.toString());
 			
-			JSONArray research_interests = research_profile.getJSONArray("research_interests");
-			int len = research_interests.length();
-			String[] researchInterests = new String[len];
-			 
-			for (int i = 0; i < len; i++) {
-				researchInterests[i] = research_interests.getString(i);
+			//JSONObject research_profile = user.getJSONObject("research_profile");
+			JSONObject research_profile = (JSONObject)user.opt("research_profile");
+			
+			if (research_profile != null) {
+				affiliation = research_profile.getString("affiliation");
+				
+				JSONArray research_interests = research_profile.getJSONArray("research_interests");
+				int len = research_interests.length();
+				researchInterests = new String[len];
+				 
+				for (int i = 0; i < len; i++) {
+					researchInterests[i] = research_interests.getString(i);
+				}
 			}
 			
 			return new UserProfileData(firstName, lastName, affiliation, researchInterests);
