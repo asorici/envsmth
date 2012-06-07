@@ -1,7 +1,6 @@
 package com.envsocial.android.features.program;
 
 
-import java.util.Iterator;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -40,9 +39,8 @@ public class ProgramFragment extends Fragment implements OnClickListener {
 							Bundle savedInstanceState) {
 		// Inflate layout for this fragment.
 		View v = inflater.inflate(R.layout.program, container, false);
-	
+		
 		try {
-			mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
 			String programJSON = mLocation.getFeatureData(Feature.PROGRAM);
 			
 			// Parse program's JSON

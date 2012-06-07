@@ -14,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
 import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -82,6 +83,7 @@ public class ProgramListAdapter extends BaseAdapter {
 		List<Map<String,String>> overlapping = 
 			mProgramDb.getOverlappingEntries(entry.get(ProgramDbHelper.COL_ENTRY_ID));
 		System.out.println("[DEBUG] >> Overlapping etries: " + overlapping);
+		
 		holder.bind(entry, overlapping, sessions);
 	}
 
@@ -93,11 +95,10 @@ public class ProgramListAdapter extends BaseAdapter {
 		ViewHolder holder;
 		
 		if (convertView == null) {
-			System.out.println("[DEBUG] >> inflating convertView!");
 			convertView = mInflater.inflate(R.layout.program_row, parent, false);
 			holder = new ViewHolder(mInflater, DEFAULT_ENTRIES_PER_ROW);
 			holder.flipper = (ViewFlipper) convertView.findViewById(R.id.flipper);
-			
+
 			final GestureDetector gestureDetector = new GestureDetector(new ProgramOnGestureListener(holder.flipper));
 			View.OnTouchListener gestureListener = new View.OnTouchListener() {
 				@Override
@@ -223,9 +224,9 @@ public class ProgramListAdapter extends BaseAdapter {
 	
 	class ProgramOnGestureListener extends SimpleOnGestureListener {
 		
-		private final static int SWIPE_MIN_DISTANCE = 120;
-		private final static int SWIPE_MAX_OFF_PATH = 250;
-		private final static int SWIPE_THRESHOLD_VELOCITY = 200;
+//		private final static int SWIPE_MIN_DISTANCE = 120;
+//		private final static int SWIPE_MAX_OFF_PATH = 250;
+//		private final static int SWIPE_THRESHOLD_VELOCITY = 200;
 		
 		private ViewFlipper mFlipper;
 		
@@ -237,7 +238,7 @@ public class ProgramListAdapter extends BaseAdapter {
 		public boolean onFling(MotionEvent e1, MotionEvent e2, 
 				float velocityX, float velocityY) {
 			
-			if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH) {
+/*			if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH) {
 				return false;
 			}
 			
@@ -251,6 +252,22 @@ public class ProgramListAdapter extends BaseAdapter {
 				if (mFlipper.getDisplayedChild() > 0) {
 					mFlipper.showPrevious();
 				}
+			}*/
+			
+			if(velocityX < 0) {
+				System.out.println("[DEBUG] >> Swipe RIGHT: " + mFlipper.getDisplayedChild() + " / " + mFlipper.getChildCount());
+				if  (mFlipper.getDisplayedChild() < mFlipper.getChildCount() - 1) {
+					mFlipper.setInAnimation(AnimationUtils.loadAnimation(mContext, R.anim.slide_in_left));
+					mFlipper.setOutAnimation(AnimationUtils.loadAnimation(mContext, R.anim.slide_out_left));
+					mFlipper.showNext();
+				}
+			}  else {
+				System.out.println("[DEBUG] >> Swipe LEFT: " + mFlipper.getDisplayedChild() + " / " + mFlipper.getChildCount());
+				if (mFlipper.getDisplayedChild() > 0) {
+					mFlipper.setInAnimation(AnimationUtils.loadAnimation(mContext, R.anim.slide_in_right));
+					mFlipper.setOutAnimation(AnimationUtils.loadAnimation(mContext, R.anim.slide_out_right));
+					mFlipper.showPrevious();
+				}
 			}
 			
 			return false;
@@ -261,5 +278,4 @@ public class ProgramListAdapter extends BaseAdapter {
 			return true;
 		}
 	}
-
 }
