@@ -10,3 +10,4 @@ EnvSocialApp/bin/
 c2dm_requests.log
 .metadata/
 libs/
+.classpath

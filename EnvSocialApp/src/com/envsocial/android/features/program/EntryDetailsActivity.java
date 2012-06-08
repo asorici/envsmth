@@ -15,7 +15,6 @@ import com.envsocial.android.R;
 import com.envsocial.android.api.ProgramEntry;
 
 public class EntryDetailsActivity extends FragmentActivity {
-
 	private String mEntryId;
 	private TextView mTitle;
 	private TextView mSession;
@@ -41,10 +40,7 @@ public class EntryDetailsActivity extends FragmentActivity {
 		mBtnSend = (Button) findViewById(R.id.btn_send);
 		mComment = (EditText) findViewById(R.id.comment);
 		
-		mComment.setScroller(new Scroller(this));
-		mComment.setMovementMethod(new ScrollingMovementMethod());
-
-		Map<String,String> entry = ProgramEntry.getEntryById(mEntryId);
+		Map<String,String> entry = ProgramEntry.getEntryById(this, mEntryId);
 		bind(entry);
 	}
 	
