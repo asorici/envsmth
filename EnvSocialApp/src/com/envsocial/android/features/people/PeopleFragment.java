@@ -54,21 +54,21 @@ public class PeopleFragment extends Fragment {
 		List<User> checkedInPeople = null;
 		
 		// check if we already have a saved mUserData in the preferences for the current location
-	    checkedInPeople = Preferences.getPeopleInLocation(getActivity(), mLocation);
-	    if (checkedInPeople == null) {
+	    //checkedInPeople = Preferences.getPeopleInLocation(getActivity(), mLocation);
+	    //if (checkedInPeople == null) {
 	    	// try and retrieve from server
 	    	
 	    	try {
 				checkedInPeople = User.getUsers(context, location, null);
-				String usersJsonString = User.toJSON(checkedInPeople);
+				//String usersJsonString = User.toJSON(checkedInPeople);
 		    	
-		    	if (usersJsonString != null) {
-		    		Preferences.setPeopleInLocation(context, usersJsonString);
-		    	}
+		    	//if (usersJsonString != null) {
+		    		//Preferences.setPeopleInLocation(context, usersJsonString);
+		    	//}
 	    	} catch (Exception e) {
 				e.printStackTrace();
 			}
-	    }
+	    //}
 	    
 	    return checkedInPeople;
 	}

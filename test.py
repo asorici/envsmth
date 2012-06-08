@@ -11,55 +11,9 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "envsocial.settings"
 
 from coresql.models import *
 from django.contrib.auth.models import User
+from django.utils import simplejson
 
-#from core.db import db_connection
 
-def main(argv=None):
-    """
-    sys_mg = SystemManager("localhost:9160")
-     
-    print sys_mg.list_keyspaces()
-
-    sys_mg.create_keyspace("envsocial", SIMPLE_STRATEGY, {'replication_factor': '1'})
-    sys_mg.create_column_family("envsocial", "Environment")
-    sys_mg.create_column_family("envsocial", "Area")
-    sys_mg.create_column_family("envsocial", "Annotation")
-    sys_mg.create_column_family("envsocial", "Event")
-    sys_mg.create_column_family("envsocial", "Announcement")
-    sys_mg.create_column_family("envsocial", "History")
-    sys_mg.create_column_family("envsocial", "Privacy")
-    sys_mg.create_column_family("envsocial", "Layout")
-    sys_mg.create_column_family("envsocial", "Config")
-    
-    sys_mg.create_index("envsocial", "Environment", "name", UTF8_TYPE, index_name="environment_name_index")
-    sys_mg.create_index("envsocial", "Area", "name", UTF8_TYPE, index_name="area_name_index")
-    
-    sys_mg.alter_column('envsocial', 'Config', 'env_id_count', LONG_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'area_id_count', LONG_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'event_id_count', LONG_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'announce_id_count', LONG_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'annotation_id_count', LONG_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'user_id_count', LONG_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'history_id_count', LONG_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'layout_id_count', LONG_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'privacy_id_count', LONG_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'env_cache_time', INT_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'area_cache_time', INT_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'event_cache_time', INT_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'announce_poll_time', INT_TYPE)
-
-    sys_mg.alter_column('envsocial', 'Config', 'max_levels', INT_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'max_tags', INT_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'max_children', INT_TYPE)
-
-    client = db_connection.get_client()
-    config_cf = ColumnFamily(client, "Config")
-    config_cf.insert('conf', {'env_id_count' : 0, 'area_id_count': 0, 'announce_id_count':0, 
-                              'annotation_id_count':0, 'event_id_count':0, 'user_id_count':0, 
-                              'history_id_count':0, 'layout_id_count':0, 'privacy_id_count':0,
-                              'env_cache_time':1000, 'area_cache_time':1000, 'event_cache_time':1000, 'announce_poll_time':10, 'max_levels':100, 'max_tags':100, 'max_children':100})    
-    """
-    pass
 
     
 def test_Q():
@@ -263,12 +217,78 @@ def urllib_header_test():
     t = time.mktime(eut.parsedate_tz(h_date)[:9])
     now = time.mktime(time.gmtime())
     
+
+def parse_program():
+    from xml.dom.minidom import parse
+    import datetime
     
+    # open file
+    prg_file = open("program-v1-custom.xml", "r") 
+    document = parse(prg_file)
+    prg_file.close()
+
+    sessions = []
+    ses_ct = 1
+
+    entries = []
+    entry_ct = 1
+
+    session_elems = document.getElementsByTagName("session")
+    for session_elem in session_elems:
+        # parse data for a session
+        title = session_elem.attributes["title"].value
+        tag = session_elem.attributes["tag"].value
+        date = datetime.datetime.strptime(session_elem.attributes["date"].value, "%d-%m-%Y")
+
+        ses = {"id" : str(ses_ct), "title" : title, "tag" : tag, "location" : "/envsocial/client/v1/resources/environment/1/"}
+        ses_ct += 1
+
+        sessions.append(ses)
+
+        # parse data for all entries of this session
+        entry_elems = session_elem.getElementsByTagName("entry")
+        for entry_elem in entry_elems:
+            period_text = _getText(entry_elem.getElementsByTagName("period")[0].childNodes)
+            title = _getText(entry_elem.getElementsByTagName("title")[0].childNodes)
+            speakers = _getText(entry_elem.getElementsByTagName("speakers")[0].childNodes)
+            
+            periods_text = period_text.split("-")
+            start_time = datetime.datetime.strptime(periods_text[0].strip(), "%H:%M")
+            end_time = datetime.datetime.strptime(periods_text[1].strip(), "%H:%M")
+            
+            start_time = start_time.replace(year = date.year, month = date.month, day=date.day)
+            end_time = end_time.replace(year = date.year, month = date.month, day=date.day)
+            
+            entry = {"id" : str(entry_ct), 
+                     "sessionId" : ses["id"], 
+                     "title" : title, 
+                     "speakers" : speakers, 
+                     "startTime" : start_time.strftime("%Y-%m-%dT%H:%M:00"),
+                     "endTime" : end_time.strftime("%Y-%m-%dT%H:%M:00")
+                    }
+            entry_ct += 1
+            
+            entries.append(entry)
+            
+    program = {"program" : {"sessions" : sessions, "entries" : entries}}
+    programJSON = simplejson.dumps(program)
+    
+    f = open("program-v1-custom.json", "w")
+    print >>f, programJSON
+    f.close()
+
+def _getText(nodelist):
+    rc = []
+    for node in nodelist:
+        if node.nodeType == node.TEXT_NODE:
+            rc.append(node.data)
+    return ''.join(rc)
 
 if __name__ == "__main__":
     #main()
     #test_Q()
     #dummy_sql_insert()
-    generate_qrcodes()
+    #generate_qrcodes()
     #urllib_header_test()
+    parse_program()
     
