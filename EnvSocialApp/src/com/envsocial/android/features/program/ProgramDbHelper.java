@@ -23,6 +23,7 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 	public static final String COL_ENTRY_TITLE = "title";
 	public static final String COL_ENTRY_SESSIONID = "sessionId";
 	public static final String COL_ENTRY_SPEAKERS = "speakers";
+	public static final String COL_ENTRY_ABSTRACT = "abstract";
 	public static final String COL_ENTRY_START_TIME = "startTime";
 	public static final String COL_ENTRY_END_TIME = "endTime";
 	
@@ -122,8 +123,11 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 	public List<String> getDays() {
 		List<String> days = new ArrayList<String>();
 		
-		Cursor c = database.query(ENTRY_TABLE, new String[] {"SUBSTR(" + COL_ENTRY_START_TIME + ",1,10)"}, 
-				null, null, COL_ENTRY_START_TIME, null, null);
+//		Cursor c = database.query(ENTRY_TABLE, new String[] {"SUBSTR(" + COL_ENTRY_START_TIME + ",1,10)"}, 
+//				null, null, COL_ENTRY_START_TIME, null, null);
+		
+		String queryString = "SELECT DISTINCT SUBSTR(" + COL_ENTRY_START_TIME + ",1,10) as Day FROM " + ENTRY_TABLE + ";";
+		Cursor c = database.rawQuery(queryString, null);
 		c.moveToFirst();
 		while (!c.isAfterLast()) {
 			days.add(c.getString(0));
@@ -133,7 +137,7 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 		
 		return days;
 	}
-	
+	 
 	public Map<String,Map<String,String>> getAllSessions() {
 		Map<String,Map<String,String>> sessions = new HashMap<String,Map<String,String>>();
 		
@@ -248,6 +252,7 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 				    "' ORDER BY " + COL_ENTRY_SESSIONID + " ASC) AS e2" + " " +
 			"WHERE " + 
 				"e1." + COL_ENTRY_ID + " <> e2." + COL_ENTRY_ID + " " +
+//				"AND SUBSTR(e1." + COL_ENTRY_START_TIME + ",1,10) = SUBSTR(e2." + COL_ENTRY_START_TIME + ",1,10) " +
 				"AND e1." + COL_ENTRY_START_TIME + " <= e2." + COL_ENTRY_START_TIME + " " +
 				"AND e1." + COL_ENTRY_END_TIME + " > e2." + COL_ENTRY_START_TIME + ";";
 				

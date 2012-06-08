@@ -21,6 +21,7 @@
     <string name="btn_history">View History</string>
     <string name="btn_resolve">Resolve</string>
     <string name="btn_cancel">Cancel</string>
+    <string name="btn_send">Send</string>
     
     <string name="btn_c2dm_reg">Register C2DM</string>
     <string name="btn_c2dm_unreg">Unregister C2DM</string>
@@ -34,6 +35,8 @@
     <string name="lbl_no_orders">No orders.</string>
     <string name="lbl_order_details">Order details.</string>
     <string name="lbl_location_name">AREA_NAME</string>
+    <string name="lbl_abstract">Abstract:</string>
+    <string name="lbl_post_comment">Post a comment:</string>
     
     <!-- Tabs -->
     <string name="tab_default">Details</string>
