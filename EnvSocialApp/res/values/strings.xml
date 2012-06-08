@@ -21,6 +21,7 @@
     <string name="btn_history">View History</string>
     <string name="btn_resolve">Resolve</string>
     <string name="btn_cancel">Cancel</string>
+    <string name="btn_send">Send</string>
     
     <string name="btn_c2dm_reg">Register C2DM</string>
     <string name="btn_c2dm_unreg">Unregister C2DM</string>
@@ -34,12 +35,15 @@
     <string name="lbl_no_orders">No orders.</string>
     <string name="lbl_order_details">Order details.</string>
     <string name="lbl_location_name">AREA_NAME</string>
+    <string name="lbl_abstract">Abstract:</string>
+    <string name="lbl_post_comment">Post a comment:</string>
     
     <!-- Tabs -->
     <string name="tab_default">Details</string>
     <string name="tab_program">Program</string>
     <string name="tab_order">Order</string>
     <string name="tab_order_manager">Order Manager</string>
+    <string name="tab_people">People</string>
     
     <!-- Message -->
     <string name="msg_malformed_checkin_url">The scanned QR Code is not an EnvSocial QR code.</string>

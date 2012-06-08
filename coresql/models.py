@@ -7,7 +7,8 @@ from django_facebook.models import FacebookProfile
 CATEGORY_CHOICES = (
     ("default", "default"), 
     ("order", "order"),
-    ("program", "program")
+    ("program", "program"),
+    ("people", "people")
 )
 
 class ResearchProfile(models.Model):

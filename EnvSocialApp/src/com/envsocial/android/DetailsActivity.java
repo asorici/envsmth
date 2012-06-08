@@ -17,6 +17,7 @@ import com.envsocial.android.api.Location;
 import com.envsocial.android.features.Feature;
 import com.envsocial.android.features.order.OrderFragment;
 import com.envsocial.android.features.order.OrderManagerFragment;
+import com.envsocial.android.features.people.PeopleFragment;
 import com.envsocial.android.features.program.ProgramFragment;
 import com.envsocial.android.fragment.DefaultFragment;
 import com.envsocial.android.utils.C2DMReceiver;
@@ -34,6 +35,7 @@ public class DetailsActivity extends FragmentActivity {
 	private Tab mProgramTab;
 	private Tab mOrderTab;
 	private Tab mOrderManagementTab;
+	private Tab mPeopleTab;
 	
 	
 	@Override
@@ -117,6 +119,14 @@ public class DetailsActivity extends FragmentActivity {
 						this, ORDER_MANAGEMENT_FEATURE, OrderManagerFragment.class, mLocation));
 		        actionBar.addTab(mOrderManagementTab);
 	        }
+        }
+        
+        if (mLocation.hasFeature(Feature.PEOPLE)) {
+        	mPeopleTab = actionBar.newTab()
+        			.setText(R.string.tab_people)
+        			.setTabListener(new TabListener<PeopleFragment>(
+        					this, Feature.PEOPLE, PeopleFragment.class, mLocation));
+        	actionBar.addTab(mPeopleTab);
         }
 	}
 	

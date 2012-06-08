@@ -40,6 +40,8 @@
         <activity android:name=".DetailsActivity"
             android:theme="@style/Theme.Sherlock.Light"
             android:configChanges="orientation" />
+        <activity android:name=".features.program.EntryDetailsActivity"
+            android:theme="@style/Theme.Sherlock.Light" />
         
         <service android:name=".utils.C2DMReceiver"
             android:exported="false" />

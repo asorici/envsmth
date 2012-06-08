@@ -3,5 +3,5 @@
     <translate android:interpolator="@android:anim/linear_interpolator"
         android:fromXDelta="-100%p"
         android:toXDelta="0"
-        android:duration="500" />
+        android:duration="300" />
 </set>

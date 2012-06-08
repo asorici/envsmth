@@ -362,6 +362,7 @@ containing a value of this type.
         public static final int tour4=0x7f02002e;
     }
     public static final class id {
+        public static final int abs=0x7f05002d;
         public static final int abs__action_bar=0x7f05001b;
         public static final int abs__action_bar_container=0x7f05001a;
         public static final int abs__action_bar_subtitle=0x7f050017;
@@ -382,56 +383,64 @@ containing a value of this type.
         public static final int abs__tab_icon=0x7f050013;
         public static final int abs__textButton=0x7f050019;
         public static final int abs__up=0x7f050010;
-        public static final int btn_anonymous=0x7f050036;
-        public static final int btn_c2dm_reg=0x7f05002a;
-        public static final int btn_c2dm_unreg=0x7f05002b;
-        public static final int btn_cancel=0x7f05003b;
-        public static final int btn_checkin=0x7f050029;
-        public static final int btn_fbconnect=0x7f050037;
-        public static final int btn_filter=0x7f05002f;
-        public static final int btn_history=0x7f050030;
+        public static final int affiliation=0x7f050049;
+        public static final int btn_anonymous=0x7f05003e;
+        public static final int btn_c2dm_reg=0x7f050032;
+        public static final int btn_c2dm_unreg=0x7f050033;
+        public static final int btn_cancel=0x7f050043;
+        public static final int btn_checkin=0x7f050031;
+        public static final int btn_fbconnect=0x7f05003f;
+        public static final int btn_filter=0x7f050037;
+        public static final int btn_history=0x7f050038;
         public static final int btn_less=0x7f050023;
-        public static final int btn_login=0x7f05002e;
+        public static final int btn_login=0x7f050036;
         public static final int btn_more=0x7f050025;
         public static final int btn_order=0x7f05001e;
-        public static final int btn_register=0x7f050038;
-        public static final int btn_resolve=0x7f050033;
+        public static final int btn_register=0x7f050040;
+        public static final int btn_resolve=0x7f05003b;
+        public static final int btn_send=0x7f05002f;
         public static final int btn_tab=0x7f05001f;
         public static final int catalog=0x7f050020;
-        public static final int category=0x7f05003c;
-        public static final int dayScroll=0x7f050040;
+        public static final int category=0x7f050044;
+        public static final int comment=0x7f050030;
+        public static final int comment_list=0x7f05002e;
+        public static final int datetime=0x7f05002c;
+        public static final int dayScroll=0x7f05004c;
         public static final int details=0x7f050027;
         public static final int details_containter=0x7f050028;
-        public static final int entry_layout=0x7f05003f;
-        public static final int flipper=0x7f050042;
+        public static final int entry_layout=0x7f05004b;
+        public static final int flipper=0x7f05004e;
         public static final int footer=0x7f05001d;
         public static final int homeAsUp=0x7f050006;
-        public static final int items=0x7f05003d;
+        public static final int items=0x7f050045;
         public static final int listMode=0x7f050002;
-        public static final int location_name=0x7f050032;
-        public static final int menu_test=0x7f050047;
+        public static final int location_name=0x7f05003a;
+        public static final int menu_test=0x7f050050;
+        public static final int name=0x7f050048;
         public static final int normal=0x7f050001;
-        public static final int order=0x7f050031;
+        public static final int order=0x7f050039;
         public static final int orderGroup=0x7f050021;
         public static final int orderItem=0x7f050026;
-        public static final int order_details=0x7f050034;
-        public static final int order_group=0x7f05003e;
-        public static final int order_list=0x7f050039;
-        public static final int program=0x7f050041;
+        public static final int order_details=0x7f05003c;
+        public static final int order_group=0x7f050046;
+        public static final int order_list=0x7f050041;
+        public static final int people=0x7f050047;
+        public static final int program=0x7f05004d;
         public static final int quantity=0x7f050024;
         public static final int quantity_layout=0x7f050022;
-        public static final int session=0x7f050044;
+        public static final int research_interests=0x7f05004a;
+        public static final int session=0x7f05002b;
         public static final int showCustom=0x7f050008;
         public static final int showHome=0x7f050005;
         public static final int showTitle=0x7f050007;
-        public static final int speakers=0x7f050046;
-        public static final int summary_list=0x7f05003a;
+        public static final int speakers=0x7f05002a;
+        public static final int summary_list=0x7f050042;
         public static final int tabMode=0x7f050003;
-        public static final int time=0x7f050043;
-        public static final int title=0x7f050045;
-        public static final int tour=0x7f050035;
-        public static final int txt_email=0x7f05002c;
-        public static final int txt_password=0x7f05002d;
+        public static final int time=0x7f05004f;
+        public static final int title=0x7f050029;
+        public static final int tour=0x7f05003d;
+        public static final int txt_email=0x7f050034;
+        public static final int txt_password=0x7f050035;
         public static final int useLogo=0x7f050004;
         public static final int wrap_content=0x7f050000;
     }
@@ -455,20 +464,23 @@ containing a value of this type.
         public static final int catalog_item=0x7f03000d;
         public static final int description=0x7f03000e;
         public static final int details=0x7f03000f;
-        public static final int home=0x7f030010;
-        public static final int login=0x7f030011;
-        public static final int m_order=0x7f030012;
-        public static final int m_order_row=0x7f030013;
-        public static final int main=0x7f030014;
-        public static final int order=0x7f030015;
-        public static final int order_dialog=0x7f030016;
-        public static final int order_dialog_footer=0x7f030017;
-        public static final int order_dialog_row=0x7f030018;
-        public static final int order_group=0x7f030019;
-        public static final int order_item=0x7f03001a;
-        public static final int program=0x7f03001b;
-        public static final int program_row=0x7f03001c;
-        public static final int program_row_layout=0x7f03001d;
+        public static final int entry_details=0x7f030010;
+        public static final int home=0x7f030011;
+        public static final int login=0x7f030012;
+        public static final int m_order=0x7f030013;
+        public static final int m_order_row=0x7f030014;
+        public static final int main=0x7f030015;
+        public static final int order=0x7f030016;
+        public static final int order_dialog=0x7f030017;
+        public static final int order_dialog_footer=0x7f030018;
+        public static final int order_dialog_row=0x7f030019;
+        public static final int order_group=0x7f03001a;
+        public static final int order_item=0x7f03001b;
+        public static final int people=0x7f03001c;
+        public static final int people_entry=0x7f03001d;
+        public static final int program=0x7f03001e;
+        public static final int program_row=0x7f03001f;
+        public static final int program_row_layout=0x7f030020;
     }
     public static final class menu {
         public static final int main_activity=0x7f0c0000;
@@ -477,13 +489,13 @@ containing a value of this type.
         public static final int abs__tab_under_ab_tag=0x7f090000;
         /**  Action strings 
          */
-        public static final int action_notification=0x7f090024;
+        public static final int action_notification=0x7f090028;
         public static final int app_name=0x7f090002;
         /**  Button labels 
          */
         public static final int btn_anonymous=0x7f090004;
-        public static final int btn_c2dm_reg=0x7f090011;
-        public static final int btn_c2dm_unreg=0x7f090012;
+        public static final int btn_c2dm_reg=0x7f090012;
+        public static final int btn_c2dm_unreg=0x7f090013;
         public static final int btn_call_waiter=0x7f09000c;
         public static final int btn_cancel=0x7f090010;
         public static final int btn_check=0x7f09000a;
@@ -495,34 +507,38 @@ containing a value of this type.
         public static final int btn_order=0x7f090009;
         public static final int btn_register=0x7f090006;
         public static final int btn_resolve=0x7f09000f;
+        public static final int btn_send=0x7f090011;
         public static final int btn_tab=0x7f09000b;
         public static final int hello=0x7f090001;
         /**  Notifications 
          */
-        public static final int incoming_order=0x7f090023;
-        public static final int lbl_email=0x7f090014;
-        public static final int lbl_group=0x7f090016;
-        public static final int lbl_item=0x7f090017;
-        public static final int lbl_location_name=0x7f09001a;
+        public static final int incoming_order=0x7f090027;
+        public static final int lbl_abstract=0x7f09001c;
+        public static final int lbl_email=0x7f090015;
+        public static final int lbl_group=0x7f090017;
+        public static final int lbl_item=0x7f090018;
+        public static final int lbl_location_name=0x7f09001b;
         /**  Labels 
          */
-        public static final int lbl_login=0x7f090013;
-        public static final int lbl_no_orders=0x7f090018;
-        public static final int lbl_order_details=0x7f090019;
-        public static final int lbl_password=0x7f090015;
+        public static final int lbl_login=0x7f090014;
+        public static final int lbl_no_orders=0x7f090019;
+        public static final int lbl_order_details=0x7f09001a;
+        public static final int lbl_password=0x7f090016;
+        public static final int lbl_post_comment=0x7f09001d;
         public static final int menu_test=0x7f090003;
-        public static final int msg_bad_checkin_response=0x7f090020;
+        public static final int msg_bad_checkin_response=0x7f090024;
         /**  Message 
          */
-        public static final int msg_malformed_checkin_url=0x7f09001f;
-        public static final int msg_service_unavailable=0x7f090022;
-        public static final int msg_unauthorized_login=0x7f090021;
+        public static final int msg_malformed_checkin_url=0x7f090023;
+        public static final int msg_service_unavailable=0x7f090026;
+        public static final int msg_unauthorized_login=0x7f090025;
         /**  Tabs 
          */
-        public static final int tab_default=0x7f09001b;
-        public static final int tab_order=0x7f09001d;
-        public static final int tab_order_manager=0x7f09001e;
-        public static final int tab_program=0x7f09001c;
+        public static final int tab_default=0x7f09001e;
+        public static final int tab_order=0x7f090020;
+        public static final int tab_order_manager=0x7f090021;
+        public static final int tab_people=0x7f090022;
+        public static final int tab_program=0x7f09001f;
     }
     public static final class style {
         public static final int Internal_Widget_Sherlock_ActionBar=0x7f0b001c;

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.LayoutInflater;
@@ -40,7 +41,7 @@ public class ProgramListAdapter extends BaseAdapter {
 		mContext = context;
 		mInflater = LayoutInflater.from(context);
 		mProgramDb = programDb;
-
+		
 		sessions = programDb.getAllSessions();
 		
 		days = programDb.getDays();
@@ -82,7 +83,7 @@ public class ProgramListAdapter extends BaseAdapter {
 		Map<String,String> entry = getItem(position);
 		List<Map<String,String>> overlapping = 
 			mProgramDb.getOverlappingEntries(entry.get(ProgramDbHelper.COL_ENTRY_ID));
-		System.out.println("[DEBUG] >> Overlapping etries: " + overlapping);
+//		System.out.println("[DEBUG] >> Overlapping etries: " + overlapping);
 		
 		holder.bind(entry, overlapping, sessions);
 	}
@@ -90,7 +91,7 @@ public class ProgramListAdapter extends BaseAdapter {
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		
-		System.out.println("[DEBUG] >> getView called for position: " + position);
+//		System.out.println("[DEBUG] >> getView called for position: " + position);
 		
 		ViewHolder holder;
 		
@@ -99,7 +100,10 @@ public class ProgramListAdapter extends BaseAdapter {
 			holder = new ViewHolder(mInflater, DEFAULT_ENTRIES_PER_ROW);
 			holder.flipper = (ViewFlipper) convertView.findViewById(R.id.flipper);
 
-			final GestureDetector gestureDetector = new GestureDetector(new ProgramOnGestureListener(holder.flipper));
+			final GestureDetector gestureDetector = 
+				new GestureDetector(
+						new ProgramOnGestureListener(mContext, holder.flipper)
+					);
 			View.OnTouchListener gestureListener = new View.OnTouchListener() {
 				@Override
 				public boolean onTouch(View v, MotionEvent event) {
@@ -155,24 +159,24 @@ public class ProgramListAdapter extends BaseAdapter {
 			// Make sure to clear flipper before binding data
 			flipper.removeAllViews();
 			
-			System.out.println("[DEBUG] >> Binding entries to ViewHolder");
+//			System.out.println("[DEBUG] >> Binding entries to ViewHolder");
 			// Make sure we have enough layouts
 			int layouts = entries.size();
 			int diff = (overlapping.size() + 1) - layouts;
-			System.out.println("[DEBUG] >> We need to inflate #layouts: " + diff);
+//			System.out.println("[DEBUG] >> We need to inflate #layouts: " + diff);
 			for (int i = 0; i < diff; ++ i) {
-				System.out.println("[DEBUG] >> Inflating layout!");
+//				System.out.println("[DEBUG] >> Inflating layout!");
 				inflateEntryLayout();
 			}
 			
 			// Bind data to layouts
 			mEntries = 0;
-			System.out.println("[DEBUG] >> Binding data for first entry");
+//			System.out.println("[DEBUG] >> Binding data for first entry");
 			EntryHolder eh = entries.get(mEntries ++); 
 			eh.bind(entry, sessions);
 			flipper.addView(eh.layout);
 			for (Map<String,String> e : overlapping) {
-				System.out.println("[DEBUG] >> Binding data for alternative #" + mEntries);
+//				System.out.println("[DEBUG] >> Binding data for alternative #" + mEntries);
 				eh = entries.get(mEntries ++);
 				eh.bind(e, sessions);
 				flipper.addView(eh.layout);
@@ -187,7 +191,10 @@ public class ProgramListAdapter extends BaseAdapter {
 		TextView title;
 		TextView speakers;
 		
+		
 		public void bind(Map<String,String> entry, Map<String,Map<String,String>> sessions) {
+			String id = entry.get(ProgramDbHelper.COL_ENTRY_ID);
+			layout.setTag(id);
 			time.setText(
 					formatTime(
 						entry.get(ProgramDbHelper.COL_ENTRY_START_TIME), 
@@ -228,9 +235,11 @@ public class ProgramListAdapter extends BaseAdapter {
 //		private final static int SWIPE_MAX_OFF_PATH = 250;
 //		private final static int SWIPE_THRESHOLD_VELOCITY = 200;
 		
+		private Context mContext;
 		private ViewFlipper mFlipper;
 		
-		ProgramOnGestureListener(ViewFlipper flipper) {
+		ProgramOnGestureListener(Context context, ViewFlipper flipper) {
+			mContext = context;
 			mFlipper = flipper;
 		}
 		
@@ -275,6 +284,19 @@ public class ProgramListAdapter extends BaseAdapter {
 		
 		@Override
 		public boolean onDown(MotionEvent e) {
+			return true;
+		}
+		
+		@Override
+		public boolean onSingleTapConfirmed(MotionEvent e) {
+			String id = (String) mFlipper
+									.getCurrentView()
+									.getTag();
+			
+			Intent intent = new Intent(mContext, EntryDetailsActivity.class);
+			intent.putExtra(ProgramDbHelper.COL_ENTRY_ID, id);
+			mContext.startActivity(intent);
+			
 			return true;
 		}
 	}
