@@ -270,12 +270,13 @@ def parse_program():
             
             entries.append(entry)
             
-    program = {"program" : {"sessions" : sessions, "entries" : entries}}
-    programJSON = simplejson.dumps(program)
+    #program = {"program" : {"sessions" : sessions, "entries" : entries}}
+    #programJSON = simplejson.dumps(program)
     
-    f = open("program-v1-custom.json", "w")
-    print >>f, programJSON
-    f.close()
+    #f = open("program-v1-custom.json", "w")
+    #print >>f, programJSON
+    #f.close()
+    return sessions, entries
 
 def _getText(nodelist):
     rc = []
@@ -284,11 +285,129 @@ def _getText(nodelist):
             rc.append(node.data)
     return ''.join(rc)
 
+
+def build_wims_simulation(argv=None):
+    from coresql.models import DescriptionFeature, ProgramFeature, Session, Entry, PeopleFeature
+    from django.utils.encoding import smart_unicode
+    import datetime
+    
+    # 1) create the wims environment
+    owner = User.objects.get(email = 'user_1@email.com').get_profile()
+    env_data = {'owner': owner, 'name': 'WIMS 2012 Conference',
+                'tags': u'conference;web intelligence;mining and semantics', 'width': 500, 'height': 500
+               }
+    environment = Environment(**env_data)
+    environment.save()
+    
+    print ">> Done creating environment!"
+    
+    # 2) create the features for the environment
+    ## description feature
+    desc_feature_data = {'environment': environment, 'category': 'default', 
+                    'description': "The 2nd International Conference on Web Intelligence, Mining and Semantics (WIMS'12) is organised under the auspices of University of Craiova. This is the second in a new series of conferences concerned with intelligent approaches to transform the World Wide Web into a global reasoning and semantics-driven computing machine. "}
+    desc_feature = DescriptionFeature(**desc_feature_data)
+    desc_feature.save()
+    
+    print ">> Done adding desc feature for environment"
+    
+    ## program feature
+    program_feature_data = {'environment': environment, 'category': 'program', 
+                    'description' : "Presentation schedule for the WIMS'12 conference"}
+    program_feature = ProgramFeature(**program_feature_data)
+    program_feature.save()
+    
+    ## create the sessions and the entries for the program
+    sessions, entries = parse_program()
+    for ses in sessions:
+        db_ses = Session(title = ses['title'], tag = ses['tag'], program=program_feature)
+        db_ses.save()
+        
+        session_entries = filter(lambda e: e['sessionId'] == ses['id'], entries)
+        for entry in session_entries:
+            db_entry_data = {'session' : db_ses, 'title' : entry['title'], 
+                             'speakers' : smart_unicode(entry['speakers']),
+                             'startTime' : datetime.datetime.strptime(entry['startTime'], "%Y-%m-%dT%H:%M:%S"),
+                             'endTime' : datetime.datetime.strptime(entry['endTime'], "%Y-%m-%dT%H:%M:%S")}
+            db_entry = Entry(**db_entry_data)
+            db_entry.save()
+    
+    print ">> Done adding program feature for environment"
+    
+    ## create 3 areas and add the default and people features for them
+    ## the program feature only needs to be inputed at the environment level
+    layout_data = {'environment': environment}
+    environment_layout = Layout(**layout_data)
+    environment_layout.save()
+    
+    ## area 1 - session 1, 2 rooms
+    area1_data = {'name': 'Blue Hall', 'areaType': 'interest',
+                         'layout': environment_layout, 'environment': environment
+                 }
+    area1 = Area(**area1_data)
+    area1.save()
+    desc_feature_data = {'area': area1, 'category': 'default', 
+                    'description':"The Blue Hall will host the talks by the invited speakers and Tutorial 1."}
+    desc_feature = DescriptionFeature(**desc_feature_data)
+    desc_feature.save()
+    
+    people_feature = PeopleFeature(description = "people feature for Blue Hall", area = area1, category = "people")
+    people_feature.save()
+    
+    print ">> Done adding area 1"
+    
+    area2_data = {'name': 'Room 443D', 'areaType': 'interest',
+                         'layout': environment_layout, 'environment': environment
+                 }
+    area2 = Area(**area2_data)
+    area2.save()
+    desc_feature_data = {'area': area2, 'category': 'default', 
+                    'description':"Room 443D will host Sessions 1, 3, 5, 7, 9 and Tutorials 2 and 4."}
+    desc_feature = DescriptionFeature(**desc_feature_data)
+    desc_feature.save()
+    
+    people_feature = PeopleFeature(description = "people feature for Room 443D", area = area2, category = "people")
+    people_feature.save()
+    
+    print ">> Done adding area 2"
+    
+    area3_data = {'name': 'Room 443C', 'areaType': 'interest',
+                         'layout': environment_layout, 'environment': environment
+                 }
+    area3 = Area(**area3_data)
+    area3.save()
+    desc_feature_data = {'area': area3, 'category': 'default', 
+                    'description':"Room 443C will host Sessions 2, 4, 6, 8, 10 and Tutorials 3 and 5."}
+    desc_feature = DescriptionFeature(**desc_feature_data)
+    desc_feature.save()
+    
+    people_feature = PeopleFeature(description = "people feature for Room 443C", area = area3, category = "people")
+    people_feature.save()
+    
+    print ">> Done adding area 3"
+    
+    area4_data = {'name': 'University Hall', 'areaType': 'interest',
+                         'layout': environment_layout, 'environment': environment
+                 }
+    area4 = Area(**area4_data)
+    area4.save()
+    desc_feature_data = {'area': area4, 'category': 'default', 
+                    'description':"University Hall will host Poster Sessions and Coffee Breaks."}
+    desc_feature = DescriptionFeature(**desc_feature_data)
+    desc_feature.save()
+    
+    people_feature = PeopleFeature(description = "people feature for University Hall", area = area4, category = "people")
+    people_feature.save()
+    
+    print ">> Done adding area 4"
+    
+
 if __name__ == "__main__":
     #main()
     #test_Q()
     #dummy_sql_insert()
-    #generate_qrcodes()
+    generate_qrcodes()
     #urllib_header_test()
-    parse_program()
+    #parse_program()
+    #build_wims_simulation()
+    
     

@@ -134,7 +134,7 @@ class AreaShapeField(models.TextField):
             except Exception, ex:
                 raise ValidationError("Invalid encoding for area shape object. " + str(ex))
         else:
-            return AreaShape(AreaShape.TYPE_POLYGON)
+            return AreaShape()
 
     def get_prep_value(self, value):
         # value is an object of type AreaShape
