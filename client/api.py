@@ -270,14 +270,27 @@ class AreaResource(ModelResource):
         return user_bundle.data
     
     def dehydrate_features(self, bundle):
-        ## return a list of dictionary values from the features of this environment
+        ## return a list of dictionary values from the features of this area
         feature_list = []
+        
+        ## first add all the specific area features
         for feature in bundle.obj.features.all():
             feat_dict = self._dehydrate_feature(feature, bundle)
             #feature_list.append({'category': feature.category, 'data': feature.data.to_serializable()})
             if feat_dict:
                 feature_list.append(feat_dict)
 
+        ## then see if environment features which also apply to the area are available - e.g. program, order
+        ## we handle the "program" case for now
+        environment = bundle.obj.environment
+        environment_features = environment.features.all()
+        
+        for env_feat in environment_features:
+            if env_feat.category == 'program':
+                feat_dict = self._dehydrate_feature(env_feat, bundle)
+                if feat_dict:
+                    feature_list.append(feat_dict)
+        
         return feature_list
     
     
