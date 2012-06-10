@@ -75,7 +75,7 @@
 		        android:lines="5"
 		        android:inputType="textMultiLine"
 		        android:scrollbars="vertical"
-		        android:text="This is just some garbage text I am using for testing. Don't ask me why, don't ask me to use a string value, just take it as it is. This is just some garbage text I am using for testing. Don't ask me why, don't ask me to use a string value, just take it as it is."
+		        android:text="This is just some garbage text I am using for testing. It's supposed to be an entry annotation"
 		        android:layout_marginRight="5dip"
 		        android:layout_marginLeft="5dip" />
 	    </RelativeLayout>

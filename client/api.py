@@ -481,8 +481,28 @@ class AnnotationResource(ModelResource):
             del filters['all']
             
         orm_filters = super(AnnotationResource, self).build_filters(filters)
+        
+        if "category" in filters:
+            """
+            if annotations are filtered by category see if any category specific filters also apply
+            """
+            categ_specific_filters = self._category_filtering(filters)
+            orm_filters.update(categ_specific_filters)
+            
         return orm_filters
         
+    
+    def _category_filtering(self, filters):
+        specific_filters = {}
+        
+        ## switch by category
+        if filters['category'] == "program":
+            ## program feature specific filtering
+            if "entry_id" in filters:
+                specific_filters['entryannotation__entry__id'] = int(filters['entry_id'])
+    
+        return specific_filters
+    
     
     def get_object_list(self, request):
         from django.db.models import Q
@@ -506,26 +526,42 @@ class AnnotationResource(ModelResource):
         ## return the data representation of this annotation according to its type
         annotation_category = bundle.obj.category
         if annotation_category == 'default':
-            return bundle.obj.descriptionannotation.text
+            return {'text' : bundle.obj.descriptionannotation.text}
         elif annotation_category == 'program':
-            return bundle.obj.entryannotation.text
+            return {'text' : bundle.obj.entryannotation.text}
         else:
             return None    
     
     
     def dehydrate(self, bundle):
         """
-        if we are treating an environment=<env_pk>&all=true request, return additionally for each annotation
+        return additionally for each annotation
         bundle the name of the environment/area for which the annotation was made
         """
-        if 'environment' in bundle.request.GET and 'all' in bundle.request.GET and bundle.request.GET['all'] == 'true':
-            if not bundle.obj.environment is None:
-                ## make the environment response a dictionary, containing resource_uri and name
-                bundle.data['environment'] = {'resource_uri': bundle.data['environment'], 'name': bundle.obj.environment.name}
+        if not bundle.obj.environment is None:
+            ## make the environment response a dictionary, containing resource_uri and name
+            bundle.data['environment'] = {'resource_uri': bundle.data['environment'], 'name': bundle.obj.environment.name}
+        
+        if not bundle.obj.area is None:
+            ## make the area response a dictionary, containing resource_uri and name
+            bundle.data['area'] = {'resource_uri': bundle.data['area'], 'name': bundle.obj.area.name}
+        
+        
+        """
+        if a userexplicit=true parameter is found in the request, add the user's first and last name
+        """
+        if 'userexplicit' in bundle.request.GET and bundle.request.GET['userexplicit'] == 'true':
+            first_name = "Anonymous"
+            last_name = "Guest"
             
-            if not bundle.obj.area is None:
-                ## make the area response a dictionary, containing resource_uri and name
-                bundle.data['area'] = {'resource_uri': bundle.data['area'], 'name': bundle.obj.area.name}
+            user_profile = bundle.obj.user
+            
+            if not user_profile.is_anonymous:
+                first_name = user_profile.user.first_name
+                last_name = user_profile.user.last_name
+                
+            bundle.data['data']['user'] =  {'first_name' : first_name,
+                                             'last_name': last_name }
         
         """
         now remove also null area/environment data
@@ -535,8 +571,6 @@ class AnnotationResource(ModelResource):
             
         if not bundle.data['area']:
             del bundle.data['area']
-        
-        return bundle
     
         """
         if no data is found remove the 'data' attribute from the bundle to avoid useless processing on
@@ -544,10 +578,14 @@ class AnnotationResource(ModelResource):
         """
         if not bundle.data['data']:
             del bundle.data['data']
-       
+            
+        
+        return bundle
+   
+   
     
     def hydrate(self, bundle):
-        from coresql.models import DescriptionAnnotation, EntryAnnotation
+        from coresql.models import DescriptionAnnotation, EntryAnnotation, Entry
         
         """
         switch after the annotation category and construct the appropriate annotation type object with
@@ -558,14 +596,20 @@ class AnnotationResource(ModelResource):
                                                environment = bundle.obj.environment,
                                                area = bundle.obj.area,
                                                category = bundle.obj.category,
-                                               text = bundle.data['text'])
+                                               text = bundle.data['data']['text'])
         elif bundle.data['category'] == 'program':
+            entry_id = bundle.data['data']['entry_id']
+            entry = Entry.objects.get(id = entry_id);
+            
             bundle.obj = EntryAnnotation(user = bundle.request.user.get_profile(), 
                                          environment = bundle.obj.environment,
                                          area = bundle.obj.area,
                                          category = bundle.obj.category,
-                                         text = bundle.data['text'])
+                                         entry = entry,
+                                         text = bundle.data['data']['text'])
         
+            print bundle.obj.area
+            
         return bundle
         
     
