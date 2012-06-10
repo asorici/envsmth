@@ -3,6 +3,7 @@ from tastypie.validation import Validation
 class AnnotationValidation(Validation):
     def is_valid(self, bundle, request=None):
         from client.api import EnvironmentResource, AreaResource
+        from coresql.models import CATEGORY_CHOICES
         
         if not bundle.data:
             return {'__all__': 'No data submitted.'}
@@ -24,7 +25,6 @@ class AnnotationValidation(Validation):
                     area_obj = AreaResource().get_via_uri(bundle.data['area'])
                 except:
                     area_obj = None
-        
             
             if env_obj is None and area_obj is None:
                 errors['environment'] = ['No or wrong environment uri']
@@ -36,5 +36,9 @@ class AnnotationValidation(Validation):
         ## TODO - some additional validation of the data field might also be possible
         if not 'data' in bundle.data or not bundle.data['data']:
             errors['data'] = ["No or empty data field."]
+        
+        
+        if not 'category' in bundle.data or not (bundle.data['category'], bundle.data['category']) in CATEGORY_CHOICES:
+            errors['category'] = ["No category specified or wrong category."]
         
         return errors

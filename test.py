@@ -11,55 +11,9 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "envsocial.settings"
 
 from coresql.models import *
 from django.contrib.auth.models import User
+from django.utils import simplejson
 
-#from core.db import db_connection
 
-def main(argv=None):
-    """
-    sys_mg = SystemManager("localhost:9160")
-     
-    print sys_mg.list_keyspaces()
-
-    sys_mg.create_keyspace("envsocial", SIMPLE_STRATEGY, {'replication_factor': '1'})
-    sys_mg.create_column_family("envsocial", "Environment")
-    sys_mg.create_column_family("envsocial", "Area")
-    sys_mg.create_column_family("envsocial", "Annotation")
-    sys_mg.create_column_family("envsocial", "Event")
-    sys_mg.create_column_family("envsocial", "Announcement")
-    sys_mg.create_column_family("envsocial", "History")
-    sys_mg.create_column_family("envsocial", "Privacy")
-    sys_mg.create_column_family("envsocial", "Layout")
-    sys_mg.create_column_family("envsocial", "Config")
-    
-    sys_mg.create_index("envsocial", "Environment", "name", UTF8_TYPE, index_name="environment_name_index")
-    sys_mg.create_index("envsocial", "Area", "name", UTF8_TYPE, index_name="area_name_index")
-    
-    sys_mg.alter_column('envsocial', 'Config', 'env_id_count', LONG_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'area_id_count', LONG_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'event_id_count', LONG_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'announce_id_count', LONG_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'annotation_id_count', LONG_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'user_id_count', LONG_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'history_id_count', LONG_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'layout_id_count', LONG_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'privacy_id_count', LONG_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'env_cache_time', INT_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'area_cache_time', INT_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'event_cache_time', INT_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'announce_poll_time', INT_TYPE)
-
-    sys_mg.alter_column('envsocial', 'Config', 'max_levels', INT_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'max_tags', INT_TYPE)
-    sys_mg.alter_column('envsocial', 'Config', 'max_children', INT_TYPE)
-
-    client = db_connection.get_client()
-    config_cf = ColumnFamily(client, "Config")
-    config_cf.insert('conf', {'env_id_count' : 0, 'area_id_count': 0, 'announce_id_count':0, 
-                              'annotation_id_count':0, 'event_id_count':0, 'user_id_count':0, 
-                              'history_id_count':0, 'layout_id_count':0, 'privacy_id_count':0,
-                              'env_cache_time':1000, 'area_cache_time':1000, 'event_cache_time':1000, 'announce_poll_time':10, 'max_levels':100, 'max_tags':100, 'max_children':100})    
-    """
-    pass
 
     
 def test_Q():
@@ -263,6 +217,188 @@ def urllib_header_test():
     t = time.mktime(eut.parsedate_tz(h_date)[:9])
     now = time.mktime(time.gmtime())
     
+
+def parse_program():
+    from xml.dom.minidom import parse
+    import datetime
+    
+    # open file
+    prg_file = open("program-v1-custom.xml", "r") 
+    document = parse(prg_file)
+    prg_file.close()
+
+    sessions = []
+    ses_ct = 1
+
+    entries = []
+    entry_ct = 1
+
+    session_elems = document.getElementsByTagName("session")
+    for session_elem in session_elems:
+        # parse data for a session
+        title = session_elem.attributes["title"].value
+        tag = session_elem.attributes["tag"].value
+        date = datetime.datetime.strptime(session_elem.attributes["date"].value, "%d-%m-%Y")
+
+        ses = {"id" : str(ses_ct), "title" : title, "tag" : tag, "location" : "/envsocial/client/v1/resources/environment/1/"}
+        ses_ct += 1
+
+        sessions.append(ses)
+
+        # parse data for all entries of this session
+        entry_elems = session_elem.getElementsByTagName("entry")
+        for entry_elem in entry_elems:
+            period_text = _getText(entry_elem.getElementsByTagName("period")[0].childNodes)
+            title = _getText(entry_elem.getElementsByTagName("title")[0].childNodes)
+            speakers = _getText(entry_elem.getElementsByTagName("speakers")[0].childNodes)
+            
+            periods_text = period_text.split("-")
+            start_time = datetime.datetime.strptime(periods_text[0].strip(), "%H:%M")
+            end_time = datetime.datetime.strptime(periods_text[1].strip(), "%H:%M")
+            
+            start_time = start_time.replace(year = date.year, month = date.month, day=date.day)
+            end_time = end_time.replace(year = date.year, month = date.month, day=date.day)
+            
+            entry = {"id" : str(entry_ct), 
+                     "sessionId" : ses["id"], 
+                     "title" : title, 
+                     "speakers" : speakers, 
+                     "startTime" : start_time.strftime("%Y-%m-%dT%H:%M:00"),
+                     "endTime" : end_time.strftime("%Y-%m-%dT%H:%M:00")
+                    }
+            entry_ct += 1
+            
+            entries.append(entry)
+            
+    #program = {"program" : {"sessions" : sessions, "entries" : entries}}
+    #programJSON = simplejson.dumps(program)
+    
+    #f = open("program-v1-custom.json", "w")
+    #print >>f, programJSON
+    #f.close()
+    return sessions, entries
+
+def _getText(nodelist):
+    rc = []
+    for node in nodelist:
+        if node.nodeType == node.TEXT_NODE:
+            rc.append(node.data)
+    return ''.join(rc)
+
+
+def build_wims_simulation(argv=None):
+    from coresql.models import DescriptionFeature, ProgramFeature, Session, Entry, PeopleFeature
+    from django.utils.encoding import smart_unicode
+    import datetime
+    
+    # 1) create the wims environment
+    owner = User.objects.get(email = 'user_1@email.com').get_profile()
+    env_data = {'owner': owner, 'name': 'WIMS 2012 Conference',
+                'tags': u'conference;web intelligence;mining and semantics', 'width': 500, 'height': 500
+               }
+    environment = Environment(**env_data)
+    environment.save()
+    
+    print ">> Done creating environment!"
+    
+    # 2) create the features for the environment
+    ## description feature
+    desc_feature_data = {'environment': environment, 'category': 'default', 
+                    'description': "The 2nd International Conference on Web Intelligence, Mining and Semantics (WIMS'12) is organised under the auspices of University of Craiova. This is the second in a new series of conferences concerned with intelligent approaches to transform the World Wide Web into a global reasoning and semantics-driven computing machine. "}
+    desc_feature = DescriptionFeature(**desc_feature_data)
+    desc_feature.save()
+    
+    print ">> Done adding desc feature for environment"
+    
+    ## program feature
+    program_feature_data = {'environment': environment, 'category': 'program', 
+                    'description' : "Presentation schedule for the WIMS'12 conference"}
+    program_feature = ProgramFeature(**program_feature_data)
+    program_feature.save()
+    
+    ## create the sessions and the entries for the program
+    sessions, entries = parse_program()
+    for ses in sessions:
+        db_ses = Session(title = ses['title'], tag = ses['tag'], program=program_feature)
+        db_ses.save()
+        
+        session_entries = filter(lambda e: e['sessionId'] == ses['id'], entries)
+        for entry in session_entries:
+            db_entry_data = {'session' : db_ses, 'title' : entry['title'], 
+                             'speakers' : smart_unicode(entry['speakers']),
+                             'startTime' : datetime.datetime.strptime(entry['startTime'], "%Y-%m-%dT%H:%M:%S"),
+                             'endTime' : datetime.datetime.strptime(entry['endTime'], "%Y-%m-%dT%H:%M:%S")}
+            db_entry = Entry(**db_entry_data)
+            db_entry.save()
+    
+    print ">> Done adding program feature for environment"
+    
+    ## create 3 areas and add the default and people features for them
+    ## the program feature only needs to be inputed at the environment level
+    layout_data = {'environment': environment}
+    environment_layout = Layout(**layout_data)
+    environment_layout.save()
+    
+    ## area 1 - session 1, 2 rooms
+    area1_data = {'name': 'Blue Hall', 'areaType': 'interest',
+                         'layout': environment_layout, 'environment': environment
+                 }
+    area1 = Area(**area1_data)
+    area1.save()
+    desc_feature_data = {'area': area1, 'category': 'default', 
+                    'description':"The Blue Hall will host the talks by the invited speakers and Tutorial 1."}
+    desc_feature = DescriptionFeature(**desc_feature_data)
+    desc_feature.save()
+    
+    people_feature = PeopleFeature(description = "people feature for Blue Hall", area = area1, category = "people")
+    people_feature.save()
+    
+    print ">> Done adding area 1"
+    
+    area2_data = {'name': 'Room 443D', 'areaType': 'interest',
+                         'layout': environment_layout, 'environment': environment
+                 }
+    area2 = Area(**area2_data)
+    area2.save()
+    desc_feature_data = {'area': area2, 'category': 'default', 
+                    'description':"Room 443D will host Sessions 1, 3, 5, 7, 9 and Tutorials 2 and 4."}
+    desc_feature = DescriptionFeature(**desc_feature_data)
+    desc_feature.save()
+    
+    people_feature = PeopleFeature(description = "people feature for Room 443D", area = area2, category = "people")
+    people_feature.save()
+    
+    print ">> Done adding area 2"
+    
+    area3_data = {'name': 'Room 443C', 'areaType': 'interest',
+                         'layout': environment_layout, 'environment': environment
+                 }
+    area3 = Area(**area3_data)
+    area3.save()
+    desc_feature_data = {'area': area3, 'category': 'default', 
+                    'description':"Room 443C will host Sessions 2, 4, 6, 8, 10 and Tutorials 3 and 5."}
+    desc_feature = DescriptionFeature(**desc_feature_data)
+    desc_feature.save()
+    
+    people_feature = PeopleFeature(description = "people feature for Room 443C", area = area3, category = "people")
+    people_feature.save()
+    
+    print ">> Done adding area 3"
+    
+    area4_data = {'name': 'University Hall', 'areaType': 'interest',
+                         'layout': environment_layout, 'environment': environment
+                 }
+    area4 = Area(**area4_data)
+    area4.save()
+    desc_feature_data = {'area': area4, 'category': 'default', 
+                    'description':"University Hall will host Poster Sessions and Coffee Breaks."}
+    desc_feature = DescriptionFeature(**desc_feature_data)
+    desc_feature.save()
+    
+    people_feature = PeopleFeature(description = "people feature for University Hall", area = area4, category = "people")
+    people_feature.save()
+    
+    print ">> Done adding area 4"
     
 
 if __name__ == "__main__":
@@ -271,4 +407,7 @@ if __name__ == "__main__":
     #dummy_sql_insert()
     generate_qrcodes()
     #urllib_header_test()
+    #parse_program()
+    #build_wims_simulation()
+    
     

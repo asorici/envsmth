@@ -1,6 +1,7 @@
 package com.envsocial.android.features.order;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,7 +93,7 @@ public class OrderFragment extends SherlockFragment implements OnClickListener {
 		dialog.dismiss();
 		try {
 			Annotation order = new Annotation(getActivity(), mLocation, 
-					Feature.ORDER, orderJSON);
+					Feature.ORDER, Calendar.getInstance(), orderJSON);
 			order.post();
 		} catch (Exception e) {
 			e.printStackTrace();

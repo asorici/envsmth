@@ -213,18 +213,19 @@ public class User {
 			
 			//System.err.println("[DEBUG]>> user profile JSONObject: " + user.toString());
 			
-			//JSONObject research_profile = user.getJSONObject("research_profile");
 			JSONObject research_profile = (JSONObject)user.opt("research_profile");
 			
 			if (research_profile != null) {
-				affiliation = research_profile.getString("affiliation");
+				affiliation = research_profile.optString("affiliation", "n.a.");
 				
-				JSONArray research_interests = research_profile.getJSONArray("research_interests");
-				int len = research_interests.length();
-				researchInterests = new String[len];
-				 
-				for (int i = 0; i < len; i++) {
-					researchInterests[i] = research_interests.getString(i);
+				JSONArray research_interests = research_profile.optJSONArray("research_interests");
+				if (research_interests != null) {
+					int len = research_interests.length();
+					researchInterests = new String[len];
+					 
+					for (int i = 0; i < len; i++) {
+						researchInterests[i] = research_interests.optString(i, "n.a.");
+					}
 				}
 			}
 			

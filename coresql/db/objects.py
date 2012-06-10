@@ -150,15 +150,25 @@ class AreaShape(object):
     
     DB_SEP = " "
     
-    def __init__(self, areaType, *args):
-        assert_arg_value(areaType, self.TYPE_CIRCLE, self.TYPE_POLYGON)
-        self.areaType = areaType
-        self.setPoints(*args)
+    def __init__(self, areaType = None, *args):
+        if areaType:
+            assert_arg_value(areaType, self.TYPE_CIRCLE, self.TYPE_POLYGON)
+            self.areaType = areaType
+            self.setPoints(*args)
+        else:
+            self.areaType = None
+            self.points = []
+            
+    def getType(self):
+        return self.areaType
 
     def getParams(self):
-        if (self.areaType == AreaShape.TYPE_POLYGON):
-            return self.points
-        return get_circle(*self.points)
+        if self.areaType:
+            if (self.areaType == AreaShape.TYPE_POLYGON):
+                return self.points
+            return get_circle(*self.points)
+        else:
+            return None
     
     def setPoints(self, *points):
         #print points
@@ -171,14 +181,20 @@ class AreaShape(object):
             self.points = points
     
     def dbEncode(self):
-        encodedPoints = map(lambda x : x.dbEncode(), self.points)
-        return self.areaType + AreaShape.DB_SEP + AreaShape.DB_SEP.join(encodedPoints)
+        if self.areaType:
+            encodedPoints = map(lambda x : x.dbEncode(), self.points)
+            return self.areaType + AreaShape.DB_SEP + AreaShape.DB_SEP.join(encodedPoints)
+        
+        return None
     
     @staticmethod
     def dbDecode(shapeString):
-        params = shapeString.split(AreaShape.DB_SEP)
-        args = map(lambda x : Point2D.dbDecode(x), params[1:])
-        return AreaShape(params[0], *args)
+        if shapeString:
+            params = shapeString.split(AreaShape.DB_SEP)
+            args = map(lambda x : Point2D.dbDecode(x), params[1:])
+            return AreaShape(params[0], *args)
+        else:
+            return AreaShape()
     
     def __repr__(self):
         return "AreaShape(" + self.areaType + "," + str(self.points) + ")"

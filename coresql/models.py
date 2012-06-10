@@ -60,7 +60,7 @@ class Environment(models.Model):
 class Layout(models.Model):
     environment = models.ForeignKey(Environment, related_name = "layouts")
     level = models.IntegerField(default = 0)
-    mapURL = models.URLField()
+    mapURL = models.URLField(null = True, blank = True)
     timestamp = models.DateTimeField(auto_now = True)
 
 
@@ -88,7 +88,7 @@ class Feature(models.Model):
     area = models.ForeignKey(Area, null = True, blank = True, related_name = "features")
     environment = models.ForeignKey(Environment, null = True, blank = True, related_name = "features")
     category = models.CharField(max_length=50, choices = CATEGORY_CHOICES)
-    data = fields.DataField(null = True, blank = True)
+    #data = fields.DataField(null = True, blank = True)
     timestamp = models.DateTimeField(auto_now = True)
 
 
@@ -114,7 +114,7 @@ class Annotation(models.Model):
     area = models.ForeignKey(Area, null = True, blank = True, related_name = "annotations")
     environment = models.ForeignKey(Environment, null = True, blank = True, related_name = "annotations")
     user = models.ForeignKey(UserProfile, null = True, blank = True, on_delete=models.SET_NULL)
-    data = fields.DataField()
+    #data = fields.DataField()
     category = models.CharField(max_length=50, choices = CATEGORY_CHOICES, default="default")
     timestamp = models.DateTimeField(auto_now = True)
     
@@ -145,4 +145,53 @@ class UserContext(models.Model):
     user = models.OneToOneField(UserProfile, related_name='context')
     currentEnvironment = models.ForeignKey(Environment, null = True, blank = True)
     currentArea = models.ForeignKey(Area, null = True, blank = True)
+
+
+###########################################################################################################
+##################################### Feature Model Classes ###############################################
+###########################################################################################################
+
+####################################### Default Feature Class #############################################
+class DescriptionFeature(Feature):
+    description = models.TextField(null = True, blank = True)
+
+
+###################################### Program Feature Classes ############################################
+class ProgramFeature(Feature):
+    description = models.TextField(null = True, blank = True)
+    
+class Session(models.Model):
+    title = models.CharField(max_length = 256)
+    tag = models.CharField(max_length = 8)
+    program = models.ForeignKey(ProgramFeature, related_name = "sessions")
+
+class Entry(models.Model):
+    session = models.ForeignKey(Session, related_name = "entries")
+    #speakers = models.ManyToManyField(UserProfile)
+    speakers = models.CharField(max_length = 256)
+    title = models.CharField(max_length = 256)
+    startTime = models.DateTimeField()
+    endTime = models.DateTimeField()
+    abstract = models.TextField(null = True, blank = True)
+
+###################################### People Feature Classes ############################################
+"""
+This is mainly a hack so as to keep the programming model from the Android Application
+"""
+class PeopleFeature(Feature):
+    description = models.TextField(null = True, blank = True)
+    
+
+###########################################################################################################
+#################################### Annotation Model Classes #############################################
+###########################################################################################################
+
+######################################## DefaultAnnotation Class ##########################################
+class DescriptionAnnotation(Annotation):
+    text = models.TextField()
+    
+##################################### PresentationAnnotation Class ########################################
+class EntryAnnotation(Annotation):
+    text = models.TextField()
+    entry = models.ForeignKey(Entry, related_name = "annotations")
     
