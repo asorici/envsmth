@@ -27,6 +27,7 @@ import com.envsocial.android.utils.ResponseHolder;
 
 public class DetailsActivity extends SherlockFragmentActivity {
 	
+
 	public static final String ORDER_MANAGEMENT_FEATURE = "order_management";
 	
 	private Location mLocation;
