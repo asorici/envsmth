@@ -70,7 +70,7 @@ public class EntryDetailsActivity extends FragmentActivity implements OnClickLis
 		// set Listener for comment send button
 		mBtnSend.setOnClickListener(this);
 		
-		Map<String,String> entry = ProgramEntry.getEntryById(mEntryId);
+		Map<String,String> entry = ProgramEntry.getEntryById(this, mEntryId);
 		bind(entry);
 	}
 	
