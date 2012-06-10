@@ -38,7 +38,7 @@ public class ProgramFragment extends Fragment implements OnClickListener {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 							Bundle savedInstanceState) {
 		// Inflate layout for this fragment.
-		View v = inflater.inflate(R.layout.program, container, false);
+		View view = inflater.inflate(R.layout.program, container, false);
 		
 		try {
 			String programJSON = mLocation.getFeatureData(Feature.PROGRAM);
@@ -53,7 +53,7 @@ public class ProgramFragment extends Fragment implements OnClickListener {
 			programDb.insertSessions(sessionsArray);
 			programDb.insertEntries(entriesArray);
 			
-			LinearLayout dayScroll = (LinearLayout) v.findViewById(R.id.dayScroll);
+			LinearLayout dayScroll = (LinearLayout) view.findViewById(R.id.dayScroll);
 			List<String> days = programDb.getDays();
 			int k = 0;
 			for (String d : days) {
@@ -70,7 +70,7 @@ public class ProgramFragment extends Fragment implements OnClickListener {
 				dayScroll.addView(dayButton);
 			}
 			
-			ListView listView = (ListView) v.findViewById(R.id.program);
+			ListView listView = (ListView) view.findViewById(R.id.program);
 		    
 		    // Create and set adapter
 			mAdapter = new ProgramListAdapter(getActivity(), programDb);
@@ -79,7 +79,7 @@ public class ProgramFragment extends Fragment implements OnClickListener {
 			e.printStackTrace();
 		}
 		
-		return v;
+		return view;
 	}
 
 	@Override
