@@ -12,7 +12,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -23,6 +22,7 @@ import android.widget.Scroller;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.envsocial.android.R;
 import com.envsocial.android.api.Annotation;
 import com.envsocial.android.api.Location;
@@ -30,7 +30,7 @@ import com.envsocial.android.api.ProgramEntry;
 import com.envsocial.android.features.Feature;
 import com.envsocial.android.utils.Preferences;
 
-public class EntryDetailsActivity extends FragmentActivity implements OnClickListener {
+public class EntryDetailsActivity extends SherlockFragmentActivity implements OnClickListener {
 
 	private String mEntryId;
 	private Location mLocation;
