@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Envived" parent="Theme.Sherlock.Light">
+        <item name="actionBarStyle">@style/Widget.Envived.ActionBar</item>
+        <item name="android:actionBarStyle">@style/Widget.Envived.ActionBar</item>
+    </style>
+    
+    <style name="Widget.Envived.ActionBar" parent="Widget.Sherlock.ActionBar">
+        <item name="background">#F5F5F5</item>
+        <item name="android:background">#F5F5F5</item>
+    </style>
+    
+</resources>

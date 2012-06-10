@@ -4,14 +4,14 @@ import org.json.JSONException;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.v4.app.ActionBar;
-import android.support.v4.app.ActionBar.Tab;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.widget.Toast;
 
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.ActionBar.Tab;
+import com.actionbarsherlock.app.SherlockFragment;
+import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.features.Feature;
@@ -25,7 +25,7 @@ import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
 
 
-public class DetailsActivity extends FragmentActivity {
+public class DetailsActivity extends SherlockFragmentActivity {
 	
 	public static final String ORDER_MANAGEMENT_FEATURE = "order_management";
 	
@@ -87,6 +87,7 @@ public class DetailsActivity extends FragmentActivity {
         ActionBar actionBar = getSupportActionBar();
         
         if (mLocation.hasFeature(Feature.DEFAULT)) {
+        	System.out.println("[DEBUG] >> Creating DEFAULT tab");
         	mDefaultTab = actionBar.newTab()
 			.setText(R.string.tab_default)
 			.setTabListener(new TabListener<DefaultFragment>(
@@ -130,9 +131,9 @@ public class DetailsActivity extends FragmentActivity {
         }
 	}
 	
-	public static class TabListener<T extends Fragment> implements ActionBar.TabListener {
+	public static class TabListener<T extends SherlockFragment> implements ActionBar.TabListener {
 
-		private Fragment mFragment;
+		private SherlockFragment mFragment;
 		private final Activity mActivity;
 		private final String mTag;
 		private final Class<T> mClass;
@@ -147,13 +148,13 @@ public class DetailsActivity extends FragmentActivity {
 		
 		// Compatibility library sends null ft, so we simply ignore it and get our own
 		public void onTabSelected(Tab tab, FragmentTransaction ingnoredFt) {
-			FragmentManager fragmentManager = ((FragmentActivity) mActivity).getSupportFragmentManager();
+			FragmentManager fragmentManager = ((SherlockFragmentActivity) mActivity).getSupportFragmentManager();
 	        FragmentTransaction ft = fragmentManager.beginTransaction();
 	        
 			// Check if the fragment is already initialized
 			if (mFragment == null) {
 				// If not, instantiate the fragment and add it to the activity
-				mFragment = Fragment.instantiate(mActivity, mClass.getName());
+				mFragment = (SherlockFragment) SherlockFragment.instantiate(mActivity, mClass.getName());
 				
 				Bundle bundle = new Bundle();
 				bundle.putSerializable(ActionHandler.CHECKIN, mLocation);
@@ -173,7 +174,7 @@ public class DetailsActivity extends FragmentActivity {
 		
 		// Compatibility library sends null ft, so we simply ignore it and get our own
 		public void onTabUnselected(Tab tab, FragmentTransaction ingnoredFt) {
-			FragmentManager fragmentManager = ((FragmentActivity) mActivity).getSupportFragmentManager();
+			FragmentManager fragmentManager = ((SherlockFragmentActivity) mActivity).getSupportFragmentManager();
 	        FragmentTransaction ft = fragmentManager.beginTransaction();
 	        
 			if (mFragment != null) {
@@ -186,8 +187,7 @@ public class DetailsActivity extends FragmentActivity {
 		
 		public void onTabReselected(Tab tab, FragmentTransaction ft) {
 			// Do nothing.
-		}
-		
+		}		
 	}
 
 }

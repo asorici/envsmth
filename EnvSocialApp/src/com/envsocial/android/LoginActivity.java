@@ -6,16 +6,16 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.envsocial.android.api.ActionHandler;
 
-public class LoginActivity extends FragmentActivity implements OnClickListener {
+public class LoginActivity extends SherlockFragmentActivity implements OnClickListener {
 
 	private EditText mTxtEmail;
 	private EditText mTxtPassword;

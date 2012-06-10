@@ -10,7 +10,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -19,13 +18,14 @@ import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.Toast;
 
+import com.actionbarsherlock.app.SherlockFragment;
 import com.envsocial.android.R;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Annotation;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.features.Feature;
 
-public class OrderFragment extends Fragment implements OnClickListener {
+public class OrderFragment extends SherlockFragment implements OnClickListener {
 
 	public static final int DIALOG_REQUEST = 0;
 	
@@ -83,7 +83,7 @@ public class OrderFragment extends Fragment implements OnClickListener {
 				OrderDialogFragment.newInstance(mOrderMenu.getCategoryData(), 
 						mOrderMenu.getItemData(), mOrderMenu.getCounter());
 			summaryDialog.setTargetFragment(this, DIALOG_REQUEST);
-			summaryDialog.show(getSupportFragmentManager(), "dialog");
+			summaryDialog.show(getFragmentManager(), "dialog");
 		}
 	}
 	

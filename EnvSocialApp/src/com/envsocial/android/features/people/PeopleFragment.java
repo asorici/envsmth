@@ -4,19 +4,19 @@ import java.util.List;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import com.actionbarsherlock.app.SherlockFragment;
 import com.envsocial.android.R;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.api.User;
 import com.envsocial.android.utils.Preferences;
 
-public class PeopleFragment extends Fragment {
+public class PeopleFragment extends SherlockFragment {
 	private Location mLocation;
 	private List<User> mPeople;
 	

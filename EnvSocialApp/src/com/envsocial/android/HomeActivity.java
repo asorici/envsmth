@@ -2,14 +2,14 @@ package com.envsocial.android;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.view.Menu;
-import android.support.v4.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Url;
 import com.envsocial.android.utils.C2DMReceiver;
@@ -19,7 +19,7 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
 
-public class HomeActivity extends FragmentActivity implements OnClickListener {
+public class HomeActivity extends SherlockFragmentActivity implements OnClickListener {
 
 	private static final String SIGN_OUT = "Sign out";
 	

@@ -15,12 +15,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ExpandableListView;
 
+import com.actionbarsherlock.app.SherlockFragment;
 import com.envsocial.android.R;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Annotation;
@@ -28,7 +28,7 @@ import com.envsocial.android.api.Location;
 import com.envsocial.android.features.Feature;
 import com.envsocial.android.utils.C2DMReceiver;
 
-public class OrderManagerFragment extends Fragment {
+public class OrderManagerFragment extends SherlockFragment {
 	
 	public static final String RESOURCE_URI = "resource_uri";
 	public static final String LOCATION_NAME = "location_name";
