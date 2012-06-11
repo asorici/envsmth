@@ -12,13 +12,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.Bundle;
-import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.Scroller;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -63,9 +61,6 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		
 		mBtnSend = (Button) findViewById(R.id.btn_send);
 		mComment = (EditText) findViewById(R.id.comment);
-		
-		mComment.setScroller(new Scroller(this));
-		mComment.setMovementMethod(new ScrollingMovementMethod());
 		
 		// set Listener for comment send button
 		mBtnSend.setOnClickListener(this);

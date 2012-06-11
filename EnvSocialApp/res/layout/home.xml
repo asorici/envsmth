@@ -6,11 +6,11 @@
     <Button android:id="@+id/btn_checkin"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginLeft="10dip"
+        android:layout_marginRight="10dip"
+        android:layout_marginTop="10dip"
         android:text="@string/btn_checkin" />
-	<Button android:id="@+id/btn_c2dm_reg"
+<!-- 	<Button android:id="@+id/btn_c2dm_reg"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="5dp"
@@ -23,5 +23,5 @@
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
         android:layout_marginTop="10dp"
-        android:text="@string/btn_c2dm_unreg" />
+        android:text="@string/btn_c2dm_unreg" /> -->
 </LinearLayout>
