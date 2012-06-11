@@ -22,6 +22,7 @@
     <string name="btn_resolve">Resolve</string>
     <string name="btn_cancel">Cancel</string>
     <string name="btn_send">Send</string>
+    <string name="btn_more">Show More</string>
     
     <string name="btn_c2dm_reg">Register C2DM</string>
     <string name="btn_c2dm_unreg">Unregister C2DM</string>

@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONObject;
 import org.json.JSONStringer;
@@ -81,9 +82,11 @@ public class ActionHandler {
 			
 			int statusCode = holder.getCode();
 			if (statusCode == HttpStatus.SC_OK) {
-				String user_uri = holder.getString("resource_uri");
-				String firstName = holder.optString("first_name", "Anonymous");
-				String lastName = holder.optString("last_name", "Guest");
+				JSONObject dataJSON = holder.getData().getJSONObject("data");
+				
+				String user_uri = dataJSON.getString("resource_uri");
+				String firstName = dataJSON.optString("first_name", "Anonymous");
+				String lastName = dataJSON.optString("last_name", "Guest");
 				Preferences.login(context, email, firstName, lastName, user_uri);
 			}
 			
@@ -136,6 +139,8 @@ public class ActionHandler {
 			}
 			
 			return holder;
+		} catch (HttpHostConnectException e) {
+			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

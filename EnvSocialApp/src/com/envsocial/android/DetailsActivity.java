@@ -78,6 +78,9 @@ public class DetailsActivity extends SherlockFragmentActivity {
 		} catch (Exception e) {
 			e.printStackTrace();
 			setResult(RESULT_CANCELED);
+			System.err.println("Oops! Server Error.");
+			Toast toast = Toast.makeText(this, "Oops! Server Error.", Toast.LENGTH_LONG);
+			toast.show();
 	    	finish();
 	    	return;
 		}
