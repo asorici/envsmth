@@ -163,15 +163,19 @@ class EnvironmentResource(ModelResource):
     
     
     def dehydrate_features(self, bundle):
-        ## return a list of dictionary values from the features of this environment
-        feature_list = []
-        for feature in bundle.obj.features.all():
-            feat_dict = self._dehydrate_feature(feature, bundle)
-            #feature_list.append({'category': feature.category, 'data': feature.data.to_serializable()})
-            if feat_dict:
-                feature_list.append(feat_dict)
-
-        return feature_list
+        if "entryfeaturequery" in bundle.request.GET and bundle.request.GET['entryfeaturequery'] == 'true':
+            feature_list = self._entry_feature_query(bundle)
+            return feature_list
+        else:
+            ## return a list of dictionary values from the features of this environment
+            feature_list = []
+            for feature in bundle.obj.features.all():
+                feat_dict = self._dehydrate_feature(feature, bundle)
+                #feature_list.append({'category': feature.category, 'data': feature.data.to_serializable()})
+                if feat_dict:
+                    feature_list.append(feat_dict)
+    
+            return feature_list
     
     
     def dehydrate(self, bundle):
@@ -182,7 +186,42 @@ class EnvironmentResource(ModelResource):
             level = int(bundle.request.GET["level"])
             bundle.data["layout_url"] = bundle.obj.layouts.get(level=level).mapURL
         
+        """
+        make bundle consistent for location parsing on mobile client: 
+            add a location_type entry in the bundle.data
+            put all the rest of the data under location_data
+        """
+        location_data = bundle.data.copy()
+        bundle.data.clear()
+        bundle.data['location_type'] = self._meta.resource_name
+        bundle.data['location_data'] = location_data
+        
         return bundle
+    
+    
+    def _entry_feature_query(self, bundle):
+        from coresql.models import Entry
+        
+        entry_id = bundle.request.GET['entry_id']
+        entry = Entry.objects.get(id = entry_id)
+        
+        entry_dict = {'category' : "program",
+                      'data' : {'id' : entry.id,
+                                'title' : entry.title,
+                                'speakers' : entry.speakers,
+                                'sessionId' : entry.session.id,
+                                'sessionTitle' : entry.session.title,
+                                'startTime' : entry.startTime.strftime("%Y-%m-%dT%H:%M:%S"),
+                                'endTime' : entry.endTime.strftime("%Y-%m-%dT%H:%M:%S"),
+                                'abstract' : "Abstract not available."
+                                }
+                      }
+        
+        if entry.abstract:
+            entry_dict['data']['abstract'] = entry.abstract
+            
+        return [entry_dict]
+        
     
     def _dehydrate_feature(self, feature, bundle):
         """
@@ -270,28 +309,32 @@ class AreaResource(ModelResource):
         return user_bundle.data
     
     def dehydrate_features(self, bundle):
-        ## return a list of dictionary values from the features of this area
-        feature_list = []
-        
-        ## first add all the specific area features
-        for feature in bundle.obj.features.all():
-            feat_dict = self._dehydrate_feature(feature, bundle)
-            #feature_list.append({'category': feature.category, 'data': feature.data.to_serializable()})
-            if feat_dict:
-                feature_list.append(feat_dict)
-
-        ## then see if environment features which also apply to the area are available - e.g. program, order
-        ## we handle the "program" case for now
-        environment = bundle.obj.environment
-        environment_features = environment.features.all()
-        
-        for env_feat in environment_features:
-            if env_feat.category == 'program':
-                feat_dict = self._dehydrate_feature(env_feat, bundle)
+        if "entryfeaturequery" in bundle.request.GET and bundle.request.GET['entryfeaturequery'] == 'true':
+            feature_list = self._entry_feature_query(bundle)
+            return feature_list
+        else:
+            ## return a list of dictionary values from the features of this area
+            feature_list = []
+            
+            ## first add all the specific area features
+            for feature in bundle.obj.features.all():
+                feat_dict = self._dehydrate_feature(feature, bundle)
+                #feature_list.append({'category': feature.category, 'data': feature.data.to_serializable()})
                 if feat_dict:
                     feature_list.append(feat_dict)
-        
-        return feature_list
+    
+            ## then see if environment features which also apply to the area are available - e.g. program, order
+            ## we handle the "program" case for now
+            environment = bundle.obj.environment
+            environment_features = environment.features.all()
+            
+            for env_feat in environment_features:
+                if env_feat.category == 'program':
+                    feat_dict = self._dehydrate_feature(env_feat, bundle)
+                    if feat_dict:
+                        feature_list.append(feat_dict)
+            
+            return feature_list
     
     
     def dehydrate(self, bundle):
@@ -299,7 +342,42 @@ class AreaResource(ModelResource):
         append level data from the layout reference of the Area obj
         """
         bundle.data['level'] = bundle.obj.layout.level
+        
+        """
+        make bundle consistent for location parsing on mobile client: 
+            add a location_type entry in the bundle.data
+            put all the rest of the data under location_data
+        """
+        location_data = bundle.data.copy()
+        bundle.data.clear()
+        bundle.data['location_type'] = self._meta.resource_name
+        bundle.data['location_data'] = location_data
+        
         return bundle
+    
+    
+    def _entry_feature_query(self, bundle):
+        from coresql.models import Entry
+        
+        entry_id = bundle.request.GET['entry_id']
+        entry = Entry.objects.get(id = entry_id)
+        
+        entry_dict = {'category' : "program",
+                      'data' : {'id' : entry.id,
+                                'title' : entry.title,
+                                'speakers' : entry.speakers,
+                                'sessionId' : entry.session.id,
+                                'sessionTitle' : entry.session.title,
+                                'startTime' : entry.startTime.strftime("%Y-%m-%dT%H:%M:%S"),
+                                'endTime' : entry.endTime.strftime("%Y-%m-%dT%H:%M:%S"),
+                                'abstract' : "Abstract not available."
+                                }
+                      }
+        
+        if entry.abstract:
+            entry_dict['data']['abstract'] = entry.abstract
+            
+        return [entry_dict]
     
     
     def _dehydrate_feature(self, feature, bundle):

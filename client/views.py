@@ -191,6 +191,9 @@ def login_succeeded(request, user):
         user_res_uri = UserResource().get_resource_uri(user.get_profile())
         response['data'].update({'resource_uri' : user_res_uri})
         
+        if user.first_name and user.last_name:
+            response['data'].update({'first_name' : user.first_name, 'last_name' : user.last_name})
+        
     ## TODO maybe include data about user
     return view_response(request, response, 200)
 
@@ -222,7 +225,8 @@ def checkin_succeeded(request, area = None, env = None):
         ar_item = ar.obj_get(pk=area.id)
         ar_bundle = ar.build_bundle(obj = ar_item, request=request)
         
-        area_data = {"location_type" : "area", "location_data" : ar.full_dehydrate(ar_bundle).data}
+        #area_data = {"location_type" : "area", "location_data" : ar.full_dehydrate(ar_bundle).data}
+        area_data = ar.full_dehydrate(ar_bundle).data
         response['data'].update(area_data)
         
     elif env:

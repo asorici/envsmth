@@ -37,6 +37,7 @@
     <string name="lbl_location_name">AREA_NAME</string>
     <string name="lbl_abstract">Abstract:</string>
     <string name="lbl_post_comment">Post a comment:</string>
+    <string name="lbl_comments">Comments:</string>
     
     <!-- Tabs -->
     <string name="tab_default">Details</string>

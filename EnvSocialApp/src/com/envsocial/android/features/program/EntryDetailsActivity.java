@@ -64,13 +64,10 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		mBtnSend = (Button) findViewById(R.id.btn_send);
 		mComment = (EditText) findViewById(R.id.comment);
 		
-		mComment.setScroller(new Scroller(this));
-		mComment.setMovementMethod(new ScrollingMovementMethod());
-		
 		// set Listener for comment send button
 		mBtnSend.setOnClickListener(this);
 		
-		Map<String,String> entry = ProgramEntry.getEntryById(this, mEntryId);
+		Map<String,String> entry = ProgramEntry.getEntryById(this, mLocation, mEntryId);
 		bind(entry);
 	}
 	
@@ -149,6 +146,14 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 			JSONObject jsonComment = new JSONObject();
 			jsonComment.put("text", mComment.getText().toString());
 			jsonComment.put("entry_id", mEntryId);
+			
+			String firstName = Preferences.getLoggedInUserFirstName(this);
+			String lastName = Preferences.getLoggedInUserLastName(this);
+			
+			JSONObject userNamingJSON = new JSONObject();
+			userNamingJSON.put("first_name", firstName);
+			userNamingJSON.put("last_name", lastName);
+			jsonComment.put("user", userNamingJSON);
 			
 			String jsonCommentString = jsonComment.toString();
 			Annotation entryComment = new Annotation(this, mLocation, Feature.PROGRAM, 

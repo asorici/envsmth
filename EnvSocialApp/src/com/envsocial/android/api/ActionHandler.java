@@ -7,6 +7,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONObject;
 import org.json.JSONStringer;
 
 import android.content.Context;
@@ -81,7 +82,9 @@ public class ActionHandler {
 			int statusCode = holder.getCode();
 			if (statusCode == HttpStatus.SC_OK) {
 				String user_uri = holder.getString("resource_uri");
-				Preferences.login(context, email, user_uri);
+				String firstName = holder.optString("first_name", "Anonymous");
+				String lastName = holder.optString("last_name", "Guest");
+				Preferences.login(context, email, firstName, lastName, user_uri);
 			}
 			
 			return statusCode;
@@ -125,7 +128,9 @@ public class ActionHandler {
 			
 			ResponseHolder holder = new ResponseHolder(response);
 			if (holder.getCode() == HttpStatus.SC_OK) {
-				Location checkinLoc = new Location(holder.getData());
+				JSONObject checkinData = holder.getData();
+				Location checkinLoc = new Location(checkinData.getJSONObject("data"));
+				
 				holder.setTag(checkinLoc);
 				Preferences.checkin(context, checkinLoc);
 			}

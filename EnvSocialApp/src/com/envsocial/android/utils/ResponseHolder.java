@@ -19,9 +19,13 @@ public class ResponseHolder {
 	
 	public ResponseHolder(HttpResponse response) throws Exception {
 		String responseBody = EntityUtils.toString(response.getEntity());
+		//mCode = jsonObject.getInt("code");
+		//mData = jsonObject.getJSONObject("data");
+		
 		JSONObject jsonObject = new JSONObject(responseBody);
-		mCode = jsonObject.getInt("code");
-		mData = jsonObject.getJSONObject("data");
+		mCode = response.getStatusLine().getStatusCode();
+		mData = jsonObject;
+		
 		mTag = null;
 	}
 	
@@ -56,6 +60,10 @@ public class ResponseHolder {
 	
 	public String getString(String key) throws JSONException {
 		return mData.getString(key);
+	}
+	
+	public String optString(String key, String fallback) {
+		return mData.optString(key, fallback);
 	}
 	
 	public Object get(String key) throws JSONException {

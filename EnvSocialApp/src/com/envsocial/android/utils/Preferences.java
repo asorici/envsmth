@@ -16,13 +16,17 @@ import com.envsocial.android.api.User;
 public final class Preferences {
 	
 	private static final String EMAIL = "email";
+	private static final String FIRST_NAME = "first_name";
+	private static final String LAST_NAME = "last_name";
 	private static final String USER_URI = "user_uri";
 	private static final String CHECKED_IN_LOCATION = "checked_in_location";
 	private static final String PEOPLE_IN_LOCATION = "people_in_location";
 
 	
-	public static void login(Context context, String email, String uri) {
+	public static void login(Context context, String email, String firstName, String lastName, String uri) {
 		setStringPreference(context, EMAIL, email);
+		setStringPreference(context, FIRST_NAME, firstName);
+		setStringPreference(context, LAST_NAME, lastName);
 		setStringPreference(context, USER_URI, uri);
 	}
 	
@@ -45,6 +49,13 @@ public final class Preferences {
 		return getStringPreference(context, USER_URI);
 	}
 	
+	public static String getLoggedInUserFirstName(Context context) { 
+		return getStringPreference(context, FIRST_NAME);
+	}
+	
+	public static String getLoggedInUserLastName(Context context) { 
+		return getStringPreference(context, LAST_NAME);
+	}
 	
 	public static String getSessionId(Context context) {
 		return getStringPreference(context, AppClient.SESSIONID);
