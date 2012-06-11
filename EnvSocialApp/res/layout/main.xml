@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
     <com.envsocial.android.widget.Tour android:id="@+id/tour"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dip"
         android:layout_weight="2"
+        android:background="#000000"
         android:spacing="0dp" />
     
     <LinearLayout
 	    android:layout_width="fill_parent"
-	    android:layout_height="wrap_content"
+	    android:layout_height="0dip"
 	    android:layout_weight="1"
 	    android:orientation="vertical" >
 	
@@ -53,20 +54,14 @@
 	
 	</LinearLayout>
 
-</LinearLayout>
+</LinearLayout> -->
 
-<!-- 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" >
+    android:layout_height="fill_parent"
+    android:background="@drawable/homescreen" >
 
-    <envsocial.android.widget.Tour android:id="@+id/gallery"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:spacing="0dp" />
-    
-    <LinearLayout
+    <LinearLayout android:id="@+id/buttons"
 	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"
 	    android:layout_alignParentBottom="true"
@@ -75,16 +70,18 @@
 	    <Button android:id="@+id/btn_anonymous"
 	        android:layout_width="fill_parent"
 	        android:layout_height="wrap_content"
-	        android:layout_marginLeft="5dp"
-	        android:layout_marginRight="5dp"
+	        android:layout_marginLeft="10dip"
+	        android:layout_marginRight="10dip"
+	        android:layout_marginTop="3dip"
+	        android:layout_marginBottom="3dip"
 	        android:text="@string/btn_anonymous" />
 	    
-		<Button android:id="@+id/btn_fbconnect"
+<!-- 		<Button android:id="@+id/btn_fbconnect"
 	        android:layout_width="fill_parent"
 	        android:layout_height="wrap_content"
 	        android:layout_marginLeft="5dp"
 	        android:layout_marginRight="5dp"
-	        android:text="@string/btn_fbconnect" />
+	        android:text="@string/btn_fbconnect" /> -->
 
 	 	<LinearLayout
 		    android:layout_width="fill_parent"
@@ -95,18 +92,30 @@
 		        android:layout_weight="1"
 		        android:layout_width="fill_parent"
 		        android:layout_height="wrap_content"
-		        android:layout_marginLeft="5dp"
+		        android:layout_marginLeft="10dp"
+		        android:layout_marginRight="3dip"
+		        android:layout_marginTop="3dip"
+		        android:layout_marginBottom="10dip"
 		        android:text="@string/btn_register" />
 		
 			<Button android:id="@+id/btn_login"
 		        android:layout_weight="1"
 		        android:layout_width="fill_parent"
 		        android:layout_height="wrap_content"
-	        	android:layout_marginRight="5dp"
+		        android:layout_marginLeft="3dp"
+		        android:layout_marginRight="10dip"
+	        	android:layout_marginTop="3dip"
+	        	android:layout_marginBottom="10dip"
 		        android:text="@string/btn_login" />
 		
 		</LinearLayout>
 	
 	</LinearLayout>
+	
+	<com.envsocial.android.widget.Tour android:id="@+id/tour"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/buttons"
+        android:spacing="0dp" />
 
-</RelativeLayout> -->
+</RelativeLayout>

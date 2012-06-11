@@ -12,9 +12,7 @@ import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Url;
-import com.envsocial.android.utils.C2DMReceiver;
 import com.envsocial.android.utils.Preferences;
-import com.google.android.c2dm.C2DMessaging;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
@@ -24,8 +22,8 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 	private static final String SIGN_OUT = "Sign out";
 	
 	private Button mBtnCheckin;
-	private Button mBtnRegister;
-	private Button mBtnUnregister;
+//	private Button mBtnRegister;
+//	private Button mBtnUnregister;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -48,18 +46,18 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
         mBtnCheckin.setOnClickListener(this);
         
         // TODO move everything related to c2dm
-        mBtnRegister = (Button) findViewById(R.id.btn_c2dm_reg);
+/*        mBtnRegister = (Button) findViewById(R.id.btn_c2dm_reg);
         mBtnRegister.setOnClickListener(this);
         
         mBtnUnregister = (Button) findViewById(R.id.btn_c2dm_unreg);
-        mBtnUnregister.setOnClickListener(this);
+        mBtnUnregister.setOnClickListener(this);*/
 	}
 	
 	public void onClick(View v) {
 		if (v == mBtnCheckin) {
     		IntentIntegrator integrator = new IntentIntegrator(this);
     		integrator.initiateScan();
-		} else if (v == mBtnRegister) {
+		} /*else if (v == mBtnRegister) {
 			String regId = C2DMessaging.getRegistrationId(this);
             if (regId != null && !"".equals(regId)) {
             	try {
@@ -72,7 +70,7 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
             }
 		} else if (v == mBtnUnregister) {
 			C2DMessaging.unregister(this);
-		}
+		}*/
 	}
 	
 	@Override

@@ -1,22 +1,22 @@
 package com.envsocial.android;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 
-import com.actionbarsherlock.app.SherlockFragmentActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
 import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.widget.Tour;
 
-public class EnvSocialAppActivity extends SherlockFragmentActivity implements OnClickListener {
+public class EnvSocialAppActivity extends Activity implements OnClickListener {
 	
 	private Button mBtnAnonymous;
 	private Button mBtnLogin;
@@ -44,7 +44,6 @@ public class EnvSocialAppActivity extends SherlockFragmentActivity implements On
         
     	// Set up activity
         setContentView(R.layout.main);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         Tour tour = (Tour)findViewById(R.id.tour);
         tour.setAdapter(new ImageAdapter(this));
@@ -57,10 +56,10 @@ public class EnvSocialAppActivity extends SherlockFragmentActivity implements On
     }
     
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-    	MenuInflater inflater = this.getSupportMenuInflater();
-    	inflater.inflate(R.menu.main_activity, menu);
-    	return true;
+    public void onAttachedToWindow() {
+    	super.onAttachedToWindow();
+    	Window window = getWindow();
+    	window.setFormat(PixelFormat.RGBA_8888);
     }
     
     public void onClick(View v) {
@@ -85,11 +84,11 @@ public class EnvSocialAppActivity extends SherlockFragmentActivity implements On
     	
     	private Context mContext;
     	private Integer[] mSlides = {
-    			R.drawable.tour0,
-    			R.drawable.tour1,
-    			R.drawable.tour2,
-    			R.drawable.tour3,
-    			R.drawable.tour4,
+    			R.drawable.slide1,
+    			R.drawable.slide2,
+    			R.drawable.slide3,
+    			R.drawable.slide4,
+    			R.drawable.slide5
     	};
     	
     	public ImageAdapter(Context c) {
