@@ -4,7 +4,7 @@ from coresql.models import Environment, Area, UserContext, ResearchProfile
 
 #@secure_required
 def register(request):
-    from django_facebook.connect import connect_user
+    #from django_facebook.connect import connect_user
     from django.contrib.auth import login
     from django.utils import simplejson
     
@@ -23,11 +23,11 @@ def register(request):
             new_user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, new_user)
             
-            fb_access_token = request.POST.get('fb_access_token')
-            if fb_access_token:
+            #fb_access_token = request.POST.get('fb_access_token')
+            #if fb_access_token:
                 ## if we have a fb_access_token then we should also try to connect the data from facebook to
                 ## the user's profile
-                connect_user(request, fb_access_token)
+            #    connect_user(request, fb_access_token)
             
             research_profile = request.REQUEST.get('research_profile')
             if research_profile:
