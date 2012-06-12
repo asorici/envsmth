@@ -19,6 +19,7 @@ import com.envsocial.android.widget.Tour;
 public class EnvSocialAppActivity extends Activity implements OnClickListener {
 	
 	private Button mBtnAnonymous;
+	private Button mBtnRegister;
 	private Button mBtnLogin;
 	
     /** Called when the activity is first created. */
@@ -51,6 +52,9 @@ public class EnvSocialAppActivity extends Activity implements OnClickListener {
         mBtnAnonymous = (Button) findViewById(R.id.btn_anonymous);
         mBtnAnonymous.setOnClickListener(this);
         
+        mBtnRegister = (Button) findViewById(R.id.btn_register);
+        mBtnRegister.setOnClickListener(this);
+        
         mBtnLogin = (Button) findViewById(R.id.btn_login);
         mBtnLogin.setOnClickListener(this);
     }
@@ -66,6 +70,9 @@ public class EnvSocialAppActivity extends Activity implements OnClickListener {
     	if (v == mBtnAnonymous) {
     		// Use app as anonymous, a temporary user account will be created
     		startActivity(new Intent(this, HomeActivity.class));
+    	} else if (v == mBtnRegister) {
+    		// Register
+    		startActivityForResult(new Intent(this, RegisterActivity.class), 0);
     	} else if (v == mBtnLogin) {
     		// Log in
     		startActivityForResult(new Intent(this, LoginActivity.class), 0);

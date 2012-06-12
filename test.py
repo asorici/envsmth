@@ -33,12 +33,12 @@ def test_Q():
 def dummy_sql_insert():
     import re
     
-    create_users = False
+    create_users = True
     create_env = False
-    create_env_features = True
+    create_env_features = False
     create_layout = False
     create_areas = False
-    create_area_features = True
+    create_area_features = False
     create_announcements = False
     create_annotations = False
     
@@ -404,10 +404,10 @@ def build_wims_simulation(argv=None):
 if __name__ == "__main__":
     #main()
     #test_Q()
-    #dummy_sql_insert()
-    generate_qrcodes()
+    dummy_sql_insert()
+    #generate_qrcodes()
     #urllib_header_test()
     #parse_program()
-    #build_wims_simulation()
+    build_wims_simulation()
     
     

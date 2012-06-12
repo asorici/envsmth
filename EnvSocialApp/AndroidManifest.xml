@@ -34,6 +34,10 @@
         </activity>
         <activity android:name=".HomeActivity" />
         <activity android:name=".LoginActivity"
+            android:screenOrientation="portrait"
+            android:noHistory="true" />
+        <activity android:name=".RegisterActivity"
+            android:screenOrientation="portrait"
             android:noHistory="true" />
         <activity android:name=".DetailsActivity"
             android:configChanges="orientation" />
