@@ -206,8 +206,13 @@ public class User {
 		}
 		
 		public static UserProfileData parseProfileData(JSONObject user) throws JSONException {
-			String firstName = user.getString("first_name");
-			String lastName = user.getString("last_name");
+			String firstName = user.optString("first_name", "Anonymous");
+			String lastName = user.optString("last_name", "Guest");
+			if (firstName.isEmpty())
+				firstName = "Anonymous";
+			if (lastName.isEmpty())  
+				lastName = "Guest";
+			
 			String affiliation = "n.a.";
 			String[] researchInterests = {"n.a."};
 			

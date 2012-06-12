@@ -37,9 +37,6 @@ public class RegisterActivity extends SherlockActivity implements OnClickListene
         mTxtEmail = (EditText) findViewById(R.id.txt_email);
         mTxtPassword = (EditText) findViewById(R.id.txt_password);
         
-        // TODO dummy data for testing
-        mTxtEmail.setText("user_1@email.com");
-        mTxtPassword.setText("pass_1");
         
         mTxtFirst = (EditText) findViewById(R.id.txt_first);
         mTxtLast = (EditText) findViewById(R.id.txt_last);
@@ -80,7 +77,12 @@ public class RegisterActivity extends SherlockActivity implements OnClickListene
 		@Override
 		protected Integer doInBackground(Void...args) {
 			// TODO Register before login
-			return ActionHandler.login(getApplicationContext(), mEmail, mPassword);
+			if (mFirst.isEmpty() || mLast.isEmpty()) {
+				return HttpStatus.SC_NOT_ACCEPTABLE;
+			}
+			else {
+				return ActionHandler.register(getApplicationContext(), mEmail, mPassword, mFirst, mLast, mAffiliation, mInterests);
+			}
 		}
 		
 		@Override
@@ -94,7 +96,17 @@ public class RegisterActivity extends SherlockActivity implements OnClickListene
 				Toast toast = Toast.makeText(getApplicationContext(), 
 						R.string.msg_unauthorized_login, Toast.LENGTH_LONG);
 				toast.show();
-			} else {
+			} else if (statusCode == HttpStatus.SC_NOT_ACCEPTABLE) {
+				Toast toast = Toast.makeText(getApplicationContext(), 
+						R.string.msg_registration_details_required, Toast.LENGTH_LONG);
+				toast.show();
+			}
+			else if (statusCode == HttpStatus.SC_BAD_REQUEST) {
+				Toast toast = Toast.makeText(getApplicationContext(), 
+						R.string.msg_registration_details_check, Toast.LENGTH_LONG);
+				toast.show();
+			}
+			else {
 				Toast toast = Toast.makeText(getApplicationContext(), 
 						R.string.msg_service_unavailable, Toast.LENGTH_LONG);
 				toast.show();

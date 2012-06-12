@@ -1,11 +1,12 @@
-from coresql.forms import CheckinForm, LoginForm, ClientRegistrationForm
-from coresql.models import Environment, Area, UserContext
 from client.decorators import allow_anonymous_profile, secure_required
+from coresql.forms import CheckinForm, LoginForm, ClientRegistrationForm
+from coresql.models import Environment, Area, UserContext, ResearchProfile
 
 #@secure_required
 def register(request):
     from django_facebook.connect import connect_user
     from django.contrib.auth import login
+    from django.utils import simplejson
     
     
     #if request.method.upper() == "POST":
@@ -27,6 +28,16 @@ def register(request):
                 ## if we have a fb_access_token then we should also try to connect the data from facebook to
                 ## the user's profile
                 connect_user(request, fb_access_token)
+            
+            research_profile = request.POST.get('research_profile')
+            if research_profile:
+                ## we receive it as a json string, load it and use it
+                research_profile_data = simplejson.loads(research_profile)
+                rp = ResearchProfile(**research_profile_data)
+                rp.save()
+                new_user.get_profile().research_profile = rp
+                new_user.get_profile().save()
+                new_user.save()
                 
             return register_succeeded(request, new_user)
     
@@ -170,6 +181,9 @@ def register_succeeded(request, user):
     if not user.get_profile().is_anonymous:
         user_res_uri = UserResource().get_resource_uri(user.get_profile())
         response['data'].update({'resource_uri' : user_res_uri})
+        
+        if user.first_name and user.last_name:
+            response['data'].update({'first_name' : user.first_name, 'last_name' : user.last_name})
         
     return view_response(request, response, 200)
 

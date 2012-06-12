@@ -32,9 +32,8 @@ public class LoginActivity extends SherlockFragmentActivity implements OnClickLi
         
         mTxtEmail = (EditText) findViewById(R.id.txt_email);
         mTxtPassword = (EditText) findViewById(R.id.txt_password);
-        // TODO dummy data for testing
-        mTxtEmail.setText("user_1@email.com");
-        mTxtPassword.setText("pass_1");
+       
+        
         mBtnLogin = (Button) findViewById(R.id.btn_login);
         mBtnLogin.setOnClickListener(this);
 	}

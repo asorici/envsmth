@@ -259,6 +259,9 @@ class RegistrationForm(forms.Form):
     
     
 class ClientRegistrationForm(RegistrationForm):
+    first_name = forms.CharField(required = True)
+    last_name = forms.CharField(required = True)
+    
     def save(self, profile_callback=None):
         from registration.models import RegistrationProfile
         from django.contrib.auth.models import User
@@ -271,6 +274,8 @@ class ClientRegistrationForm(RegistrationForm):
         
         new_user = User.objects.create_user(username, self.cleaned_data['email'], password=self.cleaned_data['password1'])
         new_user.is_active = True
+        new_user.first_name = self.cleaned_data['first_name']
+        new_user.last_name = self.cleaned_data['last_name']
         new_user.save()
         
         RegistrationProfile.objects.create(user=new_user, activation_key="ALREADY_ACTIVATED")

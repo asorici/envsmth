@@ -8,6 +8,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
 
@@ -22,6 +23,7 @@ public class ActionHandler {
 	public final static String LOGOUT = "logout";
 	public final static String CHECKIN = "checkin";
 	public final static String CHECKOUT = "checkout";
+	public final static String REGISTER = "register";
 	
 	
 	public static int registerWithServer(Context context, 
@@ -170,6 +172,51 @@ public class ActionHandler {
 	private static String signUrl(String url) {
 		//TODO: proper url signing
 		return Url.appendParameter(url, "clientrequest", "true");
+	}
+
+	public static int register(Context context, String email,
+			String password, String firstName, String lastName, String affiliation, String interests) {
+		
+		AppClient client = new AppClient(context);
+		
+		// Add credentials to payload
+		List<NameValuePair> data = new ArrayList<NameValuePair>(6);
+		data.add(new BasicNameValuePair("email", email));
+		data.add(new BasicNameValuePair("password1", password));
+		data.add(new BasicNameValuePair("password2", password));
+		data.add(new BasicNameValuePair("first_name", firstName));
+		data.add(new BasicNameValuePair("last_name", lastName));
+		
+		JSONObject researchProfileData = new JSONObject();
+		try {
+			researchProfileData.put("affiliation", affiliation);
+			researchProfileData.put("research_interests", interests);
+			data.add(new BasicNameValuePair("research_profile", researchProfileData.toString()));
+		} catch (JSONException e1) {
+		}
+		
+		try {
+			// TODO
+			String url = Url.actionUrl(REGISTER);
+			HttpResponse response = client.makePostRequest(url, data, null, null);
+			ResponseHolder holder = new ResponseHolder(response);
+			
+			int statusCode = holder.getCode();
+			if (statusCode == HttpStatus.SC_OK) {
+				JSONObject dataJSON = holder.getData().getJSONObject("data");
+				
+				String user_uri = dataJSON.getString("resource_uri");
+				String userfirstName = dataJSON.optString("first_name", "Anonymous");
+				String userlastName = dataJSON.optString("last_name", "Guest");
+				Preferences.login(context, email, userfirstName, userlastName, user_uri);
+			}
+			
+			return statusCode;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return HttpStatus.SC_SERVICE_UNAVAILABLE;
 	}
 	
 }

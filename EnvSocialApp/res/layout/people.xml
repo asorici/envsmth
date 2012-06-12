@@ -15,8 +15,19 @@
 			android:scaleType="fitXY" android:paddingLeft="5dp"
 			android:paddingRight="5dp" android:paddingBottom="5dp"
 			android:paddingTop="2dp" />
+	
+	<TextView 
+	    	android:text="@string/lbl_authenticated_users"
+	    	android:textStyle="bold"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_marginLeft="10dip"
+	        android:layout_marginRight="10dip"
+	        android:layout_marginTop="2dip"
+	        android:layout_marginBottom="5dip"
+	        />
+	
 	<ListView  
-	    android:text="@string/lbl_authenticated_users"
 	    android:id="@+id/people"
 	    android:layout_width="fill_parent"
 	    android:layout_height="fill_parent" />
