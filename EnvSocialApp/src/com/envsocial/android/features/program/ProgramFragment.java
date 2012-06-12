@@ -1,6 +1,9 @@
 package com.envsocial.android.features.program;
 
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -13,9 +16,9 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
 import com.envsocial.android.R;
@@ -27,6 +30,9 @@ public class ProgramFragment extends SherlockFragment implements OnClickListener
 	
 	private Location mLocation;
 	private ProgramListAdapter mAdapter;
+	private LinearLayout mDayScroll;
+	
+	private int currentDayIndex = 0;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -53,22 +59,36 @@ public class ProgramFragment extends SherlockFragment implements OnClickListener
 			programDb.insertSessions(sessionsArray);
 			programDb.insertEntries(entriesArray);
 			
-			LinearLayout dayScroll = (LinearLayout) view.findViewById(R.id.dayScroll);
+			mDayScroll = (LinearLayout) view.findViewById(R.id.dayScroll);
 			List<String> days = programDb.getDays();
 			int k = 0;
 			for (String d : days) {
-				Button dayButton = new Button(getActivity());
-				dayButton.setText(d);
-				dayButton.setLayoutParams(
+				TextView dayView = new TextView(getActivity());
+				
+				try {
+					SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+					Date date = formatter.parse(d);
+					formatter = new SimpleDateFormat("EEE, MMM d");
+					dayView.setText(formatter.format(date));
+				} catch (ParseException e) {
+					e.printStackTrace();
+					dayView.setText(d);
+				}
+				
+				dayView.setLayoutParams(
 						new LayoutParams(
 								ViewGroup.LayoutParams.WRAP_CONTENT,
 								ViewGroup.LayoutParams.WRAP_CONTENT
 						)
 				);
-				dayButton.setTag(k ++);
-				dayButton.setOnClickListener(this);
-				dayScroll.addView(dayButton);
+				dayView.setTag(k ++);
+				dayView.setOnClickListener(this);
+				dayView.setPadding(15, 15, 15, 15);
+				dayView.setTextColor(getResources().getColor(R.color.white));
+				dayView.setBackgroundColor(getResources().getColor(R.color.dark_green));
+				mDayScroll.addView(dayView);
 			}
+			mDayScroll.getChildAt(currentDayIndex).setBackgroundColor(getResources().getColor(R.color.light_green));
 			
 			ListView listView = (ListView) view.findViewById(R.id.program);
 		    
@@ -84,8 +104,11 @@ public class ProgramFragment extends SherlockFragment implements OnClickListener
 
 	@Override
 	public void onClick(View v) {
-		if (v instanceof Button) {
-			mAdapter.setDay((Integer) v.getTag());
+		if (v instanceof TextView) {
+			mDayScroll.getChildAt(currentDayIndex).setBackgroundColor(getResources().getColor(R.color.dark_green));
+			v.setBackgroundColor(getResources().getColor(R.color.light_green));
+			currentDayIndex = (Integer) v.getTag();
+			mAdapter.setDay(currentDayIndex);
 		}
 	}
 }

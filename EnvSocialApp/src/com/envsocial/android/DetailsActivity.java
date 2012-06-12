@@ -32,6 +32,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	
 	private Location mLocation;
 	
+	private ActionBar mActionBar;
 	private Tab mDefaultTab;
 	private Tab mProgramTab;
 	private Tab mOrderTab;
@@ -44,19 +45,23 @@ public class DetailsActivity extends SherlockFragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.details);
         
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-        actionBar.setDisplayShowTitleEnabled(false);
+        mActionBar = getSupportActionBar();
+        mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+        mActionBar.setDisplayShowTitleEnabled(false);
         
         String checkinUrl = getIntent().getStringExtra(ActionHandler.CHECKIN);
+        // mLocation gets initialized
         checkin(checkinUrl);
+        
+        System.out.println("[DEBUG] >> Setting action bar title!");
+        mActionBar.setTitle(mLocation.getName());
         
         // We have location by now, so add tabs
         addFeatureTabs();
         String feature = getIntent().getStringExtra(C2DMReceiver.FEATURE);
         if (feature != null) {
         	// TODO
-        	actionBar.selectTab(mOrderManagementTab);
+        	mActionBar.selectTab(mOrderManagementTab);
         }
 	}
 	
