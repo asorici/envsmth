@@ -12,7 +12,13 @@
     <style name="Widget.Envived.ActionBar" parent="Widget.Sherlock.ActionBar">
         <item name="background">@color/actionbar_gray</item>
         <item name="android:background">@color/actionbar_gray</item>
+        <item name="titleTextStyle">@style/Widget.Envived.ActionBar.Title</item>
+        <item name="android:titleTextStyle">@style/Widget.Envived.ActionBar.Title</item>
     </style>
+    
+    <style name="Widget.Envived.ActionBar.Title" parent="TextAppearance.Sherlock.Widget.ActionBar.Title">
+        <item name="android:paddingLeft">15dip</item>
+	</style>
     
 <!--     <style name="Widget.Envived.ActionBar.TabView" parent="Widget.Sherlock.ActionBar.TabView">
         <item name="background">@color/light_green</item>
