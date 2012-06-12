@@ -1,24 +1,27 @@
 package com.envsocial.android.features.people;
 
+import java.util.Iterator;
 import java.util.List;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
 import com.envsocial.android.R;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.api.User;
-import com.envsocial.android.utils.Preferences;
 
 public class PeopleFragment extends SherlockFragment {
 	private Location mLocation;
 	private List<User> mPeople;
+	private int anonymousUserCount;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -34,6 +37,10 @@ public class PeopleFragment extends SherlockFragment {
 		try {
 			mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
 			mPeople = getPeople(getActivity(), mLocation);
+			anonymousUserCount = removeAnonymousUsers(mPeople);
+			
+			TextView anonymousUserCountView = (TextView) v.findViewById(R.id.people_anonymous_user_count);
+			anonymousUserCountView.setText("There are " + anonymousUserCount + " anonymous users checked into " + mLocation.getName());
 			
 			// Create custom list adapter
 			PeopleListAdapter adapter = new PeopleListAdapter(getActivity(), mPeople);
@@ -50,6 +57,23 @@ public class PeopleFragment extends SherlockFragment {
 		return v;
 	}
 	
+	private int removeAnonymousUsers(List<User> checkedInPeople) {
+		int anonymousUserCount = 0;
+		
+		// see how many of these users are anonymous - perform check by string comparing the name
+		// with the default "Anonymous Guest" naming
+		Iterator<User> it = checkedInPeople.iterator();
+		while(it.hasNext()) {
+			User u = it.next();
+			if (u.getUserData().getFirstName().equalsIgnoreCase("anonymous")) {
+				it.remove();
+				anonymousUserCount++;
+			}
+		}
+		
+		return anonymousUserCount;
+	}
+
 	private List<User> getPeople(Context context, Location location) {
 		List<User> checkedInPeople = null;
 		

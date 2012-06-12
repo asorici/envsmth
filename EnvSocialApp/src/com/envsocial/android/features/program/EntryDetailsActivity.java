@@ -11,6 +11,9 @@ import org.apache.http.HttpStatus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.ProgressDialog;
+import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,7 +25,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.envsocial.android.HomeActivity;
+import com.envsocial.android.LoginActivity;
 import com.envsocial.android.R;
+import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Annotation;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.api.ProgramEntry;
@@ -48,6 +54,9 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 	private Button mBtnSend;
 	private EditText mComment;
 	
+	// loader dialog for async task of fetching entry data and comments
+	private ProgressDialog mLoadingDialog;
+	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -67,7 +76,6 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		
 		// initialize comment holder layout
 		mCommentsHolder = (LinearLayout) findViewById(R.id.entry_comments);
-		setupCommentViews();
 		
 		mMoreCommentsBtn = (Button) findViewById(R.id.btn_more_comments);
 		mMoreCommentsBtn.setOnClickListener(this);
@@ -78,10 +86,67 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		// set Listener for comment send button
 		mBtnSend.setOnClickListener(this);
 		
+		/*
+		setupCommentViews();
 		Map<String,String> entry = ProgramEntry.getEntryById(this, mLocation, mEntryId);
 		bind(entry);
+		*/
+		new EntryFetchTask(mLocation, mEntryId).execute();
 	}
 	
+	
+	private class EntryFetchTask extends AsyncTask<Void, Void, Void> {
+		private String entryId;
+		private Location location;
+		private Map<String, String> entry;
+		LinkedList<Map<String, String>> entryComments;
+		
+		public EntryFetchTask(Location location, String entryId) {
+			this.location = location;
+			this.entryId = entryId;
+		}
+		
+		@Override
+		protected void onPreExecute() {
+			mLoadingDialog = ProgressDialog.show(EntryDetailsActivity.this, 
+					"", "Loading...", true);
+		}
+		
+		@Override
+		protected Void doInBackground(Void...args) {
+			try {
+				entry = ProgramEntry.getEntryById(EntryDetailsActivity.this, location, entryId);
+			} catch (Exception ex) {
+				entry = null;
+			}
+			
+			try {
+				entryComments = getEntryComments();
+			} catch (Exception ex) {
+				entryComments = null;
+			}
+			
+			return null;
+		}
+		
+		@Override
+		protected void onPostExecute(Void result) {
+			mLoadingDialog.cancel();
+			if (entry != null) {
+				bind(entry);
+			}
+			
+			if (entryComments != null) {
+				addEntryComments(entryComments);
+			}
+			
+			if (entry == null && entryComments == null) {
+				Toast toast = Toast.makeText(getApplicationContext(), 
+						R.string.msg_service_error, Toast.LENGTH_LONG);
+				toast.show();
+			}
+		}
+	}
 	
 	private void setupCommentViews() {
 		LinkedList<Map<String, String>> entryComments = getEntryComments();
@@ -167,8 +232,8 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		
 		return commentStringData;
 	}
-
-	// TODO
+	
+	
 	private void bind(Map<String,String> entry) {
 		mTitle.setText(entry.get(ProgramDbHelper.COL_ENTRY_TITLE));
 		mSession.setText(entry.get(ProgramDbHelper.COL_ENTRY_SESSIONID));

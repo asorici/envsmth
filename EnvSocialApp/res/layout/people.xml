@@ -1,5 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ListView xmlns:android="http://schemas.android.com/apk/res/android" 
-    android:id="@+id/people"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" />
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+	<TextView android:id="@+id/people_anonymous_user_count"
+	    	android:textStyle="bold"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_marginLeft="10dip"
+	        android:layout_marginRight="10dip" />
+	<ImageView 
+			android:src="@android:drawable/divider_horizontal_dark"
+			android:layout_width="fill_parent" android:layout_height="wrap_content"
+			android:scaleType="fitXY" android:paddingLeft="5dp"
+			android:paddingRight="5dp" android:paddingBottom="5dp"
+			android:paddingTop="2dp" />
+	<ListView  
+	    android:text="@string/lbl_authenticated_users"
+	    android:id="@+id/people"
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent" />
+</LinearLayout>
