@@ -45,6 +45,10 @@
     <string name="lbl_abstract">Abstract:</string>
     <string name="lbl_post_comment">Post a comment:</string>
     <string name="lbl_comments">Comments:</string>
+    <string name="lbl_people_name">Name:</string>
+    <string name="lbl_people_affiliation">Affiliation:</string>
+    <string name="lbl_people_research_interests">Research Interests:</string>
+    <string name="lbl_authenticated_users">Authenticated Users:</string>
     
     <!-- Tabs -->
     <string name="tab_default">Details</string>
@@ -58,6 +62,7 @@
     <string name="msg_bad_checkin_response">Service problem. Please try again later.</string>
     <string name="msg_unauthorized_login">Incorrect email and / or password.</string>
     <string name="msg_service_unavailable">Service is currently unavailable.</string>
+    <string name="msg_service_error">Service error. Please try again later.</string>
     
     <!-- Notifications -->
     <string name="incoming_order">New order</string>
