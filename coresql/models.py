@@ -90,6 +90,14 @@ class Feature(models.Model):
     category = models.CharField(max_length=50, choices = CATEGORY_CHOICES)
     #data = fields.DataField(null = True, blank = True)
     timestamp = models.DateTimeField(auto_now = True)
+    
+    def __unicode__(self):
+        if self.area:
+            return "feature type(" + self.category + ") for area(" + self.area.name + ")"
+        elif self.environment:
+            return "feature type(" + self.category + ") for env(" + self.environment.name + ")"
+        else:
+            return "feature type(" + self.category + ") but no location assigned -- needs fix"
 
 
 class Announcement(models.Model):
@@ -164,6 +172,9 @@ class Session(models.Model):
     title = models.CharField(max_length = 256)
     tag = models.CharField(max_length = 8)
     program = models.ForeignKey(ProgramFeature, related_name = "sessions")
+    
+    def __unicode__(self):
+        return self.title
 
 class Entry(models.Model):
     session = models.ForeignKey(Session, related_name = "entries")
@@ -173,6 +184,9 @@ class Entry(models.Model):
     startTime = models.DateTimeField()
     endTime = models.DateTimeField()
     abstract = models.TextField(null = True, blank = True)
+    
+    def __unicode__(self):
+        return self.title + " >> " + self.session.title
 
 ###################################### People Feature Classes ############################################
 """
