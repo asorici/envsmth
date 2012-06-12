@@ -47,14 +47,13 @@ public class DetailsActivity extends SherlockFragmentActivity {
         
         mActionBar = getSupportActionBar();
         mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-        mActionBar.setDisplayShowTitleEnabled(false);
         
         String checkinUrl = getIntent().getStringExtra(ActionHandler.CHECKIN);
         // mLocation gets initialized
         checkin(checkinUrl);
         
-        System.out.println("[DEBUG] >> Setting action bar title!");
-        mActionBar.setTitle(mLocation.getName());
+        // TODO: fix padding issue in action bar style xml
+        mActionBar.setTitle("     " + mLocation.getName());
         
         // We have location by now, so add tabs
         addFeatureTabs();
