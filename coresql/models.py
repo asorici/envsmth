@@ -15,6 +15,9 @@ class ResearchProfile(models.Model):
     affiliation = models.CharField(max_length = 256, null = True, blank = True)
     research_interests = fields.TagListField(null = True, blank = True)
     
+    def __unicode__(self):
+        return self.affiliation + " ## " + str(self.research_interests.getList())
+    
 #class UserProfile(models.Model):
 class UserProfile(models.Model):
     user = models.OneToOneField(User)

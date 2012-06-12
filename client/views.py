@@ -29,7 +29,7 @@ def register(request):
                 ## the user's profile
                 connect_user(request, fb_access_token)
             
-            research_profile = request.POST.get('research_profile')
+            research_profile = request.REQUEST.get('research_profile')
             if research_profile:
                 ## we receive it as a json string, load it and use it
                 research_profile_data = simplejson.loads(research_profile)
