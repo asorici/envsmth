@@ -5,7 +5,8 @@ public class Url {
 	public static final String HTTP = "http://";
 	public static final String HTTPS = "https://";
 	//public static final String HOSTNAME = "192.168.1.6:8000";
-	public static final String HOSTNAME = "192.168.100.108:8000";
+	//public static final String HOSTNAME = "192.168.100.108:8000";
+	public static final String HOSTNAME = "192.168.1.105:8000";
 	private static final String BASE_URL = "/envsocial/client/v1/";
 	private static final String ACTION_RELATIVE_URL = BASE_URL + "actions/";
 	private static final String RESOURCE_RELATIVE_URL = BASE_URL + "resources/";

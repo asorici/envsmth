@@ -12,11 +12,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,7 +30,6 @@ import com.envsocial.android.features.Feature;
 import com.envsocial.android.utils.Preferences;
 
 public class EntryDetailsActivity extends SherlockFragmentActivity implements OnClickListener {
-
 	private String mEntryId;
 	private Location mLocation;
 	
@@ -38,7 +38,13 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 	private TextView mDatetime;
 	private TextView mSpeakers;
 	private TextView mAbstract;
-	private ListView mCommentList;
+	
+	// comment list parameters
+	private int commentListOffset = 0;
+	private static int COMMENT_LIMIT = 5;
+	private LinearLayout mCommentsHolder;
+	private Button mMoreCommentsBtn;
+	
 	private Button mBtnSend;
 	private EditText mComment;
 	
@@ -55,9 +61,16 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		mSpeakers = (TextView) findViewById(R.id.speakers);
 		mAbstract = (TextView) findViewById(R.id.abs);
 		
-		mCommentList = (ListView) findViewById(R.id.comment_list);
-		EntryCommentListAdapter commentListAdapter = new EntryCommentListAdapter(this, getEntryComments());
-		mCommentList.setAdapter(commentListAdapter);
+		//mCommentList = (ListView) findViewById(R.id.comment_list);
+		//EntryCommentListAdapter commentListAdapter = new EntryCommentListAdapter(this, getEntryComments());
+		//mCommentList.setAdapter(commentListAdapter);
+		
+		// initialize comment holder layout
+		mCommentsHolder = (LinearLayout) findViewById(R.id.entry_comments);
+		setupCommentViews();
+		
+		mMoreCommentsBtn = (Button) findViewById(R.id.btn_more_comments);
+		mMoreCommentsBtn.setOnClickListener(this);
 		
 		mBtnSend = (Button) findViewById(R.id.btn_send);
 		mComment = (EditText) findViewById(R.id.comment);
@@ -69,6 +82,38 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		bind(entry);
 	}
 	
+	
+	private void setupCommentViews() {
+		LinkedList<Map<String, String>> entryComments = getEntryComments();
+		addEntryComments(entryComments);
+	}
+	
+	private void addEntryComments(LinkedList<Map<String, String>> entryComments) {
+		if (!entryComments.isEmpty()) {
+			LayoutInflater inflater = getLayoutInflater();
+			
+			for (Map<String, String> comment : entryComments) {
+				View commentView = makeCommentView(inflater, comment);
+				mCommentsHolder.addView(commentView);
+				commentListOffset++;
+			}
+		}
+	}
+	
+	private View makeCommentView(LayoutInflater inflater, Map<String, String> comment) {
+		View commentView = inflater.inflate(R.layout.entry_comment_row, mCommentsHolder, false);
+		TextView authorView = (TextView)commentView.findViewById(R.id.entry_comment_author);
+		TextView dateView = (TextView)commentView.findViewById(R.id.entry_comment_date);
+		TextView textView = (TextView)commentView.findViewById(R.id.entry_comment_text);
+		
+		authorView.setText(comment.get("author"));
+		dateView.setText(comment.get("date"));
+		textView.setText(comment.get("text"));
+		
+		return commentView;
+	}
+
+
 	private LinkedList<Map<String, String>> getEntryComments() {
 		try {
 			Map<String, String> extra = new HashMap<String, String>();
@@ -76,7 +121,8 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 			extra.put("order_by", "-timestamp");
 			extra.put("userexplicit", "true");
 			
-			List<Annotation> entryAnnotations = Annotation.getAnnotations(this, mLocation, Feature.PROGRAM, extra, 0, 5);
+			List<Annotation> entryAnnotations = Annotation.getAnnotations(this, mLocation, 
+					Feature.PROGRAM, extra, commentListOffset, COMMENT_LIMIT);
 			// System.out.println("[DEBUG]>> received entryComments: " + entryComments);
 
 			return parseEntryAnnotations(entryAnnotations);
@@ -136,6 +182,18 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		if (v == mBtnSend) {
 			sendComment();
 		}
+		else {
+			if (v == mMoreCommentsBtn) {
+				LinkedList<Map<String, String>> moreEntryComments = getEntryComments();
+				if (moreEntryComments.isEmpty()) {
+					Toast toast = Toast.makeText(this, "No other comments.", Toast.LENGTH_LONG);
+					toast.show();
+				}
+				else {
+					addEntryComments(moreEntryComments);
+				}
+			}
+		}
 		
 	}
 
@@ -164,6 +222,10 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 				Toast toast = Toast.makeText(this, "Comment sent.", Toast.LENGTH_LONG);
 				toast.show();
 			}
+			else {
+				Toast toast = Toast.makeText(this, "Oops! Error sending comment.", Toast.LENGTH_LONG);
+				toast.show();
+			}
 			
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
@@ -178,8 +240,12 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		Map<String, String> commentStringData;
 		try {
 			commentStringData = extractCommentData(entryAnnotation);
-			EntryCommentListAdapter adaptor = (EntryCommentListAdapter)mCommentList.getAdapter();
-			adaptor.addItem(commentStringData);
+			//EntryCommentListAdapter adaptor = (EntryCommentListAdapter)mCommentList.getAdapter();
+			//adaptor.addItem(commentStringData);
+			
+			View commentView = makeCommentView(getLayoutInflater(), commentStringData);
+			mCommentsHolder.addView(commentView, 0);
+			commentListOffset++;
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

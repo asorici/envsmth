@@ -96,6 +96,11 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 		    	}
 			}
 		}
+		else {
+			System.err.println("WOUND UP HERE");
+			Toast toast = Toast.makeText(this, "Connection Error.", Toast.LENGTH_LONG);
+			toast.show();
+		}
     }
 	
 	@Override
