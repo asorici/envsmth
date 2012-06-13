@@ -8,6 +8,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
@@ -195,10 +196,13 @@ public class ActionHandler {
 		} catch (JSONException e1) {
 		}
 		
+		
+		HttpResponse response = null;
+		String responseString = "nimic";
 		try {
 			// TODO
 			String url = Url.actionUrl(REGISTER);
-			HttpResponse response = client.makePostRequest(url, data, null, null);
+			response = client.makePostRequest(url, data, null, null);
 			ResponseHolder holder = new ResponseHolder(response);
 			
 			int statusCode = holder.getCode();

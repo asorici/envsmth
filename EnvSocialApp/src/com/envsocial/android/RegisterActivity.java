@@ -37,11 +37,19 @@ public class RegisterActivity extends SherlockActivity implements OnClickListene
         mTxtEmail = (EditText) findViewById(R.id.txt_email);
         mTxtPassword = (EditText) findViewById(R.id.txt_password);
         
-        
         mTxtFirst = (EditText) findViewById(R.id.txt_first);
         mTxtLast = (EditText) findViewById(R.id.txt_last);
         mTxtAffiliation = (EditText) findViewById(R.id.txt_affiliation);
         mTxtInterests = (EditText) findViewById(R.id.txt_interests);
+        
+        /*
+        mTxtEmail.setText("unmail@email.com");
+        mTxtPassword.setText("unpass");
+        mTxtFirst.setText("Andrei");
+        mTxtLast.setText("Ciortea");
+        mTxtAffiliation.setText("Univ. Politehnica Bucuresti");
+        mTxtInterests.setText("multi-agent systems, ambient intelligence, internet of things");
+        */
         
         mBtnSubmit = (Button) findViewById(R.id.btn_submit);
         mBtnSubmit.setOnClickListener(this);
