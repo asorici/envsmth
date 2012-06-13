@@ -62,7 +62,6 @@
     <string name="msg_bad_checkin_response">Service problem. Please try again later.</string>
     <string name="msg_unauthorized_login">Incorrect email and / or password.</string>
     <string name="msg_service_unavailable">Service is currently unavailable.</string>
-    <string name="msg_service_error">Service error. Please try again later.</string>
     <string name="msg_registration_details_required">Please fill in the First Name and Last Name fields.</string>
     <string name="msg_registration_details_check">Please check validity of your registration information.</string>
     

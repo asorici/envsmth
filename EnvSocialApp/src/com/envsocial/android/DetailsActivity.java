@@ -49,8 +49,25 @@ public class DetailsActivity extends SherlockFragmentActivity {
         mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         
         String checkinUrl = getIntent().getStringExtra(ActionHandler.CHECKIN);
+        
         // mLocation gets initialized
-        checkin(checkinUrl);
+        try {
+			checkin(checkinUrl);
+		} catch (JSONException e) {
+			e.printStackTrace();
+			setResult(RESULT_CANCELED);
+			Toast toast = Toast.makeText(this, R.string.msg_bad_checkin_response, Toast.LENGTH_LONG);
+			toast.show();
+	    	finish();
+	    	return;
+		} catch (Exception e) {
+			e.printStackTrace();
+			setResult(RESULT_CANCELED);
+			Toast toast = Toast.makeText(this, R.string.msg_service_unavailable, Toast.LENGTH_LONG);
+			toast.show();
+	    	finish();
+	    	return;
+		}
         
         // TODO: fix padding issue in action bar style xml
         mActionBar.setTitle("     " + mLocation.getName());
@@ -64,30 +81,13 @@ public class DetailsActivity extends SherlockFragmentActivity {
         }
 	}
 	
-	private void checkin(String checkinUrl) {
-        try {
-        	// Perform check in
-        	ResponseHolder holder = ActionHandler.checkin(this, checkinUrl);
-        	if (holder == null) {
-        		throw new Exception("Bad answer from server.");
-        	}
-        	mLocation = (Location) holder.getTag();
-		} catch (JSONException e) {
-			e.printStackTrace();
-			setResult(RESULT_CANCELED);
-			Toast toast = Toast.makeText(this, R.string.msg_bad_checkin_response, Toast.LENGTH_LONG);
-			toast.show();
-	    	finish();
-	    	return;
-		} catch (Exception e) {
-			e.printStackTrace();
-			setResult(RESULT_CANCELED);
-			System.err.println("Oops! Server Error.");
-			Toast toast = Toast.makeText(this, "Oops! Server Error.", Toast.LENGTH_LONG);
-			toast.show();
-	    	finish();
-	    	return;
+	private void checkin(String checkinUrl) throws JSONException, Exception {
+		// Perform check in
+		ResponseHolder holder = ActionHandler.checkin(this, checkinUrl);
+		if (holder == null) {
+			throw new Exception("Bad answer from server.");
 		}
+		mLocation = (Location) holder.getTag();
 	}
 	
 	private void addFeatureTabs() {

@@ -20,9 +20,11 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.envsocial.android.R;
 import com.envsocial.android.api.Annotation;
@@ -56,6 +58,9 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 	@Override
     public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		getSupportActionBar().setDisplayShowTitleEnabled(false);
+		
 		mEntryId = getIntent().getExtras().getString(ProgramDbHelper.COL_ENTRY_ID);
 		mLocation = Preferences.getCheckedInLocation(this);
 		
@@ -138,7 +143,7 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 			
 			if (entry == null && entryComments == null) {
 				Toast toast = Toast.makeText(getApplicationContext(), 
-						R.string.msg_service_error, Toast.LENGTH_LONG);
+						R.string.msg_service_unavailable, Toast.LENGTH_LONG);
 				toast.show();
 			}
 		}
@@ -166,6 +171,9 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		TextView authorView = (TextView)commentView.findViewById(R.id.entry_comment_author);
 		TextView dateView = (TextView)commentView.findViewById(R.id.entry_comment_date);
 		TextView textView = (TextView)commentView.findViewById(R.id.entry_comment_text);
+		
+		RelativeLayout authorDateHolder = (RelativeLayout)commentView.findViewById(R.id.entry_comment_author_date_holder);
+		authorDateHolder.setBackgroundColor(getResources().getColor(R.color.light_green));
 		
 		authorView.setText(comment.get("author"));
 		dateView.setText(comment.get("date"));
@@ -284,7 +292,7 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 				toast.show();
 			}
 			else {
-				Toast toast = Toast.makeText(this, "Oops! Error sending comment.", Toast.LENGTH_LONG);
+				Toast toast = Toast.makeText(this, "Error sending comment.", Toast.LENGTH_LONG);
 				toast.show();
 			}
 			

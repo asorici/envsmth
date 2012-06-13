@@ -65,7 +65,6 @@
 			<EditText android:id="@+id/comment" android:layout_width="fill_parent"
 				android:layout_height="wrap_content" android:layout_toLeftOf="@id/btn_send"
 				android:gravity="top" android:lines="5" android:inputType="textMultiLine"
-				android:text="This is just some garbage text I am using for testing. It's supposed to be an entry annotation"
 				android:layout_marginRight="5dip" android:layout_marginLeft="5dip" />
 		</RelativeLayout>
 	</LinearLayout>

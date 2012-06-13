@@ -35,6 +35,8 @@ public final class Preferences {
 		removeStringPreference(context, USER_URI);
 		removeStringPreference(context, AppClient.SESSIONID);
 		removeStringPreference(context, PEOPLE_IN_LOCATION);
+		removeStringPreference(context, FIRST_NAME);
+		removeStringPreference(context, LAST_NAME);
 	}
 	
 	public static boolean isLoggedIn(Context context) {

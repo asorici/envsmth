@@ -26,12 +26,19 @@ public class PeopleListAdapter extends BaseAdapter {
 	
 	@Override
 	public int getCount() {
-		return mPeople.size();
+		if (mPeople != null) {
+			return mPeople.size();
+		}
+		return 0;
 	}
 
 	@Override
 	public User getItem(int position) {
-		return mPeople.get(position);
+		if (mPeople != null) {
+			return mPeople.get(position);
+		}
+		
+		return null;
 	}
 
 	@Override
@@ -69,16 +76,18 @@ public class PeopleListAdapter extends BaseAdapter {
 	
 	private void bind(ViewHolder holder, int position) {
 		User u = mPeople.get(position);
-		holder.name.setText(u.getUserData().getLastName().toUpperCase() + ", " + u.getUserData().getFirstName());
-		holder.affiliation.setText(u.getUserData().getAffiliation());
-		
-		String researchInterestString = "";
-		for (int i = 0; i < u.getUserData().getResearchInterests().length; i++) {
-			researchInterestString += u.getUserData().getResearchInterests()[i] + ", ";
+		if (u != null) {
+			holder.name.setText(u.getUserData().getLastName().toUpperCase() + ", " + u.getUserData().getFirstName());
+			holder.affiliation.setText(u.getUserData().getAffiliation());
+			
+			String researchInterestString = "";
+			for (int i = 0; i < u.getUserData().getResearchInterests().length; i++) {
+				researchInterestString += u.getUserData().getResearchInterests()[i] + ", ";
+			}
+			researchInterestString = researchInterestString.substring(0, researchInterestString.length());
+			
+			holder.researchInterests.setText(researchInterestString);
 		}
-		researchInterestString = researchInterestString.substring(0, researchInterestString.length());
-		
-		holder.researchInterests.setText(researchInterestString);
 	}
 
 

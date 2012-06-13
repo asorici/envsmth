@@ -3,9 +3,13 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical" 
-    android:layout_marginBottom="5dip" >
+    android:layout_marginBottom="5dip" 
+    android:layout_marginTop="5dip"
+    android:layout_marginLeft="10dip"
+    android:layout_marginRight="10dip">
     <RelativeLayout android:layout_width="fill_parent"
-			android:layout_height="fill_parent">
+			android:layout_height="fill_parent"
+			android:id="@+id/entry_comment_author_date_holder">
 	    <TextView android:id="@+id/entry_comment_date"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content" 
@@ -19,7 +23,9 @@
     <TextView android:id="@+id/entry_comment_text"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" 
-        android:textStyle="italic" />
+        android:textStyle="italic" 
+        android:layout_marginBottom="2dp"
+        android:layout_marginTop="2dp"/>
     
     <ImageView xmlns:android="http://schemas.android.com/apk/res/android"
 			android:src="@android:drawable/divider_horizontal_dark"
