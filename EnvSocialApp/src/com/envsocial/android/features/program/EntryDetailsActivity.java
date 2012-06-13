@@ -254,12 +254,18 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		else {
 			if (v == mMoreCommentsBtn) {
 				LinkedList<Map<String, String>> moreEntryComments = getEntryComments();
-				if (moreEntryComments.isEmpty()) {
-					Toast toast = Toast.makeText(this, "No other comments.", Toast.LENGTH_LONG);
+				if (moreEntryComments == null) {
+					Toast toast = Toast.makeText(this, R.string.msg_service_unavailable, Toast.LENGTH_LONG);
 					toast.show();
 				}
 				else {
-					addEntryComments(moreEntryComments);
+					if (moreEntryComments.isEmpty()) {
+						Toast toast = Toast.makeText(this, "No other comments.", Toast.LENGTH_LONG);
+						toast.show();
+					}
+					else {
+						addEntryComments(moreEntryComments);
+					}
 				}
 			}
 		}
@@ -315,6 +321,9 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 			View commentView = makeCommentView(getLayoutInflater(), commentStringData);
 			mCommentsHolder.addView(commentView, 0);
 			commentListOffset++;
+			
+			// clear edit box at the end
+			mComment.setText("");
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

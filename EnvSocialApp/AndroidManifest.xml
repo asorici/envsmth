@@ -40,7 +40,8 @@
             android:screenOrientation="portrait"
             android:noHistory="true" />
         <activity android:name=".DetailsActivity"
-            android:configChanges="orientation" />
+            android:configChanges="orientation"
+            android:screenOrientation="portrait" />
         <activity android:name=".features.program.EntryDetailsActivity" />
         
         <service android:name=".utils.C2DMReceiver"
