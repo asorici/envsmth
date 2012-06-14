@@ -13,9 +13,11 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
     <TextView android:id="@+id/title"
+        android:textStyle="bold"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
     <TextView android:id="@+id/speakers"
+    	android:textStyle="italic"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
 </LinearLayout>
