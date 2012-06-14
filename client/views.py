@@ -249,7 +249,7 @@ def checkin_succeeded(request, area = None, env = None):
         envr_item = envr.obj_get(pk=env.id)
         envr_bundle = envr.build_bundle(obj = envr_item, request=request)
         
-        env_data = {"location_type" : "environment", "location_data" : envr.full_dehydrate(envr_bundle).data}
+        env_data = envr.full_dehydrate(envr_bundle).data
         response['data'].update(env_data)
     
     return view_response(request, response, 200)
