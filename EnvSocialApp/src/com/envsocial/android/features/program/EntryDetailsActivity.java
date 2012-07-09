@@ -24,13 +24,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.envsocial.android.R;
 import com.envsocial.android.api.Annotation;
 import com.envsocial.android.api.Location;
-import com.envsocial.android.api.ProgramEntry;
 import com.envsocial.android.features.Feature;
+import com.envsocial.android.features.ProgramFeature;
 import com.envsocial.android.utils.Preferences;
 
 public class EntryDetailsActivity extends SherlockFragmentActivity implements OnClickListener {
@@ -116,7 +115,7 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		@Override
 		protected Void doInBackground(Void...args) {
 			try {
-				entry = ProgramEntry.getEntryById(EntryDetailsActivity.this, location, entryId);
+				entry = ProgramFeature.getProgramEntryById(EntryDetailsActivity.this, location, entryId);
 			} catch (Exception ex) {
 				entry = null;
 			}
@@ -149,10 +148,6 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		}
 	}
 	
-	private void setupCommentViews() {
-		LinkedList<Map<String, String>> entryComments = getEntryComments();
-		addEntryComments(entryComments);
-	}
 	
 	private void addEntryComments(LinkedList<Map<String, String>> entryComments) {
 		if (!entryComments.isEmpty()) {

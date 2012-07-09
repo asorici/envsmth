@@ -11,7 +11,9 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.envsocial.android.R;
-import com.envsocial.android.api.User;
+import com.envsocial.android.api.user.ResearchSubProfile;
+import com.envsocial.android.api.user.User;
+import com.envsocial.android.api.user.UserProfileConfig.UserSubProfileType;
 
 public class PeopleListAdapter extends BaseAdapter {
 	private Context mContext;
@@ -78,15 +80,23 @@ public class PeopleListAdapter extends BaseAdapter {
 		User u = mPeople.get(position);
 		if (u != null) {
 			holder.name.setText(u.getUserData().getLastName().toUpperCase() + ", " + u.getUserData().getFirstName());
-			holder.affiliation.setText(u.getUserData().getAffiliation());
+			ResearchSubProfile subProfile = (ResearchSubProfile)u.getUserData().getSubProfile(UserSubProfileType.researchprofile);
 			
-			String researchInterestString = "";
-			for (int i = 0; i < u.getUserData().getResearchInterests().length; i++) {
-				researchInterestString += u.getUserData().getResearchInterests()[i] + ", ";
+			if (subProfile != null) {
+				holder.affiliation.setText(subProfile.getAffiliation());
+				
+				String researchInterestString = "";
+				for (int i = 0; i < subProfile.getResearchInterests().length; i++) {
+					researchInterestString += subProfile.getResearchInterests()[i] + ", ";
+				}
+				researchInterestString = researchInterestString.substring(0, researchInterestString.length());
+				
+				holder.researchInterests.setText(researchInterestString);
 			}
-			researchInterestString = researchInterestString.substring(0, researchInterestString.length());
-			
-			holder.researchInterests.setText(researchInterestString);
+			else {
+				holder.affiliation.setText("n.a.");
+				holder.researchInterests.setText("n.a.");
+			}
 		}
 	}
 

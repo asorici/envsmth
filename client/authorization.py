@@ -1,6 +1,32 @@
+from django.db.models import Q
 from tastypie.authorization import Authorization
 from tastypie.serializers import Serializer
-from django.db.models import Q
+
+
+def is_checked_in(user_profile, env_obj, area_obj):
+    from coresql.models import UserContext
+    
+    try:
+        currentEnvironment = user_profile.context.currentEnvironment
+        currentArea = user_profile.context.currentArea
+                        
+        ## if the user wants to access a resource on/of an area and he is checked in at that area
+        if not area_obj is None:
+            owner = area_obj.environment.owner 
+            if (area_obj == currentArea) or (owner == user_profile and (currentEnvironment or currentArea)):
+                return True
+        
+        ## alternatively he wants to access a resource of the environment in which he is checked in 
+        elif not env_obj is None:
+            owner = env_obj.owner
+            if (env_obj == currentEnvironment) or (owner == user_profile and (currentEnvironment or currentArea)):  
+                return True
+        
+        return False
+    except UserContext.DoesNotExist:
+        ## it means the user is not checked in anywhere
+        return False
+
 
 class AnnotationAuthorization(Authorization):
     def is_authorized(self, request, object=None):
@@ -11,7 +37,7 @@ class AnnotationAuthorization(Authorization):
             ## check here for annotation requests that the requesting user is actually checked in   
             env_obj = None
             area_obj = None
-                
+            
             if request.method.upper() == "POST":
                 serdes = Serializer()
                 deserialized = None
@@ -63,30 +89,9 @@ class AnnotationAuthorization(Authorization):
                     #print "[authorization] exception in getting annotation resource for deletion: ", ex
                     env_obj = None
                     area_obj = None
-                
             
-            user = request.user.get_profile()       ## will be an instance of UserProfile => available context
-            try:
-                currentEnvironment = user.context.currentEnvironment
-                currentArea = user.context.currentArea
-                    
-                ## if the user wants to make/get an annotation on/of an area and he is checked in at that area
-                #if area_pk and area_pk == currentArea.pk:
-                if not area_obj is None:
-                    owner = area_obj.environment.owner 
-                    if (area_obj == currentArea) or (owner == user and (currentEnvironment or currentArea)):
-                        return True
-                
-                ## alternatively he wants to make/get an annotation for/of the environment in which he is checked in 
-                #elif env_pk and env_pk == currentEnv.pk:
-                elif not env_obj is None:
-                    owner = env_obj.owner
-                    if (env_obj == currentEnvironment) or (owner == user and (currentEnvironment or currentArea)):  
-                        return True
-                
-            except UserContext.DoesNotExist:
-                ## it means the user is not checked in anywhere
-                return False
+            user_profile = request.user.get_profile()   ## will be an instance of UserProfile => available context
+            return is_checked_in(user_profile, env_obj, area_obj)
         
         return False
             
@@ -139,4 +144,46 @@ class UserAuthorization(Authorization):
         elif request.method.upper() == "GET":
             return True
         
+        return False
+    
+
+class FeatureAuthorization(Authorization):
+    def is_authorized(self, request, object=None):
+        from client.api import FeatureResource
+        from coresql.models import Environment, Area
+        
+        if request.method.upper() == "GET":
+            if hasattr(request, 'user') and not request.user.is_anonymous():
+                env_obj = None
+                area_obj = None
+                
+                ## try first to obtain info from the feature_obj itself if this is a detail request
+                feature_res_uri = request.path
+                try:
+                    feature_obj = FeatureResource().get_via_uri(feature_res_uri, request=request)
+                    env_obj = feature_obj.environment
+                    area_obj = feature_obj.area
+                except Exception:
+                    env_obj = None
+                    area_obj = None
+                
+                
+                if env_obj is None and area_obj is None:
+                    ## if not, try to retrieve environment and area objects from request filters 
+                    if 'environment' in request.GET:
+                        try:
+                            env_obj = Environment.objects.get(pk=request.GET['environment'])
+                        except:
+                            env_obj = None
+                                
+                    if 'area' in request.GET:
+                        try:
+                            area_obj = Area.objects.get(pk=request.GET['area'])
+                        except:
+                            area_obj = None
+                
+                
+                user_profile = request.user.get_profile()   ## will be an instance of UserProfile => available context
+                return is_checked_in(user_profile, env_obj, area_obj)
+                
         return False

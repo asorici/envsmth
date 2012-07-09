@@ -1,7 +1,8 @@
-package com.envsocial.android.api;
+package com.envsocial.android.api.user;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -9,10 +10,12 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONStringer;
 
 import android.content.Context;
-import android.util.JsonWriter;
+
+import com.envsocial.android.api.AppClient;
+import com.envsocial.android.api.Location;
+import com.envsocial.android.api.Url;
 
 public class User {
 	public static final String TAG = "user";
@@ -20,6 +23,7 @@ public class User {
 	private Context mContext;
 	private Location mLocation;
 	private UserProfileData mUserData;
+	
 	private String mUri;
 	
 	public User(Context context, Location location, UserProfileData userdata) {
@@ -123,18 +127,7 @@ public class User {
 			for (int i = 0; i < len; i++) {
 				User userdata = users.get(i);
 				
-				// build research_interests list
-				JSONArray research_interests = new JSONArray();
-				for (int k = 0; k < userdata.getUserData().getResearchInterests().length; k++) {
-					research_interests.put(userdata.getUserData().getResearchInterests()[k]);
-				}
 				
-				//System.err.println("[DEBUG]>> checked in people research_interests: " + research_interests);
-				
-				// build reseatrch_profile hash
-				JSONObject research_profile = new JSONObject();
-				research_profile.put("affiliation", userdata.getUserData().getAffiliation());
-				research_profile.put("research_interests", research_interests);
 				
 				//System.err.println("[DEBUG]>> checked in people research_profile: " + research_profile);
 				
@@ -143,7 +136,20 @@ public class User {
 				userJSON.put("resource_uri", userdata.getUri());
 				userJSON.put("first_name", userdata.getUserData().getFirstName());
 				userJSON.put("last_name", userdata.getUserData().getLastName());
-				userJSON.put("research_profile", research_profile);
+				
+				// add subprofiles if existent
+				List<Map<String, JSONObject>> subProfiles = userdata.getUserData().subProfilesToJson();
+				if (subProfiles != null && !subProfiles.isEmpty()) {
+					JSONObject subProfileJSON = new JSONObject();
+					
+					for (Map<String, JSONObject> subProfile : subProfiles) {
+						for (String key : subProfile.keySet()) {
+							subProfileJSON.put(key, subProfile.get(key));
+						}
+					}
+					
+					userJSON.put("subprofiles", subProfileJSON);
+				}
 				
 				userListJSON.put(userJSON);
 			}
@@ -175,66 +181,4 @@ public class User {
 		return mUri;
 	}
 	
-	public static class UserProfileData {
-		
-		UserProfileData(String firstName, String lastName, String affiliation, String[] researchInterests) {
-			this.firstName = firstName;
-			this.lastName = lastName;
-			this.affiliation = affiliation;
-			this.researchInterests = researchInterests;
-		}
-
-		private String firstName;
-		private String lastName;
-		private String affiliation;
-		private String[] researchInterests;
-		
-		public String getFirstName() {
-			return firstName;
-		}
-		
-		public String getLastName() {
-			return lastName;
-		}
-		
-		public String getAffiliation() {
-			return affiliation;
-		}
-		
-		public String[] getResearchInterests() {
-			return researchInterests;
-		}
-		
-		public static UserProfileData parseProfileData(JSONObject user) throws JSONException {
-			String firstName = user.optString("first_name", "Anonymous");
-			String lastName = user.optString("last_name", "Guest");
-			if (firstName.isEmpty())
-				firstName = "Anonymous";
-			if (lastName.isEmpty())  
-				lastName = "Guest";
-			
-			String affiliation = "n.a.";
-			String[] researchInterests = {"n.a."};
-			
-			//System.err.println("[DEBUG]>> user profile JSONObject: " + user.toString());
-			
-			JSONObject research_profile = (JSONObject)user.opt("research_profile");
-			
-			if (research_profile != null) {
-				affiliation = research_profile.optString("affiliation", "n.a.");
-				
-				JSONArray research_interests = research_profile.optJSONArray("research_interests");
-				if (research_interests != null) {
-					int len = research_interests.length();
-					researchInterests = new String[len];
-					 
-					for (int i = 0; i < len; i++) {
-						researchInterests[i] = research_interests.optString(i, "n.a.");
-					}
-				}
-			}
-			
-			return new UserProfileData(firstName, lastName, affiliation, researchInterests);
-		}
-	}
 }

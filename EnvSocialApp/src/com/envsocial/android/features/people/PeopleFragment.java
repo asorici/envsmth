@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,7 +15,7 @@ import com.actionbarsherlock.app.SherlockFragment;
 import com.envsocial.android.R;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Location;
-import com.envsocial.android.api.User;
+import com.envsocial.android.api.user.User;
 
 public class PeopleFragment extends SherlockFragment {
 	private Location mLocation;

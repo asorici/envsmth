@@ -20,6 +20,7 @@ public class NotificationReceiver extends BroadcastReceiver {
 		abortBroadcast();
 	}
 
+	
 	private static void generateNotification(Context context, Intent intent) {
 		
 		String locationUri = intent.getStringExtra(C2DMReceiver.LOCATION_URI);
@@ -49,7 +50,7 @@ public class NotificationReceiver extends BroadcastReceiver {
 		Notification notification = new Notification(nd.getNotificationIcon(), 
 				nd.getNotificationTitle(), 
 				nd.getNotificationWhen()
-				);
+		);
 		
 		PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, launcher, 0);
 		notification.setLatestEventInfo(context, 

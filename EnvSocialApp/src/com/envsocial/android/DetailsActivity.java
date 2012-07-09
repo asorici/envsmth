@@ -94,12 +94,12 @@ public class DetailsActivity extends SherlockFragmentActivity {
         // Add tabs based on features
         ActionBar actionBar = getSupportActionBar();
         
-        if (mLocation.hasFeature(Feature.DEFAULT)) {
-        	System.out.println("[DEBUG] >> Creating DEFAULT tab");
+        if (mLocation.hasFeature(Feature.DESCRIPTION)) {
+        	System.out.println("[DEBUG] >> Creating DESCRIPTION tab");
         	mDefaultTab = actionBar.newTab()
-			.setText(R.string.tab_default)
+			.setText(R.string.tab_description)
 			.setTabListener(new TabListener<DefaultFragment>(
-					this, Feature.DEFAULT, DefaultFragment.class, mLocation));
+					this, Feature.DESCRIPTION, DefaultFragment.class, mLocation));
         	actionBar.addTab(mDefaultTab);	
         }
         

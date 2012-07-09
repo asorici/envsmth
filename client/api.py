@@ -1,4 +1,6 @@
-from coresql.models import Environment, Area, Annotation, Announcement, History, UserProfile, ResearchProfile, UserContext
+from coresql.models import Environment, Area, Feature, Annotation,\
+                           Announcement, History, UserProfile,\
+                           ResearchProfile, UserContext, UserSubProfile
 #from coresql.forms import AnnotationForm
 from tastypie.resources import ModelResource
 from tastypie.exceptions import ImmediateHttpResponse, NotFound
@@ -6,7 +8,8 @@ from tastypie.exceptions import ImmediateHttpResponse, NotFound
 from tastypie import fields, http
 from tastypie.authentication import Authentication
 from tastypie.api import Api
-from client.authorization import AnnotationAuthorization, UserAuthorization
+from client.authorization import AnnotationAuthorization, UserAuthorization,\
+    FeatureAuthorization
 from client.validation import AnnotationValidation
 from datetime import datetime
 from django.core.exceptions import MultipleObjectsReturned
@@ -15,7 +18,6 @@ from django.core.exceptions import MultipleObjectsReturned
 class UserResource(ModelResource):
     first_name = fields.CharField(readonly = True)
     last_name = fields.CharField(readonly = True)
-    research_profile = fields.DictField(readonly = True)
     
     class Meta:
         queryset = UserProfile.objects.all()
@@ -23,7 +25,7 @@ class UserResource(ModelResource):
         detail_allowed_methods = ["get", "put"]
         list_allowed_methods = ["get"]
         #fields = ['first_name']
-        excludes = ["id", "timestamp", "is_anonymous", "facebook_profile_id"]
+        excludes = ["id", "timestamp", "is_anonymous"]
         authentication = Authentication()
         authorization = UserAuthorization()
         
@@ -81,22 +83,42 @@ class UserResource(ModelResource):
 
     
     def dehydrate(self, bundle):
-        ## if the user is requesting his own data then return his email too as it
-        ## is an identifying element
+        #if 'research_profile' in bundle.data and not bundle.obj.research_profile:
+        #    del bundle.data['research_profile']
         
-        ## remove c2dm data from bundle
-        if 'c2dm_id' in bundle.data:
-            del bundle.data['c2dm_id']
-        
-        if 'research_profile' in bundle.data and not bundle.obj.research_profile:
-            del bundle.data['research_profile']
+        """ dehydrate UserSubProfiles if requested """
+        if 'showprofile' in bundle.request.GET and \
+            bundle.request.GET['showprofile'] in UserSubProfile.get_subclass_list() + ['all']:
             
+            ## get downcasted versions directly of all the subprofiles associated with this userprofile
+            profile_type = bundle.request.GET['showprofile']
+            subprofiles = []
             
+            if profile_type == 'all':
+                subprofiles = bundle.obj.subprofiles.all().select_subclasses()
+            else:
+                subprofiles = bundle.obj.subprofiles.all().select_subclasses(profile_type)
+            
+            subprofiles_dict = {}
+            for profile in subprofiles:
+                data = profile.to_serializable()
+                if data:
+                    subprofiles_dict.update(data)
+                    
+            if subprofiles_dict:
+                bundle.data['subprofiles'] = subprofiles_dict
+            
+        """ if the user is requesting his own data then return his email too as it
+            is an identifying element """    
         if hasattr(bundle.request, "user") and not bundle.request.user.is_anonymous():
             user_profile = bundle.request.user.get_profile()
             if user_profile.pk == bundle.obj.pk:
                 bundle.data['email'] = bundle.obj.user.email 
     
+        """ remove c2dm data from bundle """
+        if 'c2dm_id' in bundle.data:
+            del bundle.data['c2dm_id']
+        
         return bundle
     
     
@@ -169,12 +191,11 @@ class EnvironmentResource(ModelResource):
         else:
             ## return a list of dictionary values from the features of this environment
             feature_list = []
-            for feature in bundle.obj.features.all():
-                feat_dict = self._dehydrate_feature(feature, bundle)
-                #feature_list.append({'category': feature.category, 'data': feature.data.to_serializable()})
+            for feature in bundle.obj.features.all().select_subclasses():
+                feat_dict = feature.to_serializable()
                 if feat_dict:
                     feature_list.append(feat_dict)
-    
+                    
             return feature_list
     
     
@@ -222,41 +243,6 @@ class EnvironmentResource(ModelResource):
             
         return [entry_dict]
         
-    
-    def _dehydrate_feature(self, feature, bundle):
-        """
-        switch among the known feature types
-        """
-        if feature.category == 'default':
-            return {'category' : feature.category, 'data' : feature.descriptionfeature.description}
-        elif feature.category == 'people':
-            return {'category' : feature.category, 'data' : feature.peoplefeature.description}
-        elif feature.category == 'program':
-            #from datetime import datetime as dt
-            
-            sessions_list = []
-            entries_list = []
-            
-            sessions = feature.programfeature.sessions.all()
-            for s in sessions:
-                sessions_list.append({'id' : s.id, 
-                                      'title' : s.title, 
-                                      'tag' : s.tag, 
-                                      'location' : self.get_resource_uri(bundle)})
-                entries = s.entries.all().order_by('startTime')
-                for e in entries:
-                    entries_list.append({'id' : e.id,
-                                         'title' : e.title,
-                                         'speakers' : e.speakers,
-                                         'sessionId' : s.id,
-                                         'startTime' : e.startTime.strftime("%Y-%m-%dT%H:%M:%S"),
-                                         'endTime' : e.endTime.strftime("%Y-%m-%dT%H:%M:%S")})
-            
-            return  {'category' : feature.category, 
-                     'data' : {'program' : {'sessions' : sessions_list, 'entries' : entries_list}}
-                    }
-        else:
-            return None
 
 class AreaResource(ModelResource):
     parent = fields.ForeignKey(EnvironmentResource, 'environment')
@@ -313,27 +299,22 @@ class AreaResource(ModelResource):
             feature_list = self._entry_feature_query(bundle)
             return feature_list
         else:
-            ## return a list of dictionary values from the features of this area
             feature_list = []
-            
-            ## first add all the specific area features
-            for feature in bundle.obj.features.all():
-                feat_dict = self._dehydrate_feature(feature, bundle)
-                #feature_list.append({'category': feature.category, 'data': feature.data.to_serializable()})
+            for feature in bundle.obj.features.all().select_subclasses():
+                feat_dict = feature.to_serializable()
                 if feat_dict:
                     feature_list.append(feat_dict)
     
             ## then see if environment features which also apply to the area are available - e.g. program, order
             ## we handle the "program" case for now
             environment = bundle.obj.environment
-            environment_features = environment.features.all()
+            environment_features = environment.features.all().select_subclasses()
             
             for env_feat in environment_features:
-                if env_feat.category == 'program':
-                    feat_dict = self._dehydrate_feature(env_feat, bundle)
-                    if feat_dict:
-                        feature_list.append(feat_dict)
-            
+                feat_dict = env_feat.to_serializable()
+                if feat_dict:
+                    feature_list.append(feat_dict)
+                    
             return feature_list
     
     
@@ -378,45 +359,44 @@ class AreaResource(ModelResource):
             entry_dict['data']['abstract'] = entry.abstract
             
         return [entry_dict]
+
+
+class FeatureResource(ModelResource):
+    environment = fields.ForeignKey(EnvironmentResource, 'environment', null = True)
+    area = fields.ForeignKey(AreaResource, 'area', null = True)
+    category = fields.CharField(attribute = 'category')
+    data = fields.DictField()
+    
+    class Meta:
+        queryset = Feature.objects.all().select_subclasses()
+        resource_name = 'feature'
+        allowed_methods = ['get']
+        excludes = ['id', 'timestamp']
+        filtering = {
+            'area' : ['exact'],
+            'environment' : ['exact'],
+            'category' : ['exact']
+        }
+        authentication = Authentication()
+        authorization = FeatureAuthorization()
     
     
-    def _dehydrate_feature(self, feature, bundle):
+    def get_list(self, request, **kwargs):
         """
-        switch among the known feature types
+        override the list retrieval part to verify additionally that an ``area`` or ``environment`` 
+        and a ``category`` filter exist otherwise reject the call with a HttpMethodNotAllowed
         """
-        if feature.category == 'default':
-            return {'category' : feature.category, 'data' : feature.descriptionfeature.description}
-        elif feature.category == 'people':
-            return {'category' : feature.category, 'data' : feature.peoplefeature.description}
-        elif feature.category == 'program':
-            #from datetime import datetime as dt
-            
-            sessions_list = []
-            entries_list = []
-            
-            sessions = feature.programfeature.sessions.all()
-            for s in sessions:
-                sessions_list.append({'id' : s.id, 
-                                      'title' : s.title, 
-                                      'tag' : s.tag, 
-                                      'location' : self.get_resource_uri(bundle)})
-                entries = s.entries.all().order_by('startTime')
-                for e in entries:
-                    entries_list.append({'id' : e.id,
-                                         'title' : e.title,
-                                         'speakers' : e.speakers,
-                                         'sessionId' : s.id,
-                                         'startTime' : e.startTime.strftime("%Y-%m-%dT%H:%M:%S"),
-                                         'endTime' : e.endTime.strftime("%Y-%m-%dT%H:%M:%S")})
-            
-            return  {'category' : feature.category, 
-                     'data' : {'program' : {'sessions' : sessions_list, 'entries' : entries_list}}
-                    }
+        if ('area' in request.GET or 'environment' in request.GET) and 'category' in request.GET:
+            return super(FeatureResource, self).get_list(request, **kwargs)
         else:
-            return None    
-
-
+            raise ImmediateHttpResponse(response=http.HttpMethodNotAllowed())
     
+    
+    def dehydrate_data(self, bundle):
+        filters = bundle.request.GET.copy()
+        return bundle.obj.get_feature_data(filters)
+    
+
 class AnnouncementResource(ModelResource):
     environment = fields.ForeignKey(EnvironmentResource, 'environment')
     area = fields.ForeignKey(AreaResource, 'area', null = True)
@@ -626,20 +606,19 @@ class AnnotationResource(ModelResource):
         
         
         """
-        if a userexplicit=true parameter is found in the request, add the user's first and last name
+        bundle in the user's first and last name under the ['data']['user'] entry 
         """
-        if 'userexplicit' in bundle.request.GET and bundle.request.GET['userexplicit'] == 'true':
-            first_name = "Anonymous"
-            last_name = "Guest"
+        first_name = "Anonymous"
+        last_name = "Guest"
             
-            user_profile = bundle.obj.user
-            
-            if not user_profile.is_anonymous:
-                first_name = user_profile.user.first_name
-                last_name = user_profile.user.last_name
+        user_profile = bundle.obj.user
+        
+        if not user_profile.is_anonymous:
+            first_name = user_profile.user.first_name
+            last_name = user_profile.user.last_name
                 
-            bundle.data['data']['user'] =  {'first_name' : first_name,
-                                             'last_name': last_name }
+        bundle.data['data']['user'] = {'first_name' : first_name,
+                                       'last_name': last_name }
         
         """
         now remove also null area/environment data
@@ -686,7 +665,6 @@ class AnnotationResource(ModelResource):
                                          entry = entry,
                                          text = bundle.data['data']['text'])
         
-            print bundle.obj.area
             
         return bundle
         

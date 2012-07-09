@@ -31,7 +31,7 @@ public class DefaultFragment extends SherlockFragment {
 		View v = inflater.inflate(R.layout.description, container, false);
 		TextView t = (TextView) v.findViewById(R.id.details);
 		System.out.println("[DEBUG] >> Setting text for for DEAFULT fragment");
-		t.setText(mData.getFeatureData(Feature.DEFAULT));
+		t.setText(mData.getFeatureData(Feature.DESCRIPTION));
 		
 	    return v;
 	}

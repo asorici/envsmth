@@ -51,7 +51,7 @@
     <string name="lbl_authenticated_users">Authenticated Users:</string>
     
     <!-- Tabs -->
-    <string name="tab_default">Details</string>
+    <string name="tab_description">Details</string>
     <string name="tab_program">Program</string>
     <string name="tab_order">Order</string>
     <string name="tab_order_manager">Order Manager</string>

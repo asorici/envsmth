@@ -10,7 +10,7 @@ import android.preference.PreferenceManager;
 
 import com.envsocial.android.api.AppClient;
 import com.envsocial.android.api.Location;
-import com.envsocial.android.api.User;
+import com.envsocial.android.api.user.User;
 
 
 public final class Preferences {
