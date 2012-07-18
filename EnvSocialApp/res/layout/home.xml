@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical"
+    android:id="@+id/view_home">
     <Button android:id="@+id/btn_checkin"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -10,18 +11,32 @@
         android:layout_marginRight="10dip"
         android:layout_marginTop="10dip"
         android:text="@string/btn_checkin" />
-<!-- 	<Button android:id="@+id/btn_c2dm_reg"
+	
+    
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        android:layout_marginTop="10dp"
-        android:text="@string/btn_c2dm_reg" />
-	<Button android:id="@+id/btn_c2dm_unreg"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        android:layout_marginTop="10dp"
-        android:text="@string/btn_c2dm_unreg" /> -->
+    	android:layout_marginLeft="10dip"
+        android:layout_marginRight="10dip"
+        android:layout_marginTop="30dip" >
+    	
+    	<TextView
+        	android:layout_width="fill_parent"
+        	android:layout_height="wrap_content"
+			android:textStyle="bold"
+			android:textSize="16sp"
+			android:gravity="center"
+			android:textColor="@color/black"
+			android:text="@string/lbl_current_checkin"
+			android:layout_marginBottom="20dip"
+        />
+    	
+    	<TextView
+    	    android:id="@+id/checked_in_location_name"
+        	style="@style/CheckinTextView"
+			android:layout_marginTop="20dip"
+         />
+        
+    </LinearLayout>
 </LinearLayout>
