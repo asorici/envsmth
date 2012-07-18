@@ -28,11 +28,17 @@ public class OrderManagementListAdapter extends BaseAdapter {
 	private Context mContext;
 	private LayoutInflater mInflater;
 	private LinkedList<Map<String,String>> mData;
+	private int[] alternatingColors;
 	
 	public OrderManagementListAdapter(Context context, LinkedList<Map<String,String>> data) {
 		mContext = context;
 		mInflater = LayoutInflater.from(context);
 		mData = data;
+		
+		// set the alternating colors of the list view
+		alternatingColors = new int[2];
+		alternatingColors[0] = R.color.white;
+		alternatingColors[1] = R.color.light_green;
 	}
 	
 	@Override
@@ -71,9 +77,13 @@ public class OrderManagementListAdapter extends BaseAdapter {
 		
 		if (convertView == null) {
 			convertView = mInflater.inflate(R.layout.m_order_row, parent, false);
+			int colorPos = position % 2;
 			
 			holder = new ViewHolder();
 			holder.order = (LinearLayout) convertView.findViewById(R.id.order);
+			holder.order.setBackgroundColor(alternatingColors[colorPos]);
+			holder.order.setDrawingCacheBackgroundColor(alternatingColors[colorPos]);
+			
 			holder.locationName = (TextView) convertView.findViewById(R.id.location_name);
 			holder.orderDetails = (TextView) convertView.findViewById(R.id.order_details);
 			holder.resolve = (Button) convertView.findViewById(R.id.btn_resolve);
@@ -91,9 +101,9 @@ public class OrderManagementListAdapter extends BaseAdapter {
 	
 	private void bind(ViewHolder holder, int position) {
 		Map<String,String> data = getItem(position);
-		String annotationUri = data.get(OrderManagementListFragment.RESOURCE_URI);
-		String locationName = data.get(OrderManagementListFragment.LOCATION_NAME);
-		String orderDetails = data.get(OrderManagementListFragment.ORDER_DETAILS);
+		String annotationUri = data.get(OrderManagerFragment.RESOURCE_URI);
+		String locationName = data.get(OrderManagerFragment.LOCATION_NAME);
+		String orderDetails = data.get(OrderManagerFragment.ORDER_DETAILS);
 		holder.position = position;
 		holder.annotationUri = annotationUri;
 		holder.locationName.setText(locationName);

@@ -6,6 +6,11 @@
     
     <string name="menu_test">Test!</string>
     
+    <!-- Menu item names -->
+    <string name="item_register_order_notifications">Start notifications</string>
+    <string name="item_unregister_order_notifications">Stop notifications</string>
+    
+    
     <!-- Button labels -->
     <string name="btn_anonymous">Let\'s go! (Anonymous)</string>
     <string name="btn_fbconnect">Sign up with Facebook</string>
@@ -14,6 +19,7 @@
     <string name="btn_checkin">Check In</string>
 
     <string name="btn_order">Order</string>
+    <string name="btn_register_order_notification">Register</string>
     <string name="btn_check">Check Please!</string>
     <string name="btn_tab">View Tab</string>
     <string name="btn_call_waiter">Call Waiter</string>
@@ -31,6 +37,9 @@
     <!-- Labels -->
     <string name="lbl_login">Log in</string>
     <string name="lbl_register">Create Your Envived Account</string>
+    <string name="lbl_current_checkin">You are currently checked in at:</string>
+    <string name="lbl_no_checkin_location">No location selected.</string>
+    
     <string name="lbl_email">Email</string>
     <string name="lbl_password">Password</string>
     <string name="lbl_first">First Name</string>
@@ -58,12 +67,43 @@
     <string name="tab_people">People</string>
     
     <!-- Message -->
+    <string name="msg_internal_error">Oops. Internal Error.</string>
     <string name="msg_malformed_checkin_url">The scanned QR Code is not an EnvSocial QR code.</string>
     <string name="msg_bad_checkin_response">Service problem. Please try again later.</string>
     <string name="msg_unauthorized_login">Incorrect email and / or password.</string>
     <string name="msg_service_unavailable">Service is currently unavailable.</string>
+    
     <string name="msg_registration_details_required">Please fill in the First Name and Last Name fields.</string>
     <string name="msg_registration_details_check">Please check validity of your registration information.</string>
+    
+    <!-- Feature OK Messages -->
+    <string name="msg_send_order_ok">Order sent.</string>
+    
+    <!-- Feature Error Messages -->
+    <string name="msg_send_order_err">Service error sending order.</string>
+    <string name="msg_send_order_400">Send order bad request.</string>
+    <string name="msg_send_order_401">Unauthorized order request.</string>
+    <string name="msg_send_order_405">Order sending not allowed.</string>
+    
+    <string name="msg_get_orders_err">Error retrieving orders.</string>
+    <string name="msg_get_order_400">Retrieve orders bad request.</string>
+    <string name="msg_get_order_401">Unauthorized access to orders.</string>
+    <string name="msg_get_order_405">Order retrieval not allowed.</string>
+    
+    <string name="msg_send_entry_comment_ok">Comment sent.</string>
+    
+    <string name="msg_send_entry_comment_err">Service error sending comments.</string>
+    <string name="msg_send_entry_comment_400">Send comment bad request.</string>
+    <string name="msg_send_entry_comment_401">Unauthorized comment submission.</string>
+    <string name="msg_send_entry_comment_405">Comment submission not allowed.</string>
+    
+    <string name="msg_get_entry_comments_err">Service error retrieving comments. Please try again later.</string>
+    <string name="msg_send_entry_comment_400">Comment retrieval bad request.</string>
+    <string name="msg_send_entry_comment_401">Unauthorized comment retrieval.</string>
+    <string name="msg_send_entry_comment_405">Comment retrieval not allowed.</string>
+    
+    <string name="msg_get_entry_details_err">Service error retrieving program entry detail.</string>
+    
     
     <!-- Notifications -->
     <string name="incoming_order">New order</string>

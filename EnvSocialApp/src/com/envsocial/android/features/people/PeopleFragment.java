@@ -82,7 +82,7 @@ public class PeopleFragment extends SherlockFragment {
 	    	// try and retrieve from server
 	    	
 	    	try {
-				checkedInPeople = User.getUsers(context, location, null);
+				checkedInPeople = User.getUsers(context, location, "researchprofile", null);
 				//String usersJsonString = User.toJSON(checkedInPeople);
 		    	
 		    	//if (usersJsonString != null) {

@@ -6,10 +6,10 @@ public class Url {
 	public static final String HTTPS = "https://";
 	//public static final String HOSTNAME = "192.168.1.6:8000";
 	//public static final String HOSTNAME = "192.168.100.108:8000";
-	public static final String HOSTNAME = "192.168.1.105:8000";
+	//public static final String HOSTNAME = "192.168.1.105:8000";
 	//public static final String HOSTNAME = "141.85.227.108";
 	//public static final String HOSTNAME = "192.168.8.55:8000";
-	//public static final String HOSTNAME = "172.16.2.181:8000";
+	public static final String HOSTNAME = "172.16.2.181:8000";
 	
 	private static final String BASE_URL = "/envsocial/client/v1/";
 	private static final String ACTION_RELATIVE_URL = BASE_URL + "actions/";
@@ -106,8 +106,23 @@ public class Url {
 		return HTTP + HOSTNAME + RESOURCE_RELATIVE_URL + resource + "/";
 	}
 	
-	public static String appendParameter(String url, String param, String value) {
-		return url + "&" + param + "=" + value;
+	public static String appendParameter(String uri, String param, String value) {
+		return uri + "&" + param + "=" + value;
 	}
 	
+	public static String resourceIdFromUri(String uri) {
+		try {
+			// first remove last character (the slash) from the uri
+			uri = uri.substring(0, uri.length() - 1);
+			
+			int slashIndex = uri.lastIndexOf('/');
+			
+			// now get the remaining string after the last slash - that will be the identifier
+			String identifier = uri.substring(slashIndex + 1, uri.length());
+			
+			return identifier;
+		} catch (Exception ex) {
+			return null;
+		}
+	}
 }

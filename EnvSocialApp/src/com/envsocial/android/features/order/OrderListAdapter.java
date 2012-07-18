@@ -42,6 +42,10 @@ public class OrderListAdapter extends SimpleExpandableListAdapter {
 		mChildTo = childTo;
 	}
 	
+	public void setChildData(List<List<Map<String,String>>> mOrderLocations) {
+		mChildData = mOrderLocations;
+	}
+	
 	@Override
 	public Map<String,String> getChild(int groupPosition, int childPosition) {
 		return mChildData.get(groupPosition).get(childPosition);

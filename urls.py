@@ -7,7 +7,7 @@ from django.contrib import admin
 from django.conf import settings
 admin.autodiscover()
 
-"""
+
 ## before adding the patterns let's start our two c2dm helper threads
 def setup_c2dm_logger():
     import logging 
@@ -35,7 +35,7 @@ c2dm_server_thread.start()
 c2dm_client_thread = c2dm.C2DMClientThread(c2dm_queue)
 c2dm_client_thread.c2dm_login()
 c2dm_client_thread.start()
-"""
+
 
 
 urlpatterns = patterns('',

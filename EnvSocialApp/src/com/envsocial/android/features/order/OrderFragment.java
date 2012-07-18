@@ -6,10 +6,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.http.HttpStatus;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.ProgressDialog;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,6 +38,8 @@ public class OrderFragment extends SherlockFragment implements OnClickListener {
 	private OrderMenu mOrderMenu;
 	private Button mBtnOrder;
 	
+	// loader dialog for sending an order
+	private ProgressDialog mSendOrderDialog;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -53,7 +58,7 @@ public class OrderFragment extends SherlockFragment implements OnClickListener {
 			mOrderMenu = new OrderMenu(menuJSON);
 			
 			// Create custom expandable list adapter
-			CatalogListAdapter adapter = new CatalogListAdapter(getActivity(),
+			OrderCatalogListAdapter adapter = new OrderCatalogListAdapter(getActivity(),
 		    		mOrderMenu.getCategoryData(),
 		    		R.layout.catalog_group,
 		    		new String[] { OrderMenu.CATEGORY },
@@ -91,17 +96,89 @@ public class OrderFragment extends SherlockFragment implements OnClickListener {
 	public void sendOrder(OrderDialogFragment dialog) {
 		String orderJSON = dialog.getOrderJSONString();
 		dialog.dismiss();
-		try {
-			Annotation order = new Annotation(getActivity(), mLocation, 
-					Feature.ORDER, Calendar.getInstance(), orderJSON);
-			order.post();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		Toast toast = Toast.makeText(getActivity(), "Sending order: " + orderJSON, Toast.LENGTH_LONG);
-		toast.show();
+		
+		Annotation order = new Annotation(getActivity(), mLocation, 
+				Feature.ORDER, Calendar.getInstance(), orderJSON);
+		new SendOrderTask(order).execute();
+		
 	}
 	
+	private class SendOrderTask extends AsyncTask<Void, Void, Integer> {
+		private Annotation order;
+		
+		public SendOrderTask(Annotation order) {
+			this.order = order;
+		}
+		
+		@Override
+		protected void onPreExecute() {
+			mSendOrderDialog = ProgressDialog.show(OrderFragment.this.getActivity(), 
+					"", "Sending Order ...", true);
+		}
+		
+		@Override
+		protected Integer doInBackground(Void...args) {
+			try {
+				int status = order.post();
+				return status;
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		
+		@Override
+		protected void onPostExecute(Integer status) {
+			mSendOrderDialog.cancel();
+			
+			if (status != null) {
+				boolean error = false;
+				int msgId = R.string.msg_send_order_ok;
+				
+				switch(status) {
+					case HttpStatus.SC_CREATED: 					
+						error = false;
+						break;
+					
+					case HttpStatus.SC_BAD_REQUEST:
+						System.err.println("[DEBUG]>> Error sending order: " + R.string.msg_send_order_400);
+						error = true;
+						msgId = R.string.msg_send_order_400;
+						break;
+					case HttpStatus.SC_UNAUTHORIZED:
+						System.err.println("[DEBUG]>> Error sending order: " + R.string.msg_send_order_401);
+						error = true;
+						msgId = R.string.msg_send_order_401;
+						break;
+					case HttpStatus.SC_METHOD_NOT_ALLOWED:
+						System.err.println("[DEBUG]>> Error sending order: " + R.string.msg_send_order_405);
+						error = true;
+						msgId = R.string.msg_send_order_405;
+						break;
+					default:
+						error = true;
+						msgId = R.string.msg_send_order_err;
+						break;
+				}
+				
+				if (error) {
+					Toast toast = Toast.makeText( OrderFragment.this.getActivity(),
+							msgId, Toast.LENGTH_LONG);
+					toast.show();
+				}
+				else {
+					Toast toast = Toast.makeText( OrderFragment.this.getActivity(),
+							msgId, Toast.LENGTH_LONG);
+					toast.show();
+				}
+			}
+			else {
+				Toast toast = Toast.makeText(OrderFragment.this.getActivity(), 
+						R.string.msg_service_unavailable, Toast.LENGTH_LONG);
+				toast.show();
+			}
+		}
+	}
 	
 	public static class OrderMenu {
 		
@@ -141,9 +218,9 @@ public class OrderFragment extends SherlockFragment implements OnClickListener {
 					// Bind item data to map
 					map = new HashMap<String,String>();
 					JSONObject item = itemsArray.getJSONObject(j);
-					map.put(ITEM_NAME, item.getString("name"));
-//					map.put(ITEM_DESCRIPTION, item.getString("description"));
-//					map.put(ITEM_PRICE, item.getString("price"));
+					map.put(ITEM_NAME, item.optString("name", "unknown"));
+					map.put(ITEM_DESCRIPTION, item.optString("description", "No description available"));
+					map.put(ITEM_PRICE, item.optString("price", "-- RON"));
 					// Add item map to category
 					catItems.add(map);
 				}

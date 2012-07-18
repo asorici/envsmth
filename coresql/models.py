@@ -5,6 +5,7 @@ from django.db.models.fields.related import SingleRelatedObjectDescriptor
 from django.db.models.signals import post_save
 from django_facebook.models import FacebookProfileModel
 from model_utils.managers import InheritanceManager
+from coresql.exceptions import AnnotationException
 
 
 CATEGORY_CHOICES = ( 
@@ -67,8 +68,8 @@ class ResearchProfile(UserSubProfile):
     
     def to_serializable(self):
         profile_name = self.profile_name()
-        data = { profile_name : {'affilitation' : self.affiliation,
-                                 'research_interests' : self.research_interests
+        data = { profile_name : {'affiliation' : self.affiliation,
+                                 'research_interests' : self.research_interests.getList()
                                 }
                }
         
@@ -151,6 +152,10 @@ class Announcement(models.Model):
 #################################### Annotation Model Classes #############################################
 """
 class Annotation(models.Model):
+    DESCRIPTION = "description"
+    PROGRAM = "program"
+    ORDER = "order"
+    
     area = models.ForeignKey(Area, null = True, blank = True, related_name = "annotations")
     environment = models.ForeignKey(Environment, null = True, blank = True, related_name = "annotations")
     user = models.ForeignKey(UserProfile, null = True, blank = True, on_delete=models.SET_NULL)
@@ -162,6 +167,19 @@ class Annotation(models.Model):
     # retrieving sets of annotations
     objects = InheritanceManager()
     
+    @staticmethod
+    def get_subclasses():
+        import sys
+        mod = sys.modules[Annotation.__module__]
+        
+        for name in dir(mod):
+            o = getattr(mod, name)
+            try:
+                if (o != Annotation) and issubclass(o, Annotation):
+                    yield name, o
+            except TypeError: 
+                pass
+    
     def __unicode__(self):
         if self.user and self.area:
             return str(self.user) + " - " + self.area.name
@@ -170,15 +188,108 @@ class Annotation(models.Model):
         else:
             return "empty annotation object"
         
+    def get_annotation_data(self):
+        return None
+    
+    @classmethod
+    def get_extra_filters(cls, filters):
+        return {}
+        
 ######################################## DefaultAnnotation Class ##########################################
 class DescriptionAnnotation(Annotation):
     text = models.TextField()
     
+    def __init__(self, *args, **kwargs):
+        data = kwargs.pop('data', None)
+        
+        super(DescriptionAnnotation, self).__init__(*args, **kwargs)
+        
+        if not data is None:
+            if 'text' in data:
+                self.text = data['text']
+            else:
+                raise AnnotationException("Description Annotation missing text")
+    
+    def get_annotation_data(self):
+        return { 'text' : self.text }
+    
+    @classmethod
+    def is_annotation_for(cls, category):
+        return category == Annotation.DESCRIPTION
+    
+    
 ##################################### PresentationAnnotation Class ########################################
-class EntryAnnotation(Annotation):
+class ProgramAnnotation(Annotation):
     text = models.TextField()
     entry = models.ForeignKey('Entry', related_name = "annotations")
     
+    def __init__(self, *args, **kwargs):
+        data = kwargs.pop('data', None)
+        
+        super(ProgramAnnotation, self).__init__(*args, **kwargs)
+        
+        if not data is None:
+            if 'text' in data and 'entry_id' in data:
+                self.text = data['text']
+                
+                entry_id = data['entry_id']
+                try:
+                    self.entry = Entry.objects.get(id = entry_id)
+                except Entry.DoesNotExist:
+                    raise AnnotationException("ProgramAnnotation missing valid program entry_id")
+            else:
+                raise AnnotationException("ProgramAnnotation missing text or entry data")
+    
+    
+    def get_annotation_data(self):
+        return { 'text' : self.text }
+    
+    @classmethod
+    def is_annotation_for(cls, category):
+        return category == Annotation.PROGRAM
+    
+    @classmethod
+    def get_extra_filters(cls, filters):
+        specific_filters = {}
+        
+        ## just this single case for now
+        if "entry_id" in filters:
+            try:
+                entry = Entry.objects.get(id = filters['entry_id'])
+                specific_filters['id__in'] = [ann.id for ann in ProgramAnnotation.objects.filter(entry = entry)]
+            except Entry.DoesNotExist:
+                pass
+            except Exception:
+                pass 
+        
+        return specific_filters
+   
+######################################## OrderAnnotation Class ###########################################
+class OrderAnnotation(Annotation):
+    order = fields.DataField() 
+    
+    def __init__(self, *args, **kwargs):
+        data = kwargs.pop('data', None)
+        
+        super(OrderAnnotation, self).__init__(*args, **kwargs)
+        
+        if not data is None:
+            if 'order' in data:
+                self.order = data
+            else:
+                raise AnnotationException("OrderAnnotation missing order data")
+            
+    def get_annotation_data(self):
+        return self.order.to_serializable()
+        
+    
+    @classmethod
+    def is_annotation_for(cls, category):
+        return category == Annotation.ORDER
+ 
+"""
+############################### History and Context Model Classes ########################################
+"""    
 
 class History(models.Model):
     user = models.ForeignKey(UserProfile)
@@ -207,6 +318,7 @@ class Feature(models.Model):
     area = models.ForeignKey(Area, null = True, blank = True, related_name = "features")
     environment = models.ForeignKey(Environment, null = True, blank = True, related_name = "features")
     category = models.CharField(max_length=50, choices = CATEGORY_CHOICES)
+    is_general = models.BooleanField(default = False)
     #data = fields.DataField(null = True, blank = True)
     timestamp = models.DateTimeField(auto_now = True)
     
@@ -359,3 +471,52 @@ class PeopleFeature(Feature):
         
         return data
 
+####################################### Order Feature Classes #############################################
+class OrderFeature(Feature):
+    """
+    For now replicates the old functionality and data model - a single level: category with items
+    """
+    description = models.TextField(null = True, blank = True)
+    
+    def to_serializable(self):
+        data = super(OrderFeature, self).to_serializable()
+        order_dict = {'data' : {'description' : self.description} }
+        
+        categ_list = []
+        for menu_categ in self.menu_categories.all().order_by('name'):
+            menu_categ_dict = {'category' : menu_categ.name}
+            
+            item_list = []
+            for menu_item in menu_categ.menu_items.all().order_by('name'):
+                menu_item_dict = {  "name" : menu_item.name,
+                                    "description" : menu_item.description,
+                                    "price" : str(menu_item.price) + " RON"
+                                 }
+                item_list.append(menu_item_dict)
+            
+            menu_categ_dict['items'] = item_list
+            
+            categ_list.append(menu_categ_dict)
+        
+        order_dict['data']['order_menu'] = categ_list 
+        
+        data.update(order_dict)
+        
+        return data
+
+        
+class MenuCategory(models.Model):
+    menu = models.ForeignKey(OrderFeature, related_name = "menu_categories")
+    name = models.CharField(max_length = 256)
+    
+    def __unicode__(self):
+        return self.name + " in menu -> " + self.menu.description
+    
+class MenuItem(models.Model):
+    category = models.ForeignKey(MenuCategory, related_name = "menu_items")
+    name = models.CharField(max_length = 256)
+    description = models.TextField(null = True, blank = True)
+    price = models.FloatField()
+    
+    def __unicode__(self):
+        return self.name + " in category -> " + self.category.name

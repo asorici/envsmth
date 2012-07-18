@@ -182,8 +182,7 @@ class FeatureAuthorization(Authorization):
                         except:
                             area_obj = None
                 
-                
                 user_profile = request.user.get_profile()   ## will be an instance of UserProfile => available context
                 return is_checked_in(user_profile, env_obj, area_obj)
-                
+            
         return False

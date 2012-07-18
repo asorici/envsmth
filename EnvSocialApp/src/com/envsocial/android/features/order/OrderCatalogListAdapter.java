@@ -9,20 +9,29 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 
 import com.envsocial.android.R;
+import com.envsocial.android.features.order.OrderFragment.OrderMenu;
 
-public class CatalogListAdapter extends SimpleExpandableListAdapter {
+public class OrderCatalogListAdapter extends SimpleExpandableListAdapter {
 
+	private List<? extends Map<String, ?>> mGroupData;
+	private String[] mGroupFrom;
+	private int[] mGroupTo;
+	
 	private List<? extends List<? extends Map<String,?>>> mChildData;
 	private String[] mChildFrom;
 	private int[] mChildTo;
-
+	
 	private Map<Integer,Map<Integer,Integer>> mQuantityData;
 	
-	public CatalogListAdapter(Context context,
+	private int[] alternatingColors;
+	
+	
+	public OrderCatalogListAdapter(Context context,
 			List<? extends Map<String, ?>> groupData, int groupLayout,
 			String[] groupFrom, int[] groupTo,
 			List<? extends List<? extends Map<String, ?>>> childData,
@@ -30,10 +39,20 @@ public class CatalogListAdapter extends SimpleExpandableListAdapter {
 			Map<Integer,Map<Integer,Integer>> counter) {
 		super(context, groupData, groupLayout, groupFrom, groupTo, null,
 				childLayout, null, null);
+		
+		mGroupData = groupData;
+		mGroupFrom = groupFrom;
+		mGroupTo = groupTo;
+		
 		mQuantityData = counter;
 		mChildData = childData;
 		mChildFrom = childFrom;
 		mChildTo = childTo;
+		
+		// set the alternating colors of the list view
+		alternatingColors = new int[2];
+		alternatingColors[0] = R.color.white;
+		alternatingColors[1] = R.color.light_green;
 	}
 	
 	@Override
@@ -86,6 +105,21 @@ public class CatalogListAdapter extends SimpleExpandableListAdapter {
 		return (q == null) ? 0 : q;
 	}
 	
+	private void bindGroupData(GroupViewHolder holder, int groupPosition, 
+			String[] groupFrom,
+			int[] groupTo) {
+		
+		
+		int len = groupFrom.length;
+		for (int i = 0; i < len; ++ i) {
+			if (groupTo[i] == R.id.orderGroup) {
+				holder.orderGroup.setText((String)mGroupData.get(groupPosition).get(groupFrom[i]));
+			}
+		}
+		
+		//holder.orderGroup.setText((String)mGroupData.get(groupPosition).get(OrderMenu.CATEGORY));
+	}
+	
 	private void bindChildData(ChildViewHolder holder, int groupPosition, 
 			int childPosition, String from[], int to[]) {
 		
@@ -106,6 +140,35 @@ public class CatalogListAdapter extends SimpleExpandableListAdapter {
 		}
 	}
 	
+	@Override
+	public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
+		GroupViewHolder holder;
+		
+		if (convertView == null) {
+			convertView = newGroupView(isExpanded, parent);
+			holder = new GroupViewHolder();
+			holder.orderGroup = (TextView) convertView.findViewById(R.id.orderGroup);
+			
+			convertView.setTag(holder);
+		}
+		else {
+			holder = (GroupViewHolder) convertView.getTag();
+		}
+		
+		bindGroupData(holder, groupPosition, mGroupFrom, mGroupTo);
+		
+		
+		if (isExpanded) {
+			convertView.setBackgroundResource(R.color.dark_green);
+		}
+		else {
+			convertView.setBackgroundResource(R.color.white);
+		}
+		
+		return convertView;
+	}
+	
+
 	@Override
 	public View getChildView(int groupPosition, int childPosition, 
 			boolean isLastChild, View convertView, ViewGroup parent) {
@@ -132,6 +195,11 @@ public class CatalogListAdapter extends SimpleExpandableListAdapter {
 		
 		bindChildData(holder, groupPosition, childPosition, mChildFrom, mChildTo);
 		
+		
+		// set zebra style item list
+		//int colorPos = childPosition % 2;
+		//convertView.setBackgroundResource(alternatingColors[colorPos]);
+		
 		return convertView;
 	}
 	
@@ -144,12 +212,16 @@ public class CatalogListAdapter extends SimpleExpandableListAdapter {
 		Button btnMore;
 	}
 	
+	private static class GroupViewHolder {
+		TextView orderGroup;
+	}
+	
 	static class QuantityClickListener implements OnClickListener {
 		
 		private ChildViewHolder mParentView;
-		private CatalogListAdapter mAdapter;
+		private OrderCatalogListAdapter mAdapter;
 		
-		QuantityClickListener(CatalogListAdapter adapter, ChildViewHolder view) {
+		QuantityClickListener(OrderCatalogListAdapter adapter, ChildViewHolder view) {
 			mAdapter = adapter;
 			mParentView = view;
 		}

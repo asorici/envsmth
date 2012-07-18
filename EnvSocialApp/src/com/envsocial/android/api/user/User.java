@@ -38,16 +38,27 @@ public class User {
 	}
 	
 	
-	public static List<User> getUsers(Context context, Location location, String jsonString) throws Exception {
+	public static List<User> getUsers(Context context, Location location, String showprofile, String jsonString) throws Exception {
 		if (jsonString == null) { 
 			String type = (location.isEnvironment()) ? Location.ENVIRONMENT : Location.AREA;
 			Url url = new Url(Url.RESOURCE, TAG);
-			url.setParameters(new String[] { type }, 
+			
+			if (showprofile != null) {
+				url.setParameters(
+					new String[] { type, "showprofile" }, 
+					new String[] { location.getId(), showprofile }
+				);
+			}
+			else {
+				url.setParameters(
+					new String[] { type }, 
 					new String[] { location.getId() }
-			);
+				);
+			}
 			
 			//System.err.println("[DEBUG]>> Url for getUSERS: " + url);
-			return getUsersList(context, url.toString(), location);
+			// retrieve all users until exhaustion
+			return getUsersList(context, url.toString(), location, true);
 		}
 		else {
 			return parse(context, jsonString, location);
@@ -55,18 +66,29 @@ public class User {
 	}
 	
 	
-	public static List<User> getUsers(Context context, Location location, int offset, int limit) throws Exception {
+	public static List<User> getUsers(Context context, Location location, String showprofile, int offset, int limit) throws Exception {
 		String type = (location.isEnvironment()) ? Location.ENVIRONMENT : Location.AREA;
 		Url url = new Url(Url.RESOURCE, TAG);
-		url.setParameters(new String[] { type, "offset", "limit" }, 
+		if (showprofile != null) {
+			url.setParameters(
+				new String[] { type, "showprofile", "offset", "limit" }, 
+				new String[] { location.getId(), showprofile, offset + "", limit + "" }
+			);
+		}
+		else {
+			url.setParameters(
+				new String[] { type, "offset", "limit" }, 
 				new String[] { location.getId(), offset + "", limit + "" }
-		);
+			);
+		}
 		
-		return getUsersList(context, url.toString(), location);
+		return getUsersList(context, url.toString(), location, false);
 	}
 	
 	
-	private static List<User> getUsersList(Context context, String url, Location location) throws Exception {
+	private static List<User> getUsersList(Context context, String url, 
+			Location location, boolean retrieveAll) throws Exception {
+		
 		AppClient client = new AppClient(context);
 		HttpResponse response = client.makeGetRequest(url);
 		
@@ -77,16 +99,17 @@ public class User {
 		
 		// If SC_OK, parse response
 		String responseData = EntityUtils.toString(response.getEntity());
-		
-		
-		// For now we will do several requests until we consume the entire user list
 		List<User> users = parse(context, responseData, location);
-		JSONObject meta = new JSONObject(responseData).getJSONObject("meta");
-		String next = meta.getString("next");
 		
-		if (next != null && !next.equalsIgnoreCase("null")) {
-			//System.err.println("[DEBUG]>> Next url for list: " + next);
-			users.addAll(getUsersList(context, next, location));
+		// if we want to consume the entire user list
+		if (retrieveAll) {
+			JSONObject meta = new JSONObject(responseData).getJSONObject("meta");
+			String next = meta.getString("next");
+			
+			if (next != null && !next.equalsIgnoreCase("null")) {
+				//System.err.println("[DEBUG]>> Next url for list: " + next);
+				users.addAll(getUsersList(context, next, location, true));
+			}
 		}
 		
 		return users;

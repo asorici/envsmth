@@ -18,6 +18,8 @@ package com.google.android.c2dm;
 
 import java.io.IOException;
 
+import com.envsocial.android.api.ActionHandler;
+
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.PendingIntent;

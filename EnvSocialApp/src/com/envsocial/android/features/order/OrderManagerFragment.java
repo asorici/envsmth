@@ -10,25 +10,36 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ExpandableListView;
+import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragment;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
 import com.envsocial.android.R;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Annotation;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.features.Feature;
 import com.envsocial.android.utils.C2DMReceiver;
+import com.google.android.c2dm.C2DMessaging;
 
 public class OrderManagerFragment extends SherlockFragment {
+	public static final int DIALOG_REQUEST = 0;
+	
+	public static final String REGISTER_CD2M_ITEM = "Notifications On";
+	public static final String UNREGISTER_CD2M_ITEM = "Notifications Off";
 	
 	public static final String RESOURCE_URI = "resource_uri";
 	public static final String LOCATION_NAME = "location_name";
@@ -39,6 +50,7 @@ public class OrderManagerFragment extends SherlockFragment {
 	private ExpandableListView mList;
 	private OrderListAdapter mAdapter;
 	private OrderReceiver mOrderReceiver;
+	private ProgressDialog mOrderRetrievalDialog;
 	
 	private List<Map<String,String>> mOrderLocations;
 	private List<List<Map<String,String>>> mOrders;
@@ -48,26 +60,41 @@ public class OrderManagerFragment extends SherlockFragment {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
+	    setHasOptionsMenu(true);
 	    
 	    mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
 	    mOrderLocations = new ArrayList<Map<String,String>>();
 		mOrders = new ArrayList<List<Map<String,String>>>();
 		mIndex = new HashMap<String,Integer>();
 		
-		getOrders();
-	    
 		// Create custom expandable list adapter
-		mAdapter = new OrderListAdapter(getActivity(),
+		mAdapter = new OrderListAdapter(getActivity(), 
 				mOrderLocations,
-	    		R.layout.order_group,
-	    		new String[] { LOCATION_NAME },
-	    		new int[] { R.id.order_group },
-	    		mOrders,
-	    		R.layout.order_item,
-	    		new String[] { ORDER_DETAILS },
-	    		new int[] { R.id.order_details }
-	    		);
+				R.layout.order_group, 
+				new String[] { LOCATION_NAME },
+				new int[] { R.id.order_group }, 
+				mOrders, R.layout.order_item,
+				new String[] { ORDER_DETAILS },
+				new int[] { R.id.order_details }
+		);
+		
+		checkC2DMRegistration();
+		
+		getOrders();
 	}
+	
+	private void checkC2DMRegistration() {
+		// look for the C2DM registrationId stored in the private preferences
+		// if not found, pop-up a dialog to invite the user to register in order to receive notifications
+		String regId = C2DMessaging.getRegistrationId(this.getActivity());
+        if (regId == null || "".equals(regId)) {
+        	OrderNotificationDialogFragment orderNotificationDialog = 
+    				OrderNotificationDialogFragment.newInstance();
+        	orderNotificationDialog.setTargetFragment(this, DIALOG_REQUEST);
+        	orderNotificationDialog.show(getFragmentManager(), "dialog");
+        }
+	}
+	
 	
 	@Override
 	public void onStart() {
@@ -88,8 +115,8 @@ public class OrderManagerFragment extends SherlockFragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 							Bundle savedInstanceState) {
-		System.out.println("[DEBUG]>> onCreateView: " + mOrderLocations);
-		System.out.println("[DEBUG]>> onCreateView: " + mOrders);
+		//System.out.println("[DEBUG]>> onCreateView: " + mOrderLocations);
+		//System.out.println("[DEBUG]>> onCreateView: " + mOrders);
 		return inflater.inflate(R.layout.order, container, false);
 	}
 	
@@ -124,21 +151,43 @@ public class OrderManagerFragment extends SherlockFragment {
 		mList = null;
 	}
 	
-	private void getOrders() {
-		try {
-			List<Annotation> orders = Annotation.getAllAnnotationsForEnvironment(getActivity(), 
-					mLocation.getId(), 
-					Feature.ORDER
-					);
-			System.out.println("[DEBUG]>> received orders: " + orders);
-			
-			// TODO: handle multiple order pages
-			// TODO: order by smthg?
-			parseOrders(orders);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater menuInflater) {
+		//System.err.println("[DEBUG]>> In tab order manager menu creator");
+		
+		menu.add(REGISTER_CD2M_ITEM);
+		menu.add(UNREGISTER_CD2M_ITEM);
+		
+		super.onCreateOptionsMenu(menu, menuInflater);
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		
+		if (item.getTitle().toString().compareTo(REGISTER_CD2M_ITEM) == 0) {
+			String regId = C2DMessaging.getRegistrationId(this.getActivity());
+            if (regId != null && !"".equals(regId)) {
+            	try {
+            		ActionHandler.registerWithServer(this.getActivity(), regId);
+            	} catch (Exception e) {
+            		e.printStackTrace();
+            	}
+            } else {
+                C2DMessaging.register(this.getActivity(), C2DMReceiver.SENDER_ID);
+            }
 		}
+		
+		if (item.getTitle().toString().compareTo(UNREGISTER_CD2M_ITEM) == 0) {
+			C2DMessaging.unregister(this.getActivity());
+		}
+		
+		return true;
+	}
+	
+	
+	private void getOrders() {
+		RetrieveOrdersTask task = new RetrieveOrdersTask();
+		task.execute();
 	}
 	
 	// TODO paginatie
@@ -216,4 +265,57 @@ public class OrderManagerFragment extends SherlockFragment {
 		}
 		
 	}
+	
+	private class RetrieveOrdersTask extends AsyncTask<Void, Void, List<Annotation>> {
+		
+		@Override
+		protected void onPreExecute() {
+			mOrderRetrievalDialog = ProgressDialog.show(OrderManagerFragment.this.getActivity(), 
+					"", "Retrieving All Orders ...", true);
+		}
+		
+		@Override
+		protected List<Annotation> doInBackground(Void...args) {
+			try {
+				List<Annotation> orders = Annotation.getAllAnnotationsForEnvironment(getActivity(), 
+						mLocation, 
+						Feature.ORDER
+				);
+				
+				return orders;
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		
+		@Override
+		protected void onPostExecute(List<Annotation> orders) {
+			mOrderRetrievalDialog.cancel();
+			
+			if (orders != null) {
+				System.out.println("[DEBUG]>> received orders: " + orders);
+				
+				// TODO: handle multiple order pages - currently all annotations are consumed
+				// TODO: order by smthg?
+				try {
+					parseOrders(orders);
+					mAdapter.notifyDataSetChanged();
+					
+				} catch (JSONException e) {
+					e.printStackTrace();
+					
+					Toast toast = Toast.makeText(OrderManagerFragment.this.getActivity(), 
+							R.string.msg_get_orders_err, Toast.LENGTH_LONG);
+					toast.show();
+				}
+			}
+			else {
+				Toast toast = Toast.makeText(OrderManagerFragment.this.getActivity(), 
+						R.string.msg_get_orders_err, Toast.LENGTH_LONG);
+				toast.show();
+			}
+		}
+	}
+
 }

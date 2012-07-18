@@ -66,7 +66,7 @@ public class OrderManagementListFragment extends ListFragment {
 		
 		try {
 			List<Annotation> orders = Annotation.getAllAnnotationsForEnvironment(getActivity(), 
-					mLocation.getId(), 
+					mLocation, 
 					Feature.ORDER
 					);
 			System.out.println("[DEBUG]>> received orders: " + orders);

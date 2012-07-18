@@ -24,6 +24,8 @@ public class UserProfileData {
 	
 	
 	private void initSubProfileMap() {
+		subProfileMap = new HashMap<UserProfileConfig.UserSubProfileType, UserSubProfile>();
+		
 		for (UserSubProfileType type : UserProfileConfig.subProfileClassMap.keySet()) {
 			try {
 				Class<?> subProfileClass = Class.forName(UserProfileConfig.subProfileClassMap.get(type));

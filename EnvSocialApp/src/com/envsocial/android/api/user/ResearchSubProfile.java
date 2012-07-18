@@ -12,6 +12,8 @@ public class ResearchSubProfile extends UserSubProfile {
 	
 	public ResearchSubProfile(UserSubProfileType type) {
 		super(type);
+		affiliation = "n.a.";
+		researchInterests = new String[] {"n.a."};
 	}
 	
 	public ResearchSubProfile(UserSubProfileType type, String affiliation, String[] researchInterests) {
@@ -29,7 +31,7 @@ public class ResearchSubProfile extends UserSubProfile {
 		
 		//System.err.println("[DEBUG]>> user profile JSONObject: " + user.toString());
 		
-		JSONObject research_profile = (JSONObject)subProfiles.opt(profileType.name());
+		JSONObject research_profile = (JSONObject)subProfiles.opt(UserSubProfileType.researchprofile.name());
 		
 		if (research_profile != null) {
 			affiliation = research_profile.optString("affiliation", "n.a.");

@@ -1,16 +1,23 @@
 package com.envsocial.android;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.envsocial.android.api.ActionHandler;
+import com.envsocial.android.api.Location;
 import com.envsocial.android.api.Url;
 import com.envsocial.android.utils.Preferences;
 import com.google.zxing.integration.android.IntentIntegrator;
@@ -22,8 +29,6 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 	private static final String SIGN_OUT = "Sign out";
 	
 	private Button mBtnCheckin;
-//	private Button mBtnRegister;
-//	private Button mBtnUnregister;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -45,32 +50,84 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
         mBtnCheckin = (Button) findViewById(R.id.btn_checkin);
         mBtnCheckin.setOnClickListener(this);
         
-        // TODO move everything related to c2dm
-/*        mBtnRegister = (Button) findViewById(R.id.btn_c2dm_reg);
-        mBtnRegister.setOnClickListener(this);
-        
-        mBtnUnregister = (Button) findViewById(R.id.btn_c2dm_unreg);
-        mBtnUnregister.setOnClickListener(this);*/
+        displayCheckedInLocation();
 	}
 	
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+		
+		// reset location if we have checked in at another activity in the meantime
+		displayCheckedInLocation();
+		this.findViewById(R.id.checked_in_location_name).invalidate();
+	}
+	
+	
+	private void displayCheckedInLocation() {
+		TextView v = (TextView)findViewById(R.id.checked_in_location_name);
+        Location currentLocation = Preferences.getCheckedInLocation(this);
+        //System.out.println("[DEBUG]>> Current checkin location: " + currentLocation);
+        if (currentLocation != null) {
+        	v.setText(currentLocation.getName());
+        }
+        else {
+        	v.setText(R.string.lbl_no_checkin_location);
+        }
+	}
+
+
 	public void onClick(View v) {
 		if (v == mBtnCheckin) {
-    		IntentIntegrator integrator = new IntentIntegrator(this);
-    		integrator.initiateScan();
-		} /*else if (v == mBtnRegister) {
-			String regId = C2DMessaging.getRegistrationId(this);
-            if (regId != null && !"".equals(regId)) {
-            	try {
-            		ActionHandler.registerWithServer(this, regId);
-            	} catch (Exception e) {
-            		e.printStackTrace();
-            	}
-            } else {
-                C2DMessaging.register(this, C2DMReceiver.SENDER_ID);
-            }
-		} else if (v == mBtnUnregister) {
-			C2DMessaging.unregister(this);
-		}*/
+			Location currentLocation = Preferences.getCheckedInLocation(this);
+			if (currentLocation != null) {
+				String dialogMessage = "Keep previous checkin location ("  
+						+ currentLocation.getName() + ") ?";
+				
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				
+				LayoutInflater inflater = getLayoutInflater();
+				//ViewGroup dialogViewGroup = (ViewGroup)findViewById(R.id.view_home);
+				TextView titleDialogView = (TextView)inflater.inflate(R.layout.home_select_checkin_title, null, false);
+				titleDialogView.setText("Select Checkin Location");
+				
+				TextView bodyDialogView = (TextView)inflater.inflate(R.layout.home_select_checkin_body, null, false);
+				bodyDialogView.setText(dialogMessage);
+				
+				builder.setCustomTitle(titleDialogView);
+				builder.setView(bodyDialogView);
+				
+				builder.setPositiveButton("Yes", new Dialog.OnClickListener() {
+				    @Override
+				    public void onClick(DialogInterface dialog, int which) { 
+				    	dialog.cancel();
+				    	
+				    	Intent i = new Intent(HomeActivity.this, DetailsActivity.class);
+			    		// we can put null for the payload since we have a location saved in preferences
+				    	i.putExtra(ActionHandler.CHECKIN, (String)null);
+			    		startActivity(i);
+				    }
+				});
+
+				builder.setNegativeButton("No", new Dialog.OnClickListener() {
+
+				    @Override
+				    public void onClick(DialogInterface dialog, int which) {
+				    	dialog.cancel();
+				    	
+				    	IntentIntegrator integrator = new IntentIntegrator(HomeActivity.this);
+						integrator.initiateScan();
+				    }
+
+				});
+
+				builder.show();
+			}
+			else {
+				IntentIntegrator integrator = new IntentIntegrator(this);
+				integrator.initiateScan();
+			}
+		} 
 	}
 	
 	@Override
@@ -97,8 +154,8 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 			}
 		}
 		else {
-			System.err.println("WOUND UP HERE");
-			Toast toast = Toast.makeText(this, "Connection Error.", Toast.LENGTH_LONG);
+			//System.err.println("WOUND UP HERE");
+			Toast toast = Toast.makeText(this, "Action Canceled or Connection Error.", Toast.LENGTH_LONG);
 			toast.show();
 		}
     }

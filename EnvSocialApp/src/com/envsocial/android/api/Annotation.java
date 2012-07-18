@@ -13,13 +13,14 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONStringer;
 
 import android.content.Context;
 
 public class Annotation {
 	
 	public static final String TAG = "annotation";
+	public static final int DEFAULT_OFFSET = 0;
+	public static final int DEFAULT_LIMIT = 20;
 	
 	private Context mContext;
 	private Location mLocation;
@@ -53,7 +54,7 @@ public class Annotation {
 	public int post() throws Exception {
 		AppClient client = new AppClient(mContext);
 		//System.err.println("[DEBUG]>> annotation location: " + mLocation);
-		//System.err.println("[DEBUG]>> annotation post: " + toJSON());
+		System.err.println("[DEBUG]>> annotation post: " + toJSON());
 		
 		HttpResponse response = client.makePostRequest(Url.resourceUrl(TAG),
 				toJSON(),
@@ -61,13 +62,17 @@ public class Annotation {
 				new String[] {"application/json", "json"}
 		);
 		
-		//System.err.println("[DEBUG]>> Response for annotation post: " + response.toString());
+		
+		//byte[] responseBuffer = new byte[4096];
+		//response.getEntity().getContent().read(responseBuffer);
+		//System.err.println("[DEBUG]>> Response for annotation post: " + new String(responseBuffer));
 		
 		return response.getStatusLine().getStatusCode();
 	}
 	
 	private String toJSON() throws JSONException {
-		JSONStringer jsonData = new JSONStringer().object();
+		//JSONStringer jsonData = new JSONStringer().object();
+		
 		String type = (mLocation.isEnvironment()) ? Location.ENVIRONMENT : Location.AREA;
 		Url url = new Url(Url.RESOURCE, type, false, Url.HTTP);
 		url.setItemId(mLocation.getId());
@@ -80,48 +85,70 @@ public class Annotation {
 			data = mData;
 		}
 		
-		jsonData
-			.key(type)
-			.value(urlString)
-			.key("category")
-			.value(mCategory)
-			.key("data")
-			.value(data)
-		.endObject();
+		JSONObject jsonData = new JSONObject();
+		jsonData.put(type, urlString);
+		jsonData.put("category", mCategory);
+		jsonData.put("data", data);
 		
 		return jsonData.toString();
 	}
 	
 	
-	public static List<Annotation> getAnnotations(Context context, Location location) throws Exception {
-		String type = (location.isEnvironment()) ? Location.ENVIRONMENT : Location.AREA;
-		Url url = new Url(Url.RESOURCE, TAG);
-		url.setParameters(new String[] { type }, 
-				new String[] { location.getId() }
-		);
+	public static List<Annotation> getAnnotations(Context context, 
+			Location location, String category, boolean retrieveAll) throws Exception {
 		
-		return getAnnotationsList(context, url.toString(), location);
+		if (retrieveAll) {
+			String type = (location.isEnvironment()) ? Location.ENVIRONMENT : Location.AREA;
+			Url url = new Url(Url.RESOURCE, TAG);
+			url.setParameters(new String[] { type, "category" }, 
+					new String[] { location.getId(), category }
+			);
+			
+			return getAnnotationsList(context, url.toString(), location, true);
+		}
+		else {
+			return getAnnotations(context, location, category, DEFAULT_OFFSET, DEFAULT_LIMIT);
+		}
 	}
 	
-	public static List<Annotation> getAnnotations(Context context, Location location, int offset, int limit) throws Exception {
-		String type = (location.isEnvironment()) ? Location.ENVIRONMENT : Location.AREA;
-		Url url = new Url(Url.RESOURCE, TAG);
-		url.setParameters(new String[] { type, "offset", "limit" }, 
-				new String[] { location.getId(), offset + "", limit + ""}
-		);
-		
-		return getAnnotationsList(context, url.toString(), location);
-	}
 	
 	public static List<Annotation> getAnnotations(Context context, 
-			Location location, String category) throws Exception {
-		String type = (location.isEnvironment()) ? Location.ENVIRONMENT : Location.AREA;
-		Url url = new Url(Url.RESOURCE, TAG);
-		url.setParameters(new String[] { type, "category" }, 
-				new String[] { location.getId(), category }
-		);
+			Location location, String category, 
+			Map<String, String> extra, boolean retrieveAll) throws Exception {
 		
-		return getAnnotationsList(context, url.toString(), location);
+		if (retrieveAll) {
+			String type = (location.isEnvironment()) ? Location.ENVIRONMENT : Location.AREA;
+			Url url = new Url(Url.RESOURCE, TAG);
+			
+			int extraSize = 0;
+			if (extra != null) {
+				extraSize = extra.size();
+			}
+			
+			String[] keys = new String[2 + extraSize];
+			String[] values = new String[2 + extraSize];
+			
+			keys[0] = type;
+			values[0] = location.getId();
+			keys[1] = "category";
+			values[1] = category;
+			
+			if (extra != null) {
+				int i = 2;
+				for (String key : extra.keySet()) {
+					keys[i] = key;
+					values[i] = extra.get(key);
+					i++;
+				}
+			}
+			
+			url.setParameters(keys, values);
+			
+			return getAnnotationsList(context, url.toString(), location, true);
+		}
+		else {
+			return getAnnotations(context, location, category, extra, DEFAULT_OFFSET, DEFAULT_LIMIT);
+		}
 	}
 	
 	
@@ -133,45 +160,12 @@ public class Annotation {
 				new String[] { location.getId(), category, offset + "", limit + "" }
 		);
 		
-		return getAnnotationsList(context, url.toString(), location);
+		return getAnnotationsList(context, url.toString(), location, false);
 	}
 	
 	
-	public static List<Annotation> getAnnotations(Context context, 
-			Location location, String category, Map<String, String> extra) throws Exception {
-		String type = (location.isEnvironment()) ? Location.ENVIRONMENT : Location.AREA;
-		Url url = new Url(Url.RESOURCE, TAG);
-		
-		int extraSize = 0;
-		if (extra != null) {
-			extraSize = extra.size();
-		}
-		
-		String[] keys = new String[2 + extraSize];
-		String[] values = new String[2 + extraSize];
-		
-		keys[0] = type;
-		values[0] = location.getId();
-		keys[1] = "category";
-		values[1] = category;
-		
-		if (extra != null) {
-			int i = 2;
-			for (String key : extra.keySet()) {
-				keys[i] = key;
-				values[i] = extra.get(key);
-				i++;
-			}
-		}
-		
-		url.setParameters(keys, values);
-		
-		return getAnnotationsList(context, url.toString(), location);
-	}
-	
-	
-	public static List<Annotation> getAnnotations(Context context, 
-			Location location, String category, Map<String, String> extra, int offset, int limit) throws Exception {
+	public static List<Annotation> getAnnotations(Context context, Location location, 
+			String category, Map<String, String> extra, int offset, int limit) throws Exception {
 		String type = (location.isEnvironment()) ? Location.ENVIRONMENT : Location.AREA;
 		Url url = new Url(Url.RESOURCE, TAG);
 		
@@ -202,12 +196,17 @@ public class Annotation {
 		
 		url.setParameters(keys, values);
 		
-		return getAnnotationsList(context, url.toString(), location);
+		return getAnnotationsList(context, url.toString(), location, false);
 	}
 	
 	// this can be re-written in terms of getAnnotations + an extra
 	public static List<Annotation> getAllAnnotationsForEnvironment(Context context, 
-			String envId, String category) throws Exception {
+			Location location, String category) throws Exception {
+		
+		String envId = location.getId();
+		if (location.isArea()) {
+			envId = Url.resourceIdFromUri(location.getParent());
+		}
 		
 		Url url = new Url(Url.RESOURCE, TAG);
 		url.setParameters(
@@ -215,27 +214,40 @@ public class Annotation {
 				new String[] { envId, "true", category, "-timestamp" }
 		);
 		
-		return getAnnotationsList(context, url.toString());
+		// consume all annotations from server - no pagination needed afterwards
+		return getAnnotationsList(context, url.toString(), true);
 	}
 	
-	private static List<Annotation> getAnnotationsList(Context context, String url) throws Exception {
-		return getAnnotationsList(context, url, null);
+	private static List<Annotation> getAnnotationsList(Context context, String url, boolean retrieveAll) throws Exception {
+		return getAnnotationsList(context, url, null, retrieveAll);
 	}
 	
 	private static List<Annotation> getAnnotationsList(Context context, 
-			String url, Location location) throws Exception {
+			String url, Location location, boolean retrieveAll) throws Exception {
 		AppClient client = new AppClient(context);
 		HttpResponse response = client.makeGetRequest(url);
+		String responseData = EntityUtils.toString(response.getEntity());
 		
 		// Check the status code
 		if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+			System.err.println("[DEBUG]>> Error response on annotations list: " + responseData);
 			throw new Exception(Integer.toString(HttpStatus.SC_SERVICE_UNAVAILABLE));
 		}
 		
 		// If SC_OK, parse response
-		String responseData = EntityUtils.toString(response.getEntity());
+		List<Annotation> annotations = parse(context, responseData, location);
 		
-		return parse(context, responseData, location);
+		// if we want to consume the entire annotations list
+		if (retrieveAll) {
+			JSONObject meta = new JSONObject(responseData).getJSONObject("meta");
+			String next = meta.getString("next");
+
+			if (next != null && !next.equalsIgnoreCase("null")) {
+				annotations.addAll(getAnnotationsList(context, next, location, true));
+			}
+		}
+		
+		return annotations;
 	}
 	
 	// Parse response to get a list of Annotation objects
@@ -262,6 +274,8 @@ public class Annotation {
 				
 			}
 			
+			Location annLocation = null;
+			
 			if (location == null) {
 				// We need to parse the location
 				JSONObject locObj;
@@ -270,13 +284,18 @@ public class Annotation {
 				} catch (JSONException e) {
 					locObj = annotation.getJSONObject("environment");
 				}
+				
 				String locationName = locObj.getString("name");
 				String locationUri = locObj.getString("resource_uri");
-				location = new Location(locationName, locationUri);
+				
+				annLocation = new Location(locationName, locationUri);
+			}
+			else {
+				annLocation = location;
 			}
 			
 			String data = annotation.getString("data");
-			annotations.add(new Annotation(context, location, category, timestamp, data, uri, userUri));
+			annotations.add(new Annotation(context, annLocation, category, timestamp, data, uri, userUri));
 		}
 		
 		return annotations;
@@ -319,5 +338,15 @@ public class Annotation {
 	
 	public String getUserUri() {
 		return mUserUri;
+	}
+	
+	@Override
+	public String toString() {
+		String info = "";
+		info += "Location::" + mLocation + ", ";
+		info += "Category::" + mCategory + ", ";
+		info += "Data::" + mData;
+		
+		return info;
 	}
 }

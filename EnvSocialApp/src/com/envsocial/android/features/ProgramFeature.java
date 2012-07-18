@@ -39,12 +39,19 @@ public class ProgramFeature extends Feature {
 		Map<String,String> entry = new HashMap<String,String>();
 		
 		AppClient client = new AppClient(context);
-		String type = (location.isEnvironment()) ? Location.ENVIRONMENT : Location.AREA;
+		
+		// force a query on the environment
+		String type = Location.ENVIRONMENT;
+		String locationId = location.getId();
+		if ( location.isArea() ) {
+			// get the locationId from the URI of the parent environment
+			locationId = Url.resourceIdFromUri(location.getParent());
+		}
 		
 		Url url = new Url(Url.RESOURCE, Feature.TAG);
 		url.setParameters(
 			new String[] { type, "category", "querytype", "entry_id"}, 
-			new String[] { "" + location.getId(), Feature.PROGRAM, ProgramFeature.ENTRY_QUERY_TYPE, entryId}
+			new String[] { locationId, Feature.PROGRAM, ProgramFeature.ENTRY_QUERY_TYPE, entryId}
 		);
 		
 		System.out.println("[DEBUG] >> API query for entry: " + url.toString());

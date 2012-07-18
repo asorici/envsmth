@@ -3,7 +3,7 @@ from coresql.models import Environment, Area, Feature, Annotation,\
                            ResearchProfile, UserContext, UserSubProfile
 #from coresql.forms import AnnotationForm
 from tastypie.resources import ModelResource
-from tastypie.exceptions import ImmediateHttpResponse, NotFound
+from tastypie.exceptions import ImmediateHttpResponse, NotFound, HydrationError
 #from tastypie.validation import FormValidation
 from tastypie import fields, http
 from tastypie.authentication import Authentication
@@ -185,18 +185,14 @@ class EnvironmentResource(ModelResource):
     
     
     def dehydrate_features(self, bundle):
-        if "entryfeaturequery" in bundle.request.GET and bundle.request.GET['entryfeaturequery'] == 'true':
-            feature_list = self._entry_feature_query(bundle)
-            return feature_list
-        else:
-            ## return a list of dictionary values from the features of this environment
-            feature_list = []
-            for feature in bundle.obj.features.all().select_subclasses():
-                feat_dict = feature.to_serializable()
-                if feat_dict:
-                    feature_list.append(feat_dict)
-                    
-            return feature_list
+        ## return a list of dictionary values from the features of this environment
+        feature_list = []
+        for feature in bundle.obj.features.all().select_subclasses():
+            feat_dict = feature.to_serializable()
+            if feat_dict:
+                feature_list.append(feat_dict)
+                
+        return feature_list
     
     
     def dehydrate(self, bundle):
@@ -219,30 +215,7 @@ class EnvironmentResource(ModelResource):
         
         return bundle
     
-    
-    def _entry_feature_query(self, bundle):
-        from coresql.models import Entry
-        
-        entry_id = bundle.request.GET['entry_id']
-        entry = Entry.objects.get(id = entry_id)
-        
-        entry_dict = {'category' : "program",
-                      'data' : {'id' : entry.id,
-                                'title' : entry.title,
-                                'speakers' : entry.speakers,
-                                'sessionId' : entry.session.id,
-                                'sessionTitle' : entry.session.title,
-                                'startTime' : entry.startTime.strftime("%Y-%m-%dT%H:%M:%S"),
-                                'endTime' : entry.endTime.strftime("%Y-%m-%dT%H:%M:%S"),
-                                'abstract' : "Abstract not available."
-                                }
-                      }
-        
-        if entry.abstract:
-            entry_dict['data']['abstract'] = entry.abstract
-            
-        return [entry_dict]
-        
+
 
 class AreaResource(ModelResource):
     parent = fields.ForeignKey(EnvironmentResource, 'environment')
@@ -295,27 +268,23 @@ class AreaResource(ModelResource):
         return user_bundle.data
     
     def dehydrate_features(self, bundle):
-        if "entryfeaturequery" in bundle.request.GET and bundle.request.GET['entryfeaturequery'] == 'true':
-            feature_list = self._entry_feature_query(bundle)
-            return feature_list
-        else:
-            feature_list = []
-            for feature in bundle.obj.features.all().select_subclasses():
-                feat_dict = feature.to_serializable()
-                if feat_dict:
-                    feature_list.append(feat_dict)
-    
-            ## then see if environment features which also apply to the area are available - e.g. program, order
-            ## we handle the "program" case for now
-            environment = bundle.obj.environment
-            environment_features = environment.features.all().select_subclasses()
-            
-            for env_feat in environment_features:
-                feat_dict = env_feat.to_serializable()
-                if feat_dict:
-                    feature_list.append(feat_dict)
-                    
-            return feature_list
+        feature_list = []
+        for feature in bundle.obj.features.all().select_subclasses():
+            feat_dict = feature.to_serializable()
+            if feat_dict:
+                feature_list.append(feat_dict)
+        
+        ## then see if environment features which also apply to the area are available - e.g. program, order
+        ## we handle the "program" case for now
+        environment = bundle.obj.environment
+        environment_features = environment.features.select_subclasses().filter(is_general = True)
+        
+        for env_feat in environment_features:
+            feat_dict = env_feat.to_serializable()
+            if feat_dict:
+                feature_list.append(feat_dict)
+        
+        return feature_list
     
     
     def dehydrate(self, bundle):
@@ -336,29 +305,6 @@ class AreaResource(ModelResource):
         
         return bundle
     
-    
-    def _entry_feature_query(self, bundle):
-        from coresql.models import Entry
-        
-        entry_id = bundle.request.GET['entry_id']
-        entry = Entry.objects.get(id = entry_id)
-        
-        entry_dict = {'category' : "program",
-                      'data' : {'id' : entry.id,
-                                'title' : entry.title,
-                                'speakers' : entry.speakers,
-                                'sessionId' : entry.session.id,
-                                'sessionTitle' : entry.session.title,
-                                'startTime' : entry.startTime.strftime("%Y-%m-%dT%H:%M:%S"),
-                                'endTime' : entry.endTime.strftime("%Y-%m-%dT%H:%M:%S"),
-                                'abstract' : "Abstract not available."
-                                }
-                      }
-        
-        if entry.abstract:
-            entry_dict['data']['abstract'] = entry.abstract
-            
-        return [entry_dict]
 
 
 class FeatureResource(ModelResource):
@@ -495,7 +441,7 @@ class AnnotationResource(ModelResource):
     data = fields.DictField()
     
     class Meta:
-        queryset = Annotation.objects.all()
+        queryset = Annotation.objects.select_subclasses()
         resource_name = 'annotation'
         detail_allowed_methods = ['get', 'put', 'delete']
         list_allowed_methods = ['get', 'post']
@@ -518,7 +464,7 @@ class AnnotationResource(ModelResource):
     def get_list(self, request, **kwargs):
         ## override the list retrieval part to verify additionally that an ``area`` or ``environment`` filter exists
         ## otherwise reject the call with a HttpMethodNotAllowed
-        if 'area' in request.GET or 'environment' in request.GET:
+        if ('area' in request.GET or 'environment' in request.GET) and 'category' in request.GET:
             return super(AnnotationResource, self).get_list(request, **kwargs)
         else:
             raise ImmediateHttpResponse(response=http.HttpMethodNotAllowed())
@@ -537,29 +483,18 @@ class AnnotationResource(ModelResource):
             """
             del filters['environment']
             del filters['all']
-            
+          
         orm_filters = super(AnnotationResource, self).build_filters(filters)
         
-        if "category" in filters:
-            """
-            if annotations are filtered by category see if any category specific filters also apply
-            """
-            categ_specific_filters = self._category_filtering(filters)
-            orm_filters.update(categ_specific_filters)
-            
+        ## we now that there has to be a category in filters because of the validation
+        category = filters['category']
+        for _, cls in Annotation.get_subclasses():
+            if cls.is_annotation_for(category):
+                categ_specific_filters = cls.get_extra_filters(filters)
+                orm_filters.update(categ_specific_filters)
+                break
+        
         return orm_filters
-        
-    
-    def _category_filtering(self, filters):
-        specific_filters = {}
-        
-        ## switch by category
-        if filters['category'] == "program":
-            ## program feature specific filtering
-            if "entry_id" in filters:
-                specific_filters['entryannotation__entry__id'] = int(filters['entry_id'])
-    
-        return specific_filters
     
     
     def get_object_list(self, request):
@@ -582,13 +517,7 @@ class AnnotationResource(ModelResource):
     
     def dehydrate_data(self, bundle):
         ## return the data representation of this annotation according to its type
-        annotation_category = bundle.obj.category
-        if annotation_category == 'default':
-            return {'text' : bundle.obj.descriptionannotation.text}
-        elif annotation_category == 'program':
-            return {'text' : bundle.obj.entryannotation.text}
-        else:
-            return None    
+        return bundle.obj.get_annotation_data()
     
     
     def dehydrate(self, bundle):
@@ -616,9 +545,10 @@ class AnnotationResource(ModelResource):
         if not user_profile.is_anonymous:
             first_name = user_profile.user.first_name
             last_name = user_profile.user.last_name
-                
-        bundle.data['data']['user'] = {'first_name' : first_name,
-                                       'last_name': last_name }
+        
+        bundle.data['data']['user'] = { 'first_name' : first_name,
+                                        'last_name' : last_name 
+                                      }
         
         """
         now remove also null area/environment data
@@ -637,35 +567,51 @@ class AnnotationResource(ModelResource):
             del bundle.data['data']
             
         
+        
         return bundle
    
    
     
     def hydrate(self, bundle):
-        from coresql.models import DescriptionAnnotation, EntryAnnotation, Entry
-        
+        #from coresql.models import DescriptionAnnotation, EntryAnnotation, Entry
         """
         switch after the annotation category and construct the appropriate annotation type object with
         the given data
         """
-        if bundle.data['category'] == 'default':
-            bundle.obj = DescriptionAnnotation(user = bundle.request.user.get_profile(), 
-                                               environment = bundle.obj.environment,
-                                               area = bundle.obj.area,
-                                               category = bundle.obj.category,
-                                               text = bundle.data['data']['text'])
-        elif bundle.data['category'] == 'program':
-            entry_id = bundle.data['data']['entry_id']
-            entry = Entry.objects.get(id = entry_id);
-            
-            bundle.obj = EntryAnnotation(user = bundle.request.user.get_profile(), 
-                                         environment = bundle.obj.environment,
-                                         area = bundle.obj.area,
-                                         category = bundle.obj.category,
-                                         entry = entry,
-                                         text = bundle.data['data']['text'])
+        instantiated = False
         
+        ## get all data from bundle.data
+        user = bundle.request.user.get_profile()
+        category = bundle.data['category']
+        data = bundle.data['data']
+        environment = None 
+        area = None
+        
+        try:
+            environment = EnvironmentResource().get_via_uri(bundle.data['environment'], request=bundle.request)
+        except:
+            environment = None
             
+        try:
+            area = AreaResource().get_via_uri(bundle.data['area'], request=bundle.request)
+        except:
+            area = None 
+        
+        
+        for _, cls in Annotation.get_subclasses():
+            if cls.is_annotation_for(category):
+                try:
+                    bundle.obj = cls(user = user, environment = environment, 
+                                     area = area, category = category, data = data)
+                    instantiated = True
+                    break
+                except Exception, ex:
+                    print ex
+        
+        if not instantiated:
+            #raise ImmediateHttpResponse(response=http.HttpBadRequest())
+            raise HydrationError("No class found for annotation category (" + category + ") or incorrect data parameters")
+        
         return bundle
         
     
@@ -691,7 +637,7 @@ class AnnotationResource(ModelResource):
             updated_bundle = super(AnnotationResource, self).obj_update(bundle, request, **kwargs)
             
             ## make notification for 'order' type annotations
-            if updated_bundle.data['category'] == 'order':
+            if updated_bundle.data['category'] == Annotation.ORDER:
                 self._make_c2dm_notification(updated_bundle)
             
             return updated_bundle

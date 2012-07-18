@@ -70,9 +70,6 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		mSpeakers = (TextView) findViewById(R.id.speakers);
 		mAbstract = (TextView) findViewById(R.id.abs);
 		
-		//mCommentList = (ListView) findViewById(R.id.comment_list);
-		//EntryCommentListAdapter commentListAdapter = new EntryCommentListAdapter(this, getEntryComments());
-		//mCommentList.setAdapter(commentListAdapter);
 		
 		// initialize comment holder layout
 		mCommentsHolder = (LinearLayout) findViewById(R.id.entry_comments);
@@ -91,62 +88,9 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		Map<String,String> entry = ProgramEntry.getEntryById(this, mLocation, mEntryId);
 		bind(entry);
 		*/
-		new EntryFetchTask(mLocation, mEntryId).execute();
+		new FetchEntryDetailTask(mLocation, mEntryId).execute();
 	}
 	
-	
-	private class EntryFetchTask extends AsyncTask<Void, Void, Void> {
-		private String entryId;
-		private Location location;
-		private Map<String, String> entry;
-		LinkedList<Map<String, String>> entryComments;
-		
-		public EntryFetchTask(Location location, String entryId) {
-			this.location = location;
-			this.entryId = entryId;
-		}
-		
-		@Override
-		protected void onPreExecute() {
-			mLoadingDialog = ProgressDialog.show(EntryDetailsActivity.this, 
-					"", "Loading...", true);
-		}
-		
-		@Override
-		protected Void doInBackground(Void...args) {
-			try {
-				entry = ProgramFeature.getProgramEntryById(EntryDetailsActivity.this, location, entryId);
-			} catch (Exception ex) {
-				entry = null;
-			}
-			
-			try {
-				entryComments = getEntryComments();
-			} catch (Exception ex) {
-				entryComments = null;
-			}
-			
-			return null;
-		}
-		
-		@Override
-		protected void onPostExecute(Void result) {
-			mLoadingDialog.cancel();
-			if (entry != null) {
-				bind(entry);
-			}
-			
-			if (entryComments != null) {
-				addEntryComments(entryComments);
-			}
-			
-			if (entry == null && entryComments == null) {
-				Toast toast = Toast.makeText(getApplicationContext(), 
-						R.string.msg_service_unavailable, Toast.LENGTH_LONG);
-				toast.show();
-			}
-		}
-	}
 	
 	
 	private void addEntryComments(LinkedList<Map<String, String>> entryComments) {
@@ -160,6 +104,7 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 			}
 		}
 	}
+	
 	
 	private View makeCommentView(LayoutInflater inflater, Map<String, String> comment) {
 		View commentView = inflater.inflate(R.layout.entry_comment_row, mCommentsHolder, false);
@@ -176,8 +121,21 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		
 		return commentView;
 	}
-
-
+	
+	
+	@Override
+	public void onClick(View v) {
+		if (v == mBtnSend) {
+			sendComment();
+		}
+		else {
+			if (v == mMoreCommentsBtn) {
+				new FetchEntryCommentTask().execute();
+			}
+		}
+	}
+	
+	
 	private LinkedList<Map<String, String>> getEntryComments() {
 		try {
 			Map<String, String> extra = new HashMap<String, String>();
@@ -188,13 +146,13 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 			List<Annotation> entryAnnotations = Annotation.getAnnotations(this, mLocation, 
 					Feature.PROGRAM, extra, commentListOffset, COMMENT_LIMIT);
 			// System.out.println("[DEBUG]>> received entryComments: " + entryComments);
-
+			
 			return parseEntryAnnotations(entryAnnotations);
-
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
+		
 		return null;
 	}
 
@@ -241,32 +199,7 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		mAbstract.setText(entry.get(ProgramDbHelper.COL_ENTRY_ABSTRACT));
 	}
 
-	@Override
-	public void onClick(View v) {
-		if (v == mBtnSend) {
-			sendComment();
-		}
-		else {
-			if (v == mMoreCommentsBtn) {
-				LinkedList<Map<String, String>> moreEntryComments = getEntryComments();
-				if (moreEntryComments == null) {
-					Toast toast = Toast.makeText(this, R.string.msg_service_unavailable, Toast.LENGTH_LONG);
-					toast.show();
-				}
-				else {
-					if (moreEntryComments.isEmpty()) {
-						Toast toast = Toast.makeText(this, "No other comments.", Toast.LENGTH_LONG);
-						toast.show();
-					}
-					else {
-						addEntryComments(moreEntryComments);
-					}
-				}
-			}
-		}
-		
-	}
-
+	
 	private void sendComment() {
 		try {
 			JSONObject jsonComment = new JSONObject();
@@ -284,24 +217,12 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 			String jsonCommentString = jsonComment.toString();
 			Annotation entryComment = new Annotation(this, mLocation, Feature.PROGRAM, 
 													Calendar.getInstance(), jsonCommentString);
-			int statusCode = entryComment.post();
 			
-			if (statusCode == HttpStatus.SC_CREATED) {
-				appendComment(entryComment);
-				
-				Toast toast = Toast.makeText(this, "Comment sent.", Toast.LENGTH_LONG);
-				toast.show();
-			}
-			else {
-				Toast toast = Toast.makeText(this, "Error sending comment.", Toast.LENGTH_LONG);
-				toast.show();
-			}
+			new SendEntryCommentTask(entryComment).execute();
 			
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -310,8 +231,6 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		Map<String, String> commentStringData;
 		try {
 			commentStringData = extractCommentData(entryAnnotation);
-			//EntryCommentListAdapter adaptor = (EntryCommentListAdapter)mCommentList.getAdapter();
-			//adaptor.addItem(commentStringData);
 			
 			View commentView = makeCommentView(getLayoutInflater(), commentStringData);
 			mCommentsHolder.addView(commentView, 0);
@@ -322,6 +241,180 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+	}
+	
+	
+	private class FetchEntryDetailTask extends AsyncTask<Void, Void, Void> {
+		private String entryId;
+		private Location location;
+		private Map<String, String> entry;
+		LinkedList<Map<String, String>> entryComments;
+		
+		public FetchEntryDetailTask(Location location, String entryId) {
+			this.location = location;
+			this.entryId = entryId;
+		}
+		
+		@Override
+		protected void onPreExecute() {
+			mLoadingDialog = ProgressDialog.show(EntryDetailsActivity.this, 
+					"", "Loading...", true);
+		}
+		
+		@Override
+		protected Void doInBackground(Void...args) {
+			try {
+				entry = ProgramFeature.getProgramEntryById(EntryDetailsActivity.this, location, entryId);
+			} catch (Exception ex) {
+				entry = null;
+			}
+			
+			try {
+				entryComments = getEntryComments();
+			} catch (Exception ex) {
+				entryComments = null;
+			}
+			
+			return null;
+		}
+		
+		@Override
+		protected void onPostExecute(Void result) {
+			mLoadingDialog.cancel();
+			if (entry != null) {
+				bind(entry);
+			}
+			
+			if (entryComments != null) {
+				addEntryComments(entryComments);
+			}
+			
+			if (entry == null && entryComments == null) {
+				Toast toast = Toast.makeText(getApplicationContext(), 
+						R.string.msg_get_entry_details_err, Toast.LENGTH_LONG);
+				toast.show();
+				EntryDetailsActivity.this.finish();
+			}
+		}
+	}
+	
+	private class FetchEntryCommentTask extends AsyncTask<Void, Void, Void> {
+		LinkedList<Map<String, String>> entryComments;
+		ProgressDialog commentFetchDialog;
+		
+		@Override
+		protected void onPreExecute() {
+			commentFetchDialog = ProgressDialog.show(EntryDetailsActivity.this, 
+					"", "Retrieving comments ...", true);
+		}
+		
+		@Override
+		protected Void doInBackground(Void... params) {
+			try {
+				entryComments = getEntryComments();
+			} catch (Exception ex) {
+				entryComments = null;
+			}
+			
+			return null;
+		}
+		
+		@Override
+		protected void onPostExecute(Void result) {
+			commentFetchDialog.cancel();
+			
+			if (entryComments != null) {
+				if (entryComments.isEmpty()) {
+					Toast toast = Toast.makeText(EntryDetailsActivity.this, "No other comments.", Toast.LENGTH_LONG);
+					toast.show();
+				}
+				else {
+					addEntryComments(entryComments);
+				}
+			}
+			else {
+				Toast toast = Toast.makeText(EntryDetailsActivity.this, 
+						R.string.msg_get_entry_comments_err, Toast.LENGTH_LONG);
+				toast.show();
+			}
+		}
+	}
+	
+	
+	private class SendEntryCommentTask extends AsyncTask<Void, Void, Integer> {
+		Annotation comment;
+		ProgressDialog commentSendDialog;
+		
+		public SendEntryCommentTask(Annotation comment) {
+			this.comment = comment;
+		}
+		
+		@Override
+		protected void onPreExecute() {
+			commentSendDialog = ProgressDialog.show(EntryDetailsActivity.this, 
+					"", "Sending comment ...", true);
+		}
+		
+		@Override
+		protected Integer doInBackground(Void... params) {
+			try {
+				return comment.post();
+			} catch (JSONException ex) {
+				return null;
+			} catch (Exception ex) {
+				return null;
+			}
+		}
+		
+		@Override
+		protected void onPostExecute(Integer result) {
+			commentSendDialog.cancel();
+			
+			if (result != null) {
+				boolean error = false;
+				int msgId = R.string.msg_send_entry_comment_ok;
+				
+				switch(result) {
+					case HttpStatus.SC_CREATED: 					
+						error = false;
+						break;
+					
+					case HttpStatus.SC_BAD_REQUEST:
+						System.err.println("[DEBUG]>> Error sending order: " + R.string.msg_send_entry_comment_400);
+						error = true;
+						msgId = R.string.msg_send_entry_comment_400;
+						break;
+					case HttpStatus.SC_UNAUTHORIZED:
+						System.err.println("[DEBUG]>> Error sending order: " + R.string.msg_send_entry_comment_401);
+						error = true;
+						msgId = R.string.msg_send_entry_comment_401;
+						break;
+					case HttpStatus.SC_METHOD_NOT_ALLOWED:
+						System.err.println("[DEBUG]>> Error sending order: " + R.string.msg_send_entry_comment_405);
+						error = true;
+						msgId = R.string.msg_send_entry_comment_405;
+						break;
+					default:
+						error = true;
+						msgId = R.string.msg_send_entry_comment_err;
+						break;
+				}
+				
+				if (!error) {
+					appendComment(comment);
+				}
+				
+				Toast toast = Toast.makeText( EntryDetailsActivity.this,
+						msgId, Toast.LENGTH_LONG);
+				toast.show();
+			}
+			else {
+				Toast toast = Toast.makeText(EntryDetailsActivity.this, 
+						R.string.msg_service_unavailable, Toast.LENGTH_LONG);
+				toast.show();
+			}
+			
 		}
 	}
 	

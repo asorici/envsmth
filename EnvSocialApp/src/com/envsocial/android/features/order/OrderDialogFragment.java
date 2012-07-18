@@ -6,8 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONStringer;
+import org.json.JSONObject;
 
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -135,24 +136,17 @@ public class OrderDialogFragment extends DialogFragment implements OnClickListen
 	
 	public String getOrderJSONString() {
 		try {
-			JSONStringer orderJSON = new JSONStringer().array();
-			
+			JSONObject allOrderJSON = new JSONObject();
+			JSONArray orderListJSON = new JSONArray();
 			for (Map<String,String> group : mOrderSummary) {
-				orderJSON
-					.object()
-						.key("category")
-						.value(group.get("category"))
-						.key("items")
-						.value(group.get("items"))
-					.endObject();
+				JSONObject orderJSON = new JSONObject();
+				orderJSON.put("category", group.get("category"));
+				orderJSON.put("items", group.get("items"));
+				orderListJSON.put(orderJSON);
 			}
-			orderJSON = orderJSON.endArray();
+			allOrderJSON.put("order", orderListJSON);
 			
-			return new JSONStringer()
-				.object()
-					.key("order")
-					.value(orderJSON)
-				.endObject().toString();
+			return allOrderJSON.toString();
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}

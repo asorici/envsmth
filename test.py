@@ -404,10 +404,10 @@ def build_wims_simulation(argv=None):
 if __name__ == "__main__":
     #main()
     #test_Q()
-    dummy_sql_insert()
-    #generate_qrcodes()
+    #dummy_sql_insert()
+    generate_qrcodes()
     #urllib_header_test()
     #parse_program()
-    build_wims_simulation()
+    #build_wims_simulation()
     
     

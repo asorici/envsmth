@@ -65,7 +65,7 @@ public final class Preferences {
 	
 	
 	public static void checkin(Context context, Location location) {
-		setStringPreference(context, CHECKED_IN_LOCATION, location.toString());
+		setStringPreference(context, CHECKED_IN_LOCATION, location.serialize());
 	}
 	
 	public static void checkout(Context context) {
@@ -81,6 +81,7 @@ public final class Preferences {
 		String jsonString = getStringPreference(context, CHECKED_IN_LOCATION);
 		if (jsonString != null) {
 			try {
+				System.out.println("[DEBUG]>> checkin location JSON:: " + jsonString);
 				return new Location(jsonString);
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -99,7 +100,7 @@ public final class Preferences {
 		String jsonString = getStringPreference(context, PEOPLE_IN_LOCATION);
 		if (jsonString != null) {
 			try {
-				return User.getUsers(context, location, jsonString);
+				return User.getUsers(context, location, null, jsonString);
 			} catch (JSONException e) {
 				e.printStackTrace();
 				removeStringPreference(context, CHECKED_IN_LOCATION);

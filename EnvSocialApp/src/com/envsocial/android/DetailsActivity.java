@@ -12,6 +12,10 @@ import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.ActionBar.Tab;
 import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
+
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.features.Feature;
@@ -23,12 +27,14 @@ import com.envsocial.android.fragment.DefaultFragment;
 import com.envsocial.android.utils.C2DMReceiver;
 import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
+import com.google.android.c2dm.C2DMessaging;
 
 
 public class DetailsActivity extends SherlockFragmentActivity {
 	
-
 	public static final String ORDER_MANAGEMENT_FEATURE = "order_management";
+	public static final String REGISTER_CD2M_ITEM = "Notifications On";
+	public static final String UNREGISTER_CD2M_ITEM = "Notifications Off";
 	
 	private Location mLocation;
 	
@@ -80,6 +86,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
         	mActionBar.selectTab(mOrderManagementTab);
         }
 	}
+	
 	
 	private void checkin(String checkinUrl) throws JSONException, Exception {
 		// Perform check in
@@ -138,6 +145,43 @@ public class DetailsActivity extends SherlockFragmentActivity {
         	actionBar.addTab(mPeopleTab);
         }
 	}
+	
+	/*
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		System.err.println("[DEBUG]>> In tab order manager menu creator: " + mActionBar.getSelectedTab().getText());
+		
+		//if (mActionBar.getSelectedTab().getText().equals(R.string.tab_order_manager)) {
+			menu.add(REGISTER_CD2M_ITEM);
+			menu.add(UNREGISTER_CD2M_ITEM);
+		//}
+		
+		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		
+		if (item.getTitle().toString().compareTo(REGISTER_CD2M_ITEM) == 0) {
+			String regId = C2DMessaging.getRegistrationId(this);
+            if (regId != null && !"".equals(regId)) {
+            	try {
+            		ActionHandler.registerWithServer(this, regId);
+            	} catch (Exception e) {
+            		e.printStackTrace();
+            	}
+            } else {
+                C2DMessaging.register(this, C2DMReceiver.SENDER_ID);
+            }
+		}
+		
+		if (item.getTitle().toString().compareTo(UNREGISTER_CD2M_ITEM) == 0) {
+			C2DMessaging.unregister(this);
+		}
+		
+		return true;
+	}
+	*/
 	
 	public static class TabListener<T extends SherlockFragment> implements ActionBar.TabListener {
 

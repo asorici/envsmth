@@ -80,13 +80,14 @@ class Data(object):
     XML = "xml"
     JSON = "json"
     
-    def __init__(self, data, encode_func=dbencode, data_format = TEXT):
+    def __init__(self, data, encode_func=dbencode, data_format = JSON):
         self.data = data
         self.encode_func = encode_func
         self.data_format = data_format
     
     def dbEncode(self):
-        return str(self.encode_func(self.data))
+        #return str(self.encode_func(self.data))
+        return self.encode_func(self.data)
     
     @staticmethod
     def dbDecode(dataString):
@@ -113,8 +114,8 @@ class Data(object):
             try:
                 from django.utils import simplejson
                 #val = serdes.from_json(dataString)
-                val = simplejson.loads(encoding='utf-8')
-            except Exception:
+                val = simplejson.loads(dataString, encoding='utf-8')
+            except Exception, ex:
                 val = None
             
             if not isinstance(val, (dict, list)):

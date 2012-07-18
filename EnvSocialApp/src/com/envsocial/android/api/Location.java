@@ -198,10 +198,18 @@ public class Location implements Serializable {
 		return mLevel;
 	}
 	
+	public String serialize() {
+		return mJSONString;
+	}
 	
 	@Override
 	public String toString() {
-		return mJSONString;
+		String info = "";
+		info += "name::" + mName + ", ";
+		info += "uri::" + mUri + ", ";
+		info += "jsonString::" + mJSONString;
+		
+		return info;
 	}
 
 }
