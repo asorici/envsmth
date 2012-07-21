@@ -40,7 +40,7 @@ def register(request):
                 new_user.save()
                 
             return register_succeeded(request, new_user)
-    
+        
         return register_failed(request, data = form.errors)
     
     return register_failed(request)
@@ -124,7 +124,7 @@ def checkin(request):
         
         ## is no valid area and environment data has been found => fail the checkin 
         if area is None and env is None:
-            return checkin_failed(request, data = {"msg": "No area ("+ str(area_id) +") or environment (" + str(env_id) + ") found." })
+            return checkin_failed(request, data = {"msg": "No location identified." })
         
         ## get user and correct env
         user_profile = request.user.get_profile()   ## should point to a UserProfile model
@@ -189,7 +189,7 @@ def register_succeeded(request, user):
 
 
 def register_failed(request, data = None):
-    response = {"success": False, "code": 400, "data" : {}}
+    response = {"success": False, "code": 400, "data" : {"msg" : "Registration failed"}}
     if not data is None:
         response['data'].update(data)
     
@@ -219,10 +219,12 @@ def logout_succeeded(request):
 
 
 def login_failed(request, data = None):
-    response = {"success": False, "code": 401, "data": {"msg": "Login failed."}}
+    response = {"success": False, "code": 401, "data": {"msg": "Login failed"}}
     
     if not data is None:
         response['data'].update(data)
+    
+    print "[DEBUG]>> LOGIN FAILED response: ", response
     
     return view_response(request, response, 401)
 
@@ -256,7 +258,7 @@ def checkin_succeeded(request, area = None, env = None):
 
 
 def checkin_failed(request, data = None):
-    response = {"success": False, "code": 400, "data": {"msg": "Checkin failed."}}
+    response = {"success": False, "code": 400, "data": {"msg": "Checkin failed"}}
     
     if not data is None:
         response['data'].update(data)

@@ -9,12 +9,10 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.RelativeLayout;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 
 import com.envsocial.android.R;
-import com.envsocial.android.features.order.OrderFragment.OrderMenu;
 
 public class OrderCatalogListAdapter extends SimpleExpandableListAdapter {
 

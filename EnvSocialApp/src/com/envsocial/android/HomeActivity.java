@@ -2,13 +2,15 @@ package com.envsocial.android;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,13 +21,18 @@ import com.actionbarsherlock.view.MenuItem;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.api.Url;
+import com.envsocial.android.api.exceptions.EnvSocialComException;
+import com.envsocial.android.api.exceptions.EnvSocialContentException;
+import com.envsocial.android.features.program.EntryDetailsActivity;
 import com.envsocial.android.utils.Preferences;
+import com.envsocial.android.utils.ResponseHolder;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
 
 public class HomeActivity extends SherlockFragmentActivity implements OnClickListener {
-
+	private static final String TAG = "HomeActivity";
+	
 	private static final String SIGN_OUT = "Sign out";
 	
 	private Button mBtnCheckin;
@@ -170,14 +177,57 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		
 		if (item.getTitle().toString().compareTo(SIGN_OUT) == 0) {
-			ActionHandler.logout(this);
-			startActivity(new Intent(this, EnvSocialAppActivity.class));
-			finish();
+			new LogoutTask().execute();
 		}
 		
 		return true;
 	}
 
+	private class LogoutTask extends AsyncTask<Void, Void, ResponseHolder> {
+		private ProgressDialog mLoadingDialog;
+		
+		@Override
+		protected void onPreExecute() {
+			mLoadingDialog = ProgressDialog.show(HomeActivity.this, 
+					"", "Signing out ...", true);
+		}
+		
+		@Override
+		protected ResponseHolder doInBackground(Void...args) {
+			return ActionHandler.logout(HomeActivity.this);
+		}
+		
+		@Override
+		protected void onPostExecute(ResponseHolder holder) {
+			mLoadingDialog.cancel();
+			
+			if (!holder.hasError()) {
+				// also checkout before going back to the main activity
+				Preferences.checkout(HomeActivity.this);
+
+				startActivity(new Intent(HomeActivity.this, EnvSocialAppActivity.class));
+				finish();
+			}
+			else {
+				int msgId = R.string.msg_service_unavailable;
+
+				try {
+					throw holder.getError();
+				} catch (EnvSocialComException e) {
+					Log.d(TAG, e.getMessage(), e);
+					msgId = R.string.msg_service_unavailable;
+				} catch (EnvSocialContentException e) {
+					Log.d(TAG, e.getMessage(), e);
+					msgId = R.string.msg_service_error;
+				} catch (Exception e) {
+					Log.d(TAG, e.toString(), e);
+					msgId = R.string.msg_service_error;
+				}
+
+				Toast toast = Toast.makeText(HomeActivity.this, msgId, Toast.LENGTH_LONG);
+				toast.show();
+			}
+		}
+	}
 }

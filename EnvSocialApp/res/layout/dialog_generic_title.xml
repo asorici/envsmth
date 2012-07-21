@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    	android:id="@+id/view_select_checkin_title"
+    	android:id="@+id/view_generic_dialog_title"
     	android:layout_width="fill_parent"
     	android:layout_height="fill_parent" 
 		android:textStyle="bold"
@@ -10,7 +10,3 @@
 		android:paddingLeft="3dp"
 		android:paddingRight="3dp">
 </TextView>
-	    
-
-
-    

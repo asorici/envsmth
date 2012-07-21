@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -27,12 +28,18 @@ import android.widget.Toast;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.envsocial.android.R;
 import com.envsocial.android.api.Annotation;
+import com.envsocial.android.api.EnvSocialResource;
 import com.envsocial.android.api.Location;
+import com.envsocial.android.api.exceptions.EnvSocialComException;
+import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
 import com.envsocial.android.features.ProgramFeature;
 import com.envsocial.android.utils.Preferences;
+import com.envsocial.android.utils.ResponseHolder;
 
 public class EntryDetailsActivity extends SherlockFragmentActivity implements OnClickListener {
+	private static final String TAG = "EntryDetailsActivity";
+	
 	private String mEntryId;
 	private Location mLocation;
 	
@@ -51,8 +58,6 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 	private Button mBtnSend;
 	private EditText mComment;
 	
-	// loader dialog for async task of fetching entry data and comments
-	private ProgressDialog mLoadingDialog;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -83,11 +88,6 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		// set Listener for comment send button
 		mBtnSend.setOnClickListener(this);
 		
-		/*
-		setupCommentViews();
-		Map<String,String> entry = ProgramEntry.getEntryById(this, mLocation, mEntryId);
-		bind(entry);
-		*/
 		new FetchEntryDetailTask(mLocation, mEntryId).execute();
 	}
 	
@@ -145,19 +145,20 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 			
 			List<Annotation> entryAnnotations = Annotation.getAnnotations(this, mLocation, 
 					Feature.PROGRAM, extra, commentListOffset, COMMENT_LIMIT);
-			// System.out.println("[DEBUG]>> received entryComments: " + entryComments);
 			
 			return parseEntryAnnotations(entryAnnotations);
 			
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (EnvSocialComException e) {
+			Log.d(TAG, e.getMessage());
+		} catch (EnvSocialContentException e) {
+			Log.d(TAG, e.getMessage(), e);
 		}
 		
 		return null;
 	}
 
 	private LinkedList<Map<String, String>> parseEntryAnnotations(
-			List<Annotation> entryAnnotations) throws JSONException {
+			List<Annotation> entryAnnotations) throws EnvSocialContentException {
 		
 		LinkedList<Map<String,String>> comments = new LinkedList<Map<String,String>>();
 		for (Annotation ann : entryAnnotations) {
@@ -168,26 +169,31 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		return comments;
 	}
 	
-	private Map<String, String> extractCommentData(Annotation ann) throws JSONException {
+	private Map<String, String> extractCommentData(Annotation ann) throws EnvSocialContentException {
 		String commentJSONString = ann.getData();
-		JSONObject data = new JSONObject(commentJSONString);
 		
-		String text = data.optString("text", "--");
-		JSONObject userNameInfo = data.optJSONObject("user");
-		String firstName = "Anonymous";
-		String lastName = "Guest";
-		
-		if (userNameInfo != null) {
-			firstName = userNameInfo.optString("first_name", "Anonymous");
-			lastName = userNameInfo.optString("last_name", "Guest");
+		try {
+			JSONObject data = new JSONObject(commentJSONString);
+			
+			String text = data.optString("text", "--");
+			JSONObject userNameInfo = data.optJSONObject("user");
+			String firstName = "Anonymous";
+			String lastName = "Guest";
+			
+			if (userNameInfo != null) {
+				firstName = userNameInfo.optString("first_name", "Anonymous");
+				lastName = userNameInfo.optString("last_name", "Guest");
+			}
+			
+			Map<String, String> commentStringData = new HashMap<String, String>();
+			commentStringData.put("text", text);
+			commentStringData.put("author", firstName + " " + lastName);
+			commentStringData.put("date", new SimpleDateFormat("dd MMM yyyy, HH:mm").format(ann.getTimestamp().getTime()));
+			
+			return commentStringData;
+		} catch (JSONException ex) {
+			throw new EnvSocialContentException(commentJSONString, EnvSocialResource.ANNOTATION, ex);
 		}
-		
-		Map<String, String> commentStringData = new HashMap<String, String>();
-		commentStringData.put("text", text);
-		commentStringData.put("author", firstName + " " + lastName);
-		commentStringData.put("date", new SimpleDateFormat("dd MMM yyyy, HH:mm").format(ann.getTimestamp().getTime()));
-		
-		return commentStringData;
 	}
 	
 	
@@ -220,13 +226,13 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 			
 			new SendEntryCommentTask(entryComment).execute();
 			
-		} catch (JSONException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		} catch (JSONException ex) {
+			Log.d(TAG, "Error creating comment JSON string.", ex);
+			ex.printStackTrace();
+		} 
 	}
-
+	
+	
 	private void appendComment(Annotation entryAnnotation) {
 		Map<String, String> commentStringData;
 		try {
@@ -238,9 +244,8 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 			
 			// clear edit box at the end
 			mComment.setText("");
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (EnvSocialContentException ex) {
+			Log.d(TAG, ex.getMessage() + "JSON Content :: " + ex.getContent(), ex);
 		}
 	}
 	
@@ -249,6 +254,10 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		private String entryId;
 		private Location location;
 		private Map<String, String> entry;
+		
+		// loader dialog for async task of fetching entry data and comments
+		private ProgressDialog mLoadingDialog;
+		
 		LinkedList<Map<String, String>> entryComments;
 		
 		public FetchEntryDetailTask(Location location, String entryId) {
@@ -311,11 +320,7 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		
 		@Override
 		protected Void doInBackground(Void... params) {
-			try {
-				entryComments = getEntryComments();
-			} catch (Exception ex) {
-				entryComments = null;
-			}
+			entryComments = getEntryComments();
 			
 			return null;
 		}
@@ -342,7 +347,7 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 	}
 	
 	
-	private class SendEntryCommentTask extends AsyncTask<Void, Void, Integer> {
+	private class SendEntryCommentTask extends AsyncTask<Void, Void, ResponseHolder> {
 		Annotation comment;
 		ProgressDialog commentSendDialog;
 		
@@ -357,64 +362,74 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		}
 		
 		@Override
-		protected Integer doInBackground(Void... params) {
-			try {
-				return comment.post();
-			} catch (JSONException ex) {
-				return null;
-			} catch (Exception ex) {
-				return null;
-			}
+		protected ResponseHolder doInBackground(Void... params) {
+			return comment.post();
 		}
 		
 		@Override
-		protected void onPostExecute(Integer result) {
+		protected void onPostExecute(ResponseHolder holder) {
 			commentSendDialog.cancel();
 			
-			if (result != null) {
+			if (!holder.hasError()) {
 				boolean error = false;
 				int msgId = R.string.msg_send_entry_comment_ok;
-				
-				switch(result) {
-					case HttpStatus.SC_CREATED: 					
-						error = false;
-						break;
-					
-					case HttpStatus.SC_BAD_REQUEST:
-						System.err.println("[DEBUG]>> Error sending order: " + R.string.msg_send_entry_comment_400);
-						error = true;
-						msgId = R.string.msg_send_entry_comment_400;
-						break;
-					case HttpStatus.SC_UNAUTHORIZED:
-						System.err.println("[DEBUG]>> Error sending order: " + R.string.msg_send_entry_comment_401);
-						error = true;
-						msgId = R.string.msg_send_entry_comment_401;
-						break;
-					case HttpStatus.SC_METHOD_NOT_ALLOWED:
-						System.err.println("[DEBUG]>> Error sending order: " + R.string.msg_send_entry_comment_405);
-						error = true;
-						msgId = R.string.msg_send_entry_comment_405;
-						break;
-					default:
-						error = true;
-						msgId = R.string.msg_send_entry_comment_err;
-						break;
+
+				switch(holder.getCode()) {
+				case HttpStatus.SC_CREATED: 					
+					error = false;
+					break;
+
+				case HttpStatus.SC_BAD_REQUEST:
+					error = true;
+					msgId = R.string.msg_send_entry_comment_400;
+					break;
+
+				case HttpStatus.SC_UNAUTHORIZED:
+					error = true;
+					msgId = R.string.msg_send_entry_comment_401;
+					break;
+
+				case HttpStatus.SC_METHOD_NOT_ALLOWED:
+					error = true;
+					msgId = R.string.msg_send_entry_comment_405;
+					break;
+
+				default:
+					error = true;
+					msgId = R.string.msg_send_entry_comment_err;
+					break;
 				}
-				
+
 				if (!error) {
 					appendComment(comment);
 				}
-				
+				else {
+					Log.d(TAG, "[DEBUG]>> Error sending comment: " + msgId);
+				}
+
 				Toast toast = Toast.makeText( EntryDetailsActivity.this,
 						msgId, Toast.LENGTH_LONG);
 				toast.show();
 			}
 			else {
-				Toast toast = Toast.makeText(EntryDetailsActivity.this, 
-						R.string.msg_service_unavailable, Toast.LENGTH_LONG);
+				int msgId = R.string.msg_service_unavailable;
+
+				try {
+					throw holder.getError();
+				} catch (EnvSocialComException e) {
+					Log.d(TAG, e.getMessage(), e);
+					msgId = R.string.msg_service_unavailable;
+				} catch (EnvSocialContentException e) {
+					Log.d(TAG, e.getMessage(), e);
+					msgId = R.string.msg_service_error;
+				} catch (Exception e) {
+					Log.d(TAG, e.toString(), e);
+					msgId = R.string.msg_service_error;
+				}
+
+				Toast toast = Toast.makeText(EntryDetailsActivity.this, msgId, Toast.LENGTH_LONG);
 				toast.show();
 			}
-			
 		}
 	}
 	

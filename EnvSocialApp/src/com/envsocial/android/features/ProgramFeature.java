@@ -8,9 +8,11 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.envsocial.android.api.AppClient;
 import com.envsocial.android.api.Location;
@@ -19,6 +21,7 @@ import com.envsocial.android.features.program.ProgramDbHelper;
 import com.envsocial.android.utils.ResponseHolder;
 
 public class ProgramFeature extends Feature {
+	private static final String TAG = "ProgramFeature";
 	public static final String ENTRY_QUERY_TYPE = "entry";
 	
 	public ProgramFeature(String category) {
@@ -54,15 +57,16 @@ public class ProgramFeature extends Feature {
 			new String[] { locationId, Feature.PROGRAM, ProgramFeature.ENTRY_QUERY_TYPE, entryId}
 		);
 		
-		System.out.println("[DEBUG] >> API query for entry: " + url.toString());
+		//System.out.println("[DEBUG] >> API query for entry: " + url.toString());
+		
 		
 		try {
 			HttpResponse response = client.makeGetRequest(url.toString());
-			ResponseHolder holder = new ResponseHolder(response);
+			ResponseHolder holder = ResponseHolder.parseResponse(response);
 			
-			if (holder.getCode() == HttpStatus.SC_OK) {
+			if (!holder.hasError() && holder.getCode() == HttpStatus.SC_OK) {
 				// if all is Ok the response will be a list of program features with a single entry
-				JSONObject featuresJSON = holder.getData();
+				JSONObject featuresJSON = holder.getJsonContent();
 				JSONArray featureList = featuresJSON.optJSONArray("objects");
 				
 				if (featureList != null) {
@@ -79,15 +83,11 @@ public class ProgramFeature extends Feature {
 						return entry;
 					}
 				}
-				
 			}
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			// TODO Auto-generated catch blocks
-			e.printStackTrace();
+			Log.d(TAG, e.toString());
+		} catch (JSONException e) {
+			Log.d(TAG, e.toString());
 		}
 		
 		return null;
@@ -106,11 +106,11 @@ public class ProgramFeature extends Feature {
 		
 		try {
 			HttpResponse response = client.makeGetRequest(url.toString());
-			ResponseHolder holder = new ResponseHolder(response);
+			ResponseHolder holder = ResponseHolder.parseResponse(response);
 			
-			if (holder.getCode() == HttpStatus.SC_OK) {
+			if (!holder.hasError() && holder.getCode() == HttpStatus.SC_OK) {
 				// if all is Ok the response will be a list of program features with a single entry
-				JSONObject featuresJSON = holder.getData();
+				JSONObject featuresJSON = holder.getJsonContent();
 				JSONArray featureList = featuresJSON.optJSONArray("objects");
 				
 				if (featureList != null) {
@@ -134,13 +134,10 @@ public class ProgramFeature extends Feature {
 					return featureDataMap;
 				}
 			}
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
+			Log.d(TAG, e.toString());
 		} catch (Exception e) {
-			// TODO Auto-generated catch blocks
-			e.printStackTrace();
+			Log.d(TAG, e.toString());
 		}
 		
 		return null;

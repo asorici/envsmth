@@ -144,11 +144,10 @@ class CheckinForm(forms.Form):
         area = cleaned_data.get("area")
     
         if environment is None and area is None:
-            raise forms.ValidationError("Environment and Area data are both missing. At least one is required.")
+            raise forms.ValidationError("Location data is missing.")
         
         if environment and area and area.environment != environment:
-            raise forms.ValidationError("Environment and Area data is contradictory." + 
-                                        "Environment and Area.Environment don't match.")
+            raise forms.ValidationError("Location data is inconsistent. Please repeat checkin.")
         
         return cleaned_data
     
@@ -163,7 +162,6 @@ class LoginForm(forms.Form):
     
     def clean(self):
         from django.contrib.auth import authenticate
-        from django.utils.translation import ugettext_lazy as _
         
         cleaned_data = super(LoginForm, self).clean()
         

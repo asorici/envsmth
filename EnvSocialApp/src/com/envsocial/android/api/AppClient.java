@@ -6,7 +6,6 @@ import java.util.List;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -16,9 +15,9 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 
-import com.envsocial.android.utils.Preferences;
-
 import android.content.Context;
+
+import com.envsocial.android.utils.Preferences;
 
 public class AppClient {
 	
@@ -34,7 +33,7 @@ public class AppClient {
 	
 	/** Make a post request given payload as list of name-value pairs */
 	public HttpResponse makePostRequest(String url, List<NameValuePair> data, 
-			String[] headerName, String[] headerValue) throws ClientProtocolException, IOException {
+			String[] headerName, String[] headerValue) throws IOException {
 		
 		HttpPost postRequest = new HttpPost(url);
 		postRequest = (HttpPost) addHeaders(postRequest, headerName, headerValue);
@@ -45,7 +44,7 @@ public class AppClient {
 	
 	/** Make a post request given payload as JSON string */
 	public HttpResponse makePostRequest(String url, String data, 
-			String[] headerName, String[] headerValue) throws ClientProtocolException, IOException {
+			String[] headerName, String[] headerValue) throws IOException {
 		
 		HttpPost postRequest = new HttpPost(url);
 		postRequest = (HttpPost) addHeaders(postRequest, headerName, headerValue);
@@ -55,14 +54,14 @@ public class AppClient {
 	}
 	
 	/** Make a get request, no headers */
-	public HttpResponse makeGetRequest(String url) throws ClientProtocolException, IOException {
+	public HttpResponse makeGetRequest(String url) throws IOException {
 		HttpGet getRequest = new HttpGet(url);
 		return makeRequest(getRequest);
 	}
 	
 	/** Make a put request given payload as JSON string */
 	public HttpResponse makePutRequest(String url, String data, 
-			String[] headerName, String[] headerValue) throws ClientProtocolException, IOException {
+			String[] headerName, String[] headerValue) throws IOException {
 		
 		HttpPut putRequest = new HttpPut(url);
 		putRequest = (HttpPut) addHeaders(putRequest, headerName, headerValue);
@@ -71,13 +70,13 @@ public class AppClient {
 		return makeRequest(putRequest);
 	}
 	
-	public HttpResponse makeDeleteRequest(String url) throws ClientProtocolException, IOException {
+	public HttpResponse makeDeleteRequest(String url) throws IOException {
 		HttpDelete delRequest = new HttpDelete(url);
 		return makeRequest(delRequest);
 	}
 
 	
-	private HttpResponse makeRequest(HttpUriRequest r) throws ClientProtocolException, IOException {
+	private HttpResponse makeRequest(HttpUriRequest r) throws IOException {
 		// Check if we have a session
 		String sessionCookie = Preferences.getStringPreference(mContext, SESSIONID);
 		if (sessionCookie != null) {

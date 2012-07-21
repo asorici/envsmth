@@ -1,23 +1,24 @@
 package com.envsocial.android;
 
-import org.json.JSONException;
+import org.apache.http.HttpStatus;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.ActionBar.Tab;
 import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
-
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
-
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Location;
+import com.envsocial.android.api.exceptions.EnvSocialComException;
+import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
 import com.envsocial.android.features.order.OrderFragment;
 import com.envsocial.android.features.order.OrderManagerFragment;
@@ -27,10 +28,10 @@ import com.envsocial.android.fragment.DefaultFragment;
 import com.envsocial.android.utils.C2DMReceiver;
 import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
-import com.google.android.c2dm.C2DMessaging;
 
 
 public class DetailsActivity extends SherlockFragmentActivity {
+	private static final String TAG = "DetailsActivity";
 	
 	public static final String ORDER_MANAGEMENT_FEATURE = "order_management";
 	public static final String REGISTER_CD2M_ITEM = "Notifications On";
@@ -55,46 +56,13 @@ public class DetailsActivity extends SherlockFragmentActivity {
         mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         
         String checkinUrl = getIntent().getStringExtra(ActionHandler.CHECKIN);
-        
-        // mLocation gets initialized
-        try {
-			checkin(checkinUrl);
-		} catch (JSONException e) {
-			e.printStackTrace();
-			setResult(RESULT_CANCELED);
-			Toast toast = Toast.makeText(this, R.string.msg_bad_checkin_response, Toast.LENGTH_LONG);
-			toast.show();
-	    	finish();
-	    	return;
-		} catch (Exception e) {
-			e.printStackTrace();
-			setResult(RESULT_CANCELED);
-			Toast toast = Toast.makeText(this, R.string.msg_service_unavailable, Toast.LENGTH_LONG);
-			toast.show();
-	    	finish();
-	    	return;
-		}
-        
-        // TODO: fix padding issue in action bar style xml
-        mActionBar.setTitle("     " + mLocation.getName());
-        
-        // We have location by now, so add tabs
-        addFeatureTabs();
-        String feature = getIntent().getStringExtra(C2DMReceiver.FEATURE);
-        if (feature != null) {
-        	// TODO
-        	mActionBar.selectTab(mOrderManagementTab);
-        }
+        checkin(checkinUrl);
 	}
 	
 	
-	private void checkin(String checkinUrl) throws JSONException, Exception {
+	private void checkin(String checkinUrl) {
 		// Perform check in
-		ResponseHolder holder = ActionHandler.checkin(this, checkinUrl);
-		if (holder == null) {
-			throw new Exception("Bad answer from server.");
-		}
-		mLocation = (Location) holder.getTag();
+		new CheckinTask(checkinUrl).execute();
 	}
 	
 	private void addFeatureTabs() {
@@ -109,7 +77,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 					this, Feature.DESCRIPTION, DefaultFragment.class, mLocation));
         	actionBar.addTab(mDefaultTab);	
         }
-        
+         
         if (mLocation.hasFeature(Feature.PROGRAM)) {
         	mProgramTab = actionBar.newTab()
 			.setText(R.string.tab_program)
@@ -146,42 +114,6 @@ public class DetailsActivity extends SherlockFragmentActivity {
         }
 	}
 	
-	/*
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		System.err.println("[DEBUG]>> In tab order manager menu creator: " + mActionBar.getSelectedTab().getText());
-		
-		//if (mActionBar.getSelectedTab().getText().equals(R.string.tab_order_manager)) {
-			menu.add(REGISTER_CD2M_ITEM);
-			menu.add(UNREGISTER_CD2M_ITEM);
-		//}
-		
-		return true;
-	}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		
-		if (item.getTitle().toString().compareTo(REGISTER_CD2M_ITEM) == 0) {
-			String regId = C2DMessaging.getRegistrationId(this);
-            if (regId != null && !"".equals(regId)) {
-            	try {
-            		ActionHandler.registerWithServer(this, regId);
-            	} catch (Exception e) {
-            		e.printStackTrace();
-            	}
-            } else {
-                C2DMessaging.register(this, C2DMReceiver.SENDER_ID);
-            }
-		}
-		
-		if (item.getTitle().toString().compareTo(UNREGISTER_CD2M_ITEM) == 0) {
-			C2DMessaging.unregister(this);
-		}
-		
-		return true;
-	}
-	*/
 	
 	public static class TabListener<T extends SherlockFragment> implements ActionBar.TabListener {
 
@@ -242,4 +174,78 @@ public class DetailsActivity extends SherlockFragmentActivity {
 		}		
 	}
 
+	private class CheckinTask extends AsyncTask<Void, Void, ResponseHolder> {
+		private ProgressDialog mLoadingDialog;
+		private String checkinUrl;
+		
+		public CheckinTask(String checkinUrl) {
+			this.checkinUrl = checkinUrl;
+		}
+
+		@Override
+		protected void onPreExecute() {
+			mLoadingDialog = ProgressDialog.show(DetailsActivity.this, 
+					"", "Check in ...", true);
+		}
+		
+		@Override
+		protected ResponseHolder doInBackground(Void...args) {
+			return ActionHandler.checkin(DetailsActivity.this, checkinUrl);
+		}
+		
+		@Override
+		protected void onPostExecute(ResponseHolder holder) {
+			mLoadingDialog.cancel();
+			
+			if (!holder.hasError()) {
+				if (holder.getCode() == HttpStatus.SC_OK) {
+					mLocation = (Location) holder.getTag();
+
+					// TODO: fix padding issue in action bar style xml
+					mActionBar.setTitle("     " + mLocation.getName());
+
+					// We have location by now, so add tabs
+					addFeatureTabs();
+					String feature = getIntent().getStringExtra(C2DMReceiver.FEATURE);
+					if (feature != null) {
+						// TODO
+						mActionBar.selectTab(mOrderManagementTab);
+					}
+				}
+				else if (holder.getCode() == HttpStatus.SC_INTERNAL_SERVER_ERROR) {
+					setResult(RESULT_CANCELED);
+					Toast toast = Toast.makeText(getApplicationContext(), R.string.msg_bad_checkin_response, Toast.LENGTH_LONG);
+					toast.show();
+					finish();
+				}
+				else {
+					setResult(RESULT_CANCELED);
+					Toast toast = Toast.makeText(getApplicationContext(), R.string.msg_malformed_checkin_url, Toast.LENGTH_LONG);
+					toast.show();
+					finish();
+				}
+			}
+			else {
+				int msgId = R.string.msg_service_unavailable;
+
+				try {
+					throw holder.getError();
+				} catch (EnvSocialComException e) {
+					Log.d(TAG, e.getMessage(), e);
+					msgId = R.string.msg_service_unavailable;
+				} catch (EnvSocialContentException e) {
+					Log.d(TAG, e.getMessage(), e);
+					msgId = R.string.msg_bad_checkin_response;
+				} catch (Exception e) {
+					Log.d(TAG, e.toString(), e);
+					msgId = R.string.msg_service_error;
+				}
+
+				setResult(RESULT_CANCELED);
+				Toast toast = Toast.makeText(getApplicationContext(), msgId, Toast.LENGTH_LONG);
+				toast.show();
+				finish();
+			}
+		}
+	}
 }

@@ -69,9 +69,13 @@
     <!-- Message -->
     <string name="msg_internal_error">Oops. Internal Error.</string>
     <string name="msg_malformed_checkin_url">The scanned QR Code is not an EnvSocial QR code.</string>
-    <string name="msg_bad_checkin_response">Service problem. Please try again later.</string>
+    <string name="msg_bad_checkin_response">Service checkin problem or wrong URI. Please try again later.</string>
+    <string name="msg_bad_login_response">Service login problem. Please try again later.</string>
+    <string name="msg_bad_register_response">Service registration problem. Please try again later.</string>
+    
     <string name="msg_unauthorized_login">Incorrect email and / or password.</string>
     <string name="msg_service_unavailable">Service is currently unavailable.</string>
+    <string name="msg_service_error">Service error. Please try again later.</string>
     
     <string name="msg_registration_details_required">Please fill in the First Name and Last Name fields.</string>
     <string name="msg_registration_details_check">Please check validity of your registration information.</string>
