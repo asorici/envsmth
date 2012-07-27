@@ -83,10 +83,6 @@ public class PeopleListAdapter extends BaseAdapter {
 			ResearchSubProfile subProfile = (ResearchSubProfile)u.getUserData().getSubProfile(UserSubProfileType.researchprofile);
 			
 			if (subProfile != null) {
-				//System.err.println("[DEBUG] >> research sub profile for user: " + holder.name.getText() + ".");
-				//System.err.println("[DEBUG] >> research sub profile affiliation: " + subProfile.getAffiliation() + ".");
-				//System.err.println("[DEBUG] >> research sub profile interests: " + subProfile.getResearchInterests() + ".");
-				
 				holder.affiliation.setText(subProfile.getAffiliation());
 				
 				String researchInterestString = "";

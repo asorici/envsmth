@@ -1,0 +1,11 @@
+<!-- The attributes below configure the Android search box appearance
+     and the search suggestions settings.
+     See the Developer Guide for more information
+     http://developer.android.com/guide/topics/search/
+ -->
+<searchable xmlns:android="http://schemas.android.com/apk/res/android"
+        android:label="@string/feature_search_label"
+        android:hint="@string/feature_search_hint"
+        android:searchSettingsDescription="@string/feature_settings_description"
+        >
+ </searchable>

@@ -23,7 +23,6 @@ import com.envsocial.android.api.Location;
 import com.envsocial.android.api.Url;
 import com.envsocial.android.api.exceptions.EnvSocialComException;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
-import com.envsocial.android.features.program.EntryDetailsActivity;
 import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
 import com.google.zxing.integration.android.IntentIntegrator;
@@ -169,6 +168,11 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
+		// add the search button
+		MenuItem item = menu.add(R.string.menu_search);
+        item.setIcon(R.drawable.ic_menu_search);
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+		
 		if (Preferences.isLoggedIn(this)) {
 			menu.add(SIGN_OUT);
 		}
@@ -179,6 +183,10 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getTitle().toString().compareTo(SIGN_OUT) == 0) {
 			new LogoutTask().execute();
+		}
+		
+		else if (item.getTitle().toString().compareTo(getString(R.string.menu_search)) == 0) {
+			return onSearchRequested();
 		}
 		
 		return true;

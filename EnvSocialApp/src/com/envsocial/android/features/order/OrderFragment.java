@@ -52,14 +52,24 @@ public class OrderFragment extends SherlockFragment implements OnClickListener {
 	    super.onCreate(savedInstanceState);
 	}
 	
+	/*
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		Log.i(TAG, "[INFO] ------------- onActivityCreated called -----------------");
+		super.onActivityCreated(savedInstanceState);
+	}
+	*/
+	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 							Bundle savedInstanceState) {
+		Log.i(TAG, "[INFO] onCreateView called.");
+		
 		// Inflate layout for this fragment.
 		View v = inflater.inflate(R.layout.catalog, container, false);
 		
 		mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
-		String menuJSON = mLocation.getFeatureData(Feature.ORDER);
+		String menuJSON = mLocation.getFeatureData(Feature.ORDER).getSerializedData();
 		
 		try {
 			mOrderMenu = new OrderMenu(menuJSON);

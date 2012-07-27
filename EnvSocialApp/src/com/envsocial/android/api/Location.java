@@ -10,6 +10,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.util.Log;
+
+import com.envsocial.android.features.Feature;
+
 public class Location implements Serializable {
 	
 	private static final long serialVersionUID = -1700484963112613638L;
@@ -26,7 +30,7 @@ public class Location implements Serializable {
 	private String mUri;
 	private int mType;
 	private String mName;
-	private Map<String,String> mFeatures;
+	private Map<String, Feature> mFeatures;
 	private List<String> mTags;
 	private String mParent;
 	
@@ -82,14 +86,25 @@ public class Location implements Serializable {
 		}
 		
 		// Get features
-		mFeatures = new HashMap<String,String>();
+		mFeatures = new HashMap<String, Feature>();
 		JSONArray array = locationData.getJSONArray("features");
 		int len = array.length();
 		for (int i = 0; i < len; ++ i) {
 			JSONObject item = array.getJSONObject(i);
-			String category = item.getString("category");
-			String featureData = item.getString("data");
-			mFeatures.put(category, featureData);
+			String category = item.optString("category", null);
+			String environmentUri = item.optString("environment", null);
+			String areaUri = item.optString("area", null);
+			String resourceUri = item.optString("resource_uri", null);
+			String featureData = item.optString("data", null);
+			
+			Feature feat = null;
+			try {
+				feat = Feature.getInstance(category, resourceUri, environmentUri, areaUri, featureData);
+			} catch (IllegalArgumentException ex) {
+				Log.d("Location", ex.getMessage());
+			}
+			
+			mFeatures.put(category, feat);
 		}
 		
 		// Get tags
@@ -148,12 +163,12 @@ public class Location implements Serializable {
 		return mOwnerEmail.compareToIgnoreCase(email) == 0;
 	}
 	
-	public String getFeatureData(String feature) {
-		return mFeatures.get(feature);
+	public Feature getFeatureData(String category) {
+		return mFeatures.get(category);
 	}
 	
-	public boolean hasFeature(String feature) {
-		return mFeatures.get(feature) != null;
+	public boolean hasFeature(String category) {
+		return mFeatures.get(category) != null;
 	}
 	
 	public List<String> getTags() {

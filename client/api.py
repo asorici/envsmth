@@ -187,9 +187,13 @@ class EnvironmentResource(ModelResource):
     def dehydrate_features(self, bundle):
         ## return a list of dictionary values from the features of this environment
         feature_list = []
-        for feature in bundle.obj.features.all().select_subclasses():
+        for feature in bundle.obj.features.select_subclasses():
             feat_dict = feature.to_serializable()
             if feat_dict:
+                ## attach resource_uri and environment_uri
+                feat_dict['resource_uri'] = FeatureResource().get_resource_uri(feature)
+                feat_dict['environment'] = self.get_resource_uri(bundle)
+                feat_dict['area'] = None
                 feature_list.append(feat_dict)
                 
         return feature_list
@@ -272,10 +276,13 @@ class AreaResource(ModelResource):
         for feature in bundle.obj.features.all().select_subclasses():
             feat_dict = feature.to_serializable()
             if feat_dict:
+                ## attach resource_uri and area_uri
+                feat_dict['resource_uri'] = FeatureResource().get_resource_uri(feature)
+                feat_dict['area'] = self.get_resource_uri(bundle)
+                feat_dict['environment'] = None
                 feature_list.append(feat_dict)
         
         ## then see if environment features which also apply to the area are available - e.g. program, order
-        ## we handle the "program" case for now
         environment = bundle.obj.environment
         environment_features = environment.features.select_subclasses().filter(is_general = True)
         
@@ -317,7 +324,7 @@ class FeatureResource(ModelResource):
         queryset = Feature.objects.all().select_subclasses()
         resource_name = 'feature'
         allowed_methods = ['get']
-        excludes = ['id', 'timestamp']
+        excludes = ['id', 'timestamp', 'is_general']
         filtering = {
             'area' : ['exact'],
             'environment' : ['exact'],
@@ -336,6 +343,40 @@ class FeatureResource(ModelResource):
             return super(FeatureResource, self).get_list(request, **kwargs)
         else:
             raise ImmediateHttpResponse(response=http.HttpMethodNotAllowed())
+    
+    
+    def get_object_list(self, request):
+        from django.db.models import Q
+        
+        feature_obj_list = super(FeatureResource, self).get_object_list(request)
+        
+        
+        if 'area' in request.GET:
+            area_id = request.GET['area']
+            try:
+                area = Area.objects.get(id = area_id)
+                q1 = Q(area = area)
+                q2 = Q(environment = area.environment) & Q(is_general = True)
+                
+                return feature_obj_list.filter(q1 | q2)
+            except Area.DoesNotExist:
+                raise ImmediateHttpResponse(response=http.HttpBadRequest())
+        
+        
+        return feature_obj_list
+    
+    
+    def build_filters(self, filters = None):
+        
+        if filters is None:
+            filters = {}
+        
+        if 'area' in filters:
+            ## remove the filter since it has been handled in get_obj_list
+            del filters['area']
+          
+        orm_filters = super(FeatureResource, self).build_filters(filters)
+        return orm_filters
     
     
     def dehydrate_data(self, bundle):
@@ -370,7 +411,7 @@ class AnnouncementResource(ModelResource):
             raise ImmediateHttpResponse(response=http.HttpMethodNotAllowed())
         
     
-    def get_obj_list(self, request):
+    def get_object_list(self, request):
         ## override the usual obj_list retrieval by filtering out only the yet to be given announcements 
         ## for the current environment (which we **know** must exist) 
         timestamp = datetime.now()

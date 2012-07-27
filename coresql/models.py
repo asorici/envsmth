@@ -343,7 +343,7 @@ class Feature(models.Model):
             return "feature type(" + self.category + ") but no location assigned -- needs fix"
     
     def get_feature_data(self, filters):
-        return None
+        return self.to_serializable()['data']
 
 ####################################### Default Feature Class #############################################
 class DescriptionFeature(Feature):

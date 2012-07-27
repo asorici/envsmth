@@ -2,9 +2,30 @@
 <resources>
 
     <string name="hello">Hello World, EnvSocialAppActivity!</string>
-    <string name="app_name">EnvSocialApp</string>
+    <string name="app_name">Envived</string>
+    
+    <!-- Search labels -->
+    <!-- The label for use as a searchable item -->
+    <string name="main_search_label">Envived</string>
+    <string name="feature_search_label">Envived</string>
+    
+    <string name="main_search_hint">Search Envived locations</string>
+    <string name="feature_search_hint">Search location feature</string>
+    
+    <string name="main_settings_description">Selections for current environment</string>
+    <string name="feature_settings_description">Feature data of the current location</string>
+    
+    <plurals name="search_results">
+      <item quantity="one">%1$d result for \"%2$s\": </item>
+      <item quantity="other">%1$d results for \"%2$s\": </item>
+    </plurals>
+    <string name="search_no_results">No results found for \"%s\"</string>
+    <string name="menu_search">Search</string>
+    
+    
     
     <string name="menu_test">Test!</string>
+    
     
     <!-- Menu item names -->
     <string name="item_register_order_notifications">Start notifications</string>
@@ -34,6 +55,7 @@
     <string name="btn_c2dm_reg">Register C2DM</string>
     <string name="btn_c2dm_unreg">Unregister C2DM</string>
     
+    
     <!-- Labels -->
     <string name="lbl_login">Log in</string>
     <string name="lbl_register">Create Your Envived Account</string>
@@ -59,12 +81,14 @@
     <string name="lbl_people_research_interests">Research Interests:</string>
     <string name="lbl_authenticated_users">Authenticated Users:</string>
     
+    
     <!-- Tabs -->
     <string name="tab_description">Details</string>
     <string name="tab_program">Program</string>
     <string name="tab_order">Order</string>
     <string name="tab_order_manager">Order Manager</string>
     <string name="tab_people">People</string>
+    
     
     <!-- Message -->
     <string name="msg_internal_error">Oops. Internal Error.</string>
@@ -80,8 +104,10 @@
     <string name="msg_registration_details_required">Please fill in the First Name and Last Name fields.</string>
     <string name="msg_registration_details_check">Please check validity of your registration information.</string>
     
+    
     <!-- Feature OK Messages -->
     <string name="msg_send_order_ok">Order sent.</string>
+    
     
     <!-- Feature Error Messages -->
     <string name="msg_send_order_err">Service error sending order.</string>
@@ -111,6 +137,7 @@
     
     <!-- Notifications -->
     <string name="incoming_order">New order</string>
+
 
     <!-- Action strings -->
     <string name="action_notification">com.envsocial.android.intent.RECEIVE_NOTIFICATION</string>

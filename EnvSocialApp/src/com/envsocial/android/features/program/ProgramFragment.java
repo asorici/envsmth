@@ -11,6 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -27,6 +28,7 @@ import com.envsocial.android.api.Location;
 import com.envsocial.android.features.Feature;
 
 public class ProgramFragment extends SherlockFragment implements OnClickListener {
+	private static final String TAG = "ProgramFragment";
 	
 	private Location mLocation;
 	private ProgramListAdapter mAdapter;
@@ -36,6 +38,12 @@ public class ProgramFragment extends SherlockFragment implements OnClickListener
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+	    //super.onCreate(savedInstanceState);
+	    //mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
+	}
+	
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 	    mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
 	}
@@ -43,11 +51,13 @@ public class ProgramFragment extends SherlockFragment implements OnClickListener
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 							Bundle savedInstanceState) {
+		Log.i(TAG, "[INFO] onCreateView called.");
+		
 		// Inflate layout for this fragment.
 		View view = inflater.inflate(R.layout.program, container, false);
 		
 		try {
-			String programJSON = mLocation.getFeatureData(Feature.PROGRAM);
+			String programJSON = mLocation.getFeatureData(Feature.PROGRAM).getSerializedData();
 			
 			// Parse program's JSON
 			JSONObject program = (JSONObject) new JSONObject(programJSON).getJSONObject("program");
@@ -88,6 +98,7 @@ public class ProgramFragment extends SherlockFragment implements OnClickListener
 				dayView.setBackgroundColor(getResources().getColor(R.color.dark_green));
 				mDayScroll.addView(dayView);
 			}
+			
 			mDayScroll.getChildAt(currentDayIndex).setBackgroundColor(getResources().getColor(R.color.light_green));
 			
 			ListView listView = (ListView) view.findViewById(R.id.program);

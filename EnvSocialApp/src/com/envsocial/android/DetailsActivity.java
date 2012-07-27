@@ -3,11 +3,16 @@ package com.envsocial.android;
 import org.apache.http.HttpStatus;
 
 import android.app.Activity;
+import android.app.LoaderManager.LoaderCallbacks;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -15,27 +20,32 @@ import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.ActionBar.Tab;
 import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.api.exceptions.EnvSocialComException;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
+import com.envsocial.android.features.description.DescriptionFragment;
 import com.envsocial.android.features.order.OrderFragment;
 import com.envsocial.android.features.order.OrderManagerFragment;
 import com.envsocial.android.features.people.PeopleFragment;
 import com.envsocial.android.features.program.ProgramFragment;
-import com.envsocial.android.fragment.DefaultFragment;
 import com.envsocial.android.utils.C2DMReceiver;
 import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
 
 
-public class DetailsActivity extends SherlockFragmentActivity {
+public class DetailsActivity extends SherlockFragmentActivity implements LoaderManager.LoaderCallbacks<Location> {
 	private static final String TAG = "DetailsActivity";
 	
 	public static final String ORDER_MANAGEMENT_FEATURE = "order_management";
 	public static final String REGISTER_CD2M_ITEM = "Notifications On";
 	public static final String UNREGISTER_CD2M_ITEM = "Notifications Off";
+	
+	public static final int LOCATION_LOADER = 0;
+	public static final int FEATURE_LOADER = 1;
 	
 	private Location mLocation;
 	
@@ -50,15 +60,71 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        Log.i(TAG, "[INFO] running onCreate in DetailsActivity");
         setContentView(R.layout.details);
         
         mActionBar = getSupportActionBar();
         mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         
         String checkinUrl = getIntent().getStringExtra(ActionHandler.CHECKIN);
+        
+        //Bundle loaderBundle = new Bundle();
+        //loaderBundle.putString("CHECKIN_URL", checkinUrl);
+        //getSupportLoaderManager().initLoader(0, loaderBundle, this);
+        
         checkin(checkinUrl);
 	}
 	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// add the search button
+		MenuItem item = menu.add(getText(R.string.menu_search));
+        item.setIcon(R.drawable.ic_menu_search);
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+		
+    	return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		
+		if (item.getTitle().toString().compareTo(getString(R.string.menu_search)) == 0) {
+			return onSearchRequested();
+		}
+		
+		return true;
+	}
+	
+	@Override
+	public void onStart() {
+		Log.i(TAG, "[INFO] -------- ON START CALLED --------");
+		super.onStart();
+	}
+	
+	@Override
+	public void onRestart() {
+		Log.i(TAG, "[INFO] -------- ON RESTART CALLED --------");
+		super.onRestart();
+	}
+	
+	@Override
+	public void onPause() {
+		Log.i(TAG, "[INFO] -------- ON PAUSE CALLED --------");
+		super.onPause();
+	}
+	
+	@Override
+	public void onStop() {
+		Log.i(TAG, "[INFO] -------- ON STOP CALLED --------");
+		super.onStop();
+	}
+	
+	@Override
+	public void onResume() {
+		Log.i(TAG, "[INFO] -------- ON RESUME CALLED --------");
+		super.onResume();
+	}
 	
 	private void checkin(String checkinUrl) {
 		// Perform check in
@@ -73,8 +139,8 @@ public class DetailsActivity extends SherlockFragmentActivity {
         	System.out.println("[DEBUG] >> Creating DESCRIPTION tab");
         	mDefaultTab = actionBar.newTab()
 			.setText(R.string.tab_description)
-			.setTabListener(new TabListener<DefaultFragment>(
-					this, Feature.DESCRIPTION, DefaultFragment.class, mLocation));
+			.setTabListener(new TabListener<DescriptionFragment>(
+					this, Feature.DESCRIPTION, DescriptionFragment.class, mLocation));
         	actionBar.addTab(mDefaultTab);	
         }
          
@@ -144,12 +210,12 @@ public class DetailsActivity extends SherlockFragmentActivity {
 				bundle.putSerializable(ActionHandler.CHECKIN, mLocation);
 				mFragment.setArguments(bundle);
 				
-				System.out.println("[DEBUG]>> Adding fragment " + mClass.getName());
+				Log.i(TAG, "[DEBUG]>> Adding fragment " + mClass.getName());
 				ft.add(R.id.details_containter, mFragment, mTag);
-				System.out.println("[DEBUG]>> Adding ok!");
+				Log.i(TAG, "[DEBUG]>> Adding ok!");
 			} else {
 				// If the fragment exists, attach it in order to show it
-				System.out.println("[DEBUG]>> Attaching fragment.");
+				Log.i(TAG, "[DEBUG]>> Attaching fragment.");
 				ft.attach(mFragment);
 			}
 			
@@ -173,7 +239,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 			// Do nothing.
 		}		
 	}
-
+	
 	private class CheckinTask extends AsyncTask<Void, Void, ResponseHolder> {
 		private ProgressDialog mLoadingDialog;
 		private String checkinUrl;
@@ -227,7 +293,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 			}
 			else {
 				int msgId = R.string.msg_service_unavailable;
-
+				
 				try {
 					throw holder.getError();
 				} catch (EnvSocialComException e) {
@@ -248,4 +314,204 @@ public class DetailsActivity extends SherlockFragmentActivity {
 			}
 		}
 	}
+
+	@Override
+	public Loader<Location> onCreateLoader(int loaderId, Bundle args) {
+		// TODO Auto-generated method stub
+		String checkinUrl = args.getString("CHECKIN_URL");
+		return new LocationLoader(this, checkinUrl);
+	}
+
+	@Override
+	public void onLoadFinished(Loader<Location> loader, Location location) {
+		LocationLoader locLoader = (LocationLoader)loader;
+		ResponseHolder holder = locLoader.getHolder();
+		
+		if (!holder.hasError()) {
+			if (holder.getCode() == HttpStatus.SC_OK) {
+				mLocation = location;
+
+				// TODO: fix padding issue in action bar style xml
+				mActionBar.setTitle("     " + mLocation.getName());
+
+				// We have location by now, so add tabs
+				addFeatureTabs();
+				String feature = getIntent().getStringExtra(C2DMReceiver.FEATURE);
+				if (feature != null) {
+					// TODO
+					mActionBar.selectTab(mOrderManagementTab);
+				}
+			}
+			else if (holder.getCode() == HttpStatus.SC_INTERNAL_SERVER_ERROR) {
+				setResult(RESULT_CANCELED);
+				Toast toast = Toast.makeText(getApplicationContext(), R.string.msg_bad_checkin_response, Toast.LENGTH_LONG);
+				toast.show();
+				finish();
+			}
+			else {
+				setResult(RESULT_CANCELED);
+				Toast toast = Toast.makeText(getApplicationContext(), R.string.msg_malformed_checkin_url, Toast.LENGTH_LONG);
+				toast.show();
+				finish();
+			}
+		}
+		else {
+			int msgId = R.string.msg_service_unavailable;
+			
+			try {
+				throw holder.getError();
+			} catch (EnvSocialComException e) {
+				Log.d(TAG, e.getMessage(), e);
+				msgId = R.string.msg_service_unavailable;
+			} catch (EnvSocialContentException e) {
+				Log.d(TAG, e.getMessage(), e);
+				msgId = R.string.msg_bad_checkin_response;
+			} catch (Exception e) {
+				Log.d(TAG, e.toString(), e);
+				msgId = R.string.msg_service_error;
+			}
+
+			setResult(RESULT_CANCELED);
+			Toast toast = Toast.makeText(getApplicationContext(), msgId, Toast.LENGTH_LONG);
+			toast.show();
+			finish();
+		}
+	}
+
+	@Override
+	public void onLoaderReset(Loader<Location> loader) {
+		// Clear the current location data
+		mLocation = null;
+	}
+	
+	
+	/**
+     * A custom Loader that loads all of the installed applications.
+     */
+    public static class LocationLoader extends AsyncTaskLoader<Location> {
+        private Location mCurrentLocation;
+        private ResponseHolder holder;
+    	private String checkinUrl;
+        
+        public LocationLoader(Context context, String checkinUrl) {
+        	super(context);
+        	this.checkinUrl = checkinUrl;
+        }
+
+        /**
+         * This is where the bulk of our work is done.  This function is
+         * called in a background thread and should generate a new set of
+         * data to be published by the loader.
+         */
+        @Override public Location loadInBackground() {
+            final Context context = getContext();
+
+            holder = ActionHandler.checkin(context, checkinUrl);
+            mCurrentLocation = null;
+            if (!holder.hasError() && holder.getCode() == HttpStatus.SC_OK) {
+            	mCurrentLocation = (Location)holder.getTag(); 
+            }
+            
+            return mCurrentLocation;
+            
+        }
+
+        
+        
+        /**
+         * Called when there is new data to deliver to the client.  The
+         * super class will take care of delivering it; the implementation
+         * here just adds a little more logic.
+         */
+        @Override public void deliverResult(Location location) {
+            if (isReset()) {
+                // An async query came in while the loader is stopped.  We
+                // don't need the result.
+                if (mCurrentLocation != null) {
+                    onReleaseResources(mCurrentLocation);
+                }
+            }
+            Location oldLocation = location;
+            mCurrentLocation = location;
+
+            if (isStarted()) {
+                // If the Loader is currently started, we can immediately
+                // deliver its results.
+                super.deliverResult(location);
+            }
+
+            // At this point we can release the resources associated with
+            // 'oldApps' if needed; now that the new result is delivered we
+            // know that it is no longer in use.
+            if (oldLocation != null) {
+                onReleaseResources(oldLocation);
+            }
+        }
+
+        /**
+         * Handles a request to start the Loader.
+         */
+        @Override protected void onStartLoading() {
+            if (mCurrentLocation != null) {
+                // If we currently have a result available, deliver it
+                // immediately.
+                deliverResult(mCurrentLocation);
+            }
+
+            if (takeContentChanged() || mCurrentLocation == null ) {
+                // If the data has changed since the last time it was loaded
+                // or is not currently available, start a load.
+                forceLoad();
+            }
+        }
+
+        /**
+         * Handles a request to stop the Loader.
+         */
+        @Override protected void onStopLoading() {
+            // Attempt to cancel the current load task if possible.
+            cancelLoad();
+        }
+
+        /**
+         * Handles a request to cancel a load.
+         */
+        @Override public void onCanceled(Location location) {
+            super.onCanceled(location);
+
+            // At this point we can release the resources associated with 'location'
+            // if needed.
+            onReleaseResources(location);
+        }
+
+        /**
+         * Handles a request to completely reset the Loader.
+         */
+        @Override protected void onReset() {
+            super.onReset();
+
+            // Ensure the loader is stopped
+            onStopLoading();
+
+            // At this point we can release the resources associated with 'mCurrentLocation'
+            // if needed.
+            if (mCurrentLocation != null) {
+                onReleaseResources(mCurrentLocation);
+                mCurrentLocation = null;
+            }
+        }
+
+        /**
+         * Helper function to take care of releasing resources associated
+         * with an actively loaded data set.
+         */
+        protected void onReleaseResources(Location location) {
+            // For the location info there is nothing to do.  For something
+            // like a Cursor, we would close it here.
+        }
+
+		public ResponseHolder getHolder() {
+			return holder;
+		}
+    }
 }
