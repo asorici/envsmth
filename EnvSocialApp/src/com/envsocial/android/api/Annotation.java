@@ -16,6 +16,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.envsocial.android.api.exceptions.EnvSocialComException;
 import com.envsocial.android.api.exceptions.EnvSocialComException.HttpMethod;
@@ -26,10 +27,10 @@ import com.envsocial.android.utils.ResponseHolder;
 public class Annotation {
 	
 	public static final String TAG = "annotation";
+	
 	public static final int DEFAULT_OFFSET = 0;
 	public static final int DEFAULT_LIMIT = 20;
 	
-	private Context mContext;
 	private Location mLocation;
 	private String mCategory;
 	private String mData;
@@ -37,30 +38,30 @@ public class Annotation {
 	private String mUserUri;
 	private Calendar mTimestamp;
 	
-	public Annotation(Context context, Location location, String category, Calendar timestamp, String annotation) {
-		mContext = context;
+	public Annotation(Location location, String category, Calendar timestamp, String annotation) {
+		
 		mLocation = location;
 		mCategory = category;
 		mTimestamp = timestamp;
 		mData = annotation;
 	}
 	
-	public Annotation(Context context, Location location, 
+	public Annotation(Location location, 
 			String category, Calendar timestamp, String annotation, String uri) {
-		this(context, location, category, timestamp, annotation);
+		this(location, category, timestamp, annotation);
 		mUri = uri;
 	}
 	
 	public Annotation(Context context, Location location, 
 			String category, Calendar timestamp, String annotation, String uri, String userUri) {
-		this(context, location, category, timestamp, annotation);
+		this(location, category, timestamp, annotation);
 		mUri = uri;
 		mUserUri = userUri;
 	}
 	
-	public ResponseHolder post() {
-		AppClient client = new AppClient(mContext);
-		String userUri = Preferences.getLoggedInUserUri(mContext);
+	public ResponseHolder post(Context context) {
+		AppClient client = new AppClient(context);
+		String userUri = Preferences.getLoggedInUserUri(context);
 		
 		String jsonContent = "";
 		
@@ -266,7 +267,7 @@ public class Annotation {
 		
 		// Check the status code
 		if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-			System.err.println("[DEBUG]>> Error response on annotations list: " + responseData);
+			Log.d(TAG, "[DEBUG]>> Error response on annotations list: " + responseData);
 			throw EnvSocialComException.newInstanceFrom(
 					response.getStatusLine().getStatusCode(), 
 					userUri, HttpMethod.GET, EnvSocialResource.ANNOTATION, null);
@@ -282,6 +283,7 @@ public class Annotation {
 				String next = meta.getString("next");
 
 				if (next != null && !next.equalsIgnoreCase("null")) {
+					next = Url.fromUri(next);
 					annotations.addAll(getAnnotationsList(context, next, location, true));
 				}
 			}

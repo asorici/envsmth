@@ -159,7 +159,8 @@ public class ActionHandler {
 			if (!holder.hasError()) {
 				if (holder.getCode() == HttpStatus.SC_OK) {
 					JSONObject checkinData = holder.getJsonContent();
-					Location checkinLoc = new Location(checkinData.getJSONObject("data"));
+					//Location checkinLoc = new Location(checkinData.getJSONObject("data"));
+					Location checkinLoc = Location.fromSerialized(checkinData.getString("data"));
 					
 					holder.setTag(checkinLoc);
 					Preferences.checkin(context, checkinLoc);

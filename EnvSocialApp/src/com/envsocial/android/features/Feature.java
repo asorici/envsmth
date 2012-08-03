@@ -1,6 +1,7 @@
 package com.envsocial.android.features;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -8,24 +9,30 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import com.envsocial.android.api.AppClient;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.api.Url;
+import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.description.DescriptionFeature;
 import com.envsocial.android.features.order.OrderFeature;
+import com.envsocial.android.features.people.PeopleFeature;
 import com.envsocial.android.features.program.ProgramFeature;
 import com.envsocial.android.utils.ResponseHolder;
 
-public abstract class Feature {
+public abstract class Feature implements Serializable {
+	private static final long serialVersionUID = -4979711312694147738L;
+	
 	public static final String DESCRIPTION 	= 	"description";
 	public static final String ORDER 		= 	"order";
 	public static final String PEOPLE 		= 	"people";
 	public static final String PROGRAM 		= 	"program";
 	
-	public static final String TAG = "feature";
+	public static final String TAG 				= 	"feature";
+	public static final String SEARCH_FEATURE 	= 	"search_feature";
 	
 	protected String category;
 	protected String resourceUri;
@@ -40,6 +47,14 @@ public abstract class Feature {
 		this.environmentUri = environmentUri;
 		this.areaUri = areaUri;
 		this.data = data;
+	}
+	
+	public void init() throws EnvSocialContentException {
+		
+	}
+	
+	public void cleanup() {
+		
 	}
 	
 	public String getCategory() {
@@ -109,7 +124,8 @@ public abstract class Feature {
 	}
 	
 	public static Feature getInstance(String category, String resourceUri, 
-			String environmentUri, String areaUri, String data) throws IllegalArgumentException {
+			String environmentUri, String areaUri, String data) 
+					throws IllegalArgumentException, EnvSocialContentException {
 		
 		if (category == null) {
 			throw new IllegalArgumentException("No feature category specified.");
@@ -124,18 +140,24 @@ public abstract class Feature {
 		else if (category.equals(ORDER)) {
 			return new OrderFeature(category, resourceUri, environmentUri, areaUri, data);
 		}
+		else if (category.equals(PEOPLE)) {
+			return new PeopleFeature(category, resourceUri, environmentUri, areaUri, data);
+		}
 		else {
 			throw new IllegalArgumentException("No feature matching category (" + category + ").");
 		}
 	}
 	
-	public static Feature getFromSavedLocation(Location location) {
-		// TODO
-		return null;
+	public static Feature getFromSavedLocation(Location location, String category) {
+		return location.getFeature(category);
 	}
 	
 	public abstract boolean hasLocalDatabaseSupport();
 	public abstract boolean hasLocalQuerySupport();
 	
-	public abstract SQLiteOpenHelper getLocalDatabaseSupport(Context context);
+	public abstract SQLiteOpenHelper getLocalDatabaseSupport();
+	
+	public Cursor localQuery(String query) {
+		return null;
+	}
 }

@@ -289,6 +289,10 @@ class AreaResource(ModelResource):
         for env_feat in environment_features:
             feat_dict = env_feat.to_serializable()
             if feat_dict:
+                ## attach resource_uri and area_uri
+                feat_dict['resource_uri'] = FeatureResource().get_resource_uri(feature)
+                feat_dict['area'] = self.get_resource_uri(bundle)
+                feat_dict['environment'] = None
                 feature_list.append(feat_dict)
         
         return feature_list

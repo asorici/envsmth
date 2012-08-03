@@ -484,13 +484,18 @@ class OrderFeature(Feature):
         
         categ_list = []
         for menu_categ in self.menu_categories.all().order_by('name'):
-            menu_categ_dict = {'category' : menu_categ.name}
+            menu_categ_dict = {'category' : {'id': menu_categ.id, 
+                                             'name' : menu_categ.name, 
+                                             'type' : menu_categ.categ_type}
+                               }
             
             item_list = []
             for menu_item in menu_categ.menu_items.all().order_by('name'):
-                menu_item_dict = {  "name" : menu_item.name,
-                                    "description" : menu_item.description,
-                                    "price" : str(menu_item.price) + " RON"
+                menu_item_dict = {  'id' : menu_item.id,
+                                    'category_id' : menu_item.category_id,
+                                    'name' : menu_item.name,
+                                    'description' : menu_item.description,
+                                    'price' : str(menu_item.price)
                                  }
                 item_list.append(menu_item_dict)
             
@@ -506,8 +511,15 @@ class OrderFeature(Feature):
 
         
 class MenuCategory(models.Model):
+    TYPE_CHOICES = (
+        ("food", "food"), 
+        ("drinks", "drinks"),
+        ("desert", "desert")
+    )
+    
     menu = models.ForeignKey(OrderFeature, related_name = "menu_categories")
     name = models.CharField(max_length = 256)
+    categ_type = models.CharField(max_length = 32, choices = TYPE_CHOICES, default = "drinks")
     
     def __unicode__(self):
         return self.name + " in menu -> " + self.menu.description

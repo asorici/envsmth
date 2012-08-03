@@ -2,20 +2,31 @@ package com.envsocial.android;
 
 import android.app.SearchManager;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
-import com.envsocial.android.R;
+import com.envsocial.android.api.Location;
+import com.envsocial.android.features.Feature;
+import com.envsocial.android.fragment.SearchResultFragmentFactory;
+import com.envsocial.android.utils.Preferences;
 
 public class DetailsSearchableActivity extends SherlockFragmentActivity implements OnClickListener {
-	private ListView mListView;
+	private static final String TAG = "DetailsSearchableActivity";
+	private static final String SEARCH_FRAGMENT_TAG = "search_fragment_tag";
+	private static final int SEARCH_FRAGMENT_ID = 1;
 	
+	private String mFeatureCategoryTag;
+	private Fragment mSearchFragment;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -45,6 +56,20 @@ public class DetailsSearchableActivity extends SherlockFragmentActivity implemen
 	}
 	
 	@Override
+	public boolean onSearchRequested() {
+		// first check to see which fragment initiated the search
+		if (mFeatureCategoryTag != null) {
+			Bundle appData = new Bundle();
+		    appData.putString(Feature.SEARCH_FEATURE, mFeatureCategoryTag);
+			
+		    startSearch(null, false, appData, false);
+		    return true;
+		}
+		
+		return false;
+	}
+	
+	@Override
 	protected void onNewIntent(Intent intent) {
 	    setIntent(intent);
 	    handleIntent(intent);
@@ -53,11 +78,73 @@ public class DetailsSearchableActivity extends SherlockFragmentActivity implemen
 	private void handleIntent(Intent intent) {
 	    if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
 	      String query = intent.getStringExtra(SearchManager.QUERY);
-	      doMySearch(query);
+	      
+	      Bundle appData = getIntent().getBundleExtra(SearchManager.APP_DATA);
+	      if (appData != null) {
+	    	  mFeatureCategoryTag = appData.getString(Feature.SEARCH_FEATURE);
+	    	  Log.i(TAG, "Search from feature: " + mFeatureCategoryTag);
+	      }
+	      
+	      // get the corresponding fragment
+	      mSearchFragment = SearchResultFragmentFactory.newInstance(mFeatureCategoryTag, query);
+	      
+	      // set the query
+	      Bundle queryBundle = new Bundle();
+	      queryBundle.putString("query", query);
+	      mSearchFragment.setArguments(queryBundle);
+	      
+	      FragmentManager fm = getSupportFragmentManager();
+	      Fragment oldFrag = fm.findFragmentByTag(SEARCH_FRAGMENT_TAG);
+	      
+	      if (oldFrag == null) {
+	    	  FragmentTransaction ft = fm.beginTransaction();
+	    	  
+	    	  ft.add(R.id.feature_search_result_container, mSearchFragment, SEARCH_FRAGMENT_TAG);
+	    	  
+	    	  ft.commit();
+	      }
+	      else {
+	    	  FragmentTransaction ft = fm.beginTransaction();
+	    	  //ft.remove(oldFrag);
+	    	  //ft.add(mSearchFragment, SEARCH_FRAGMENT_TAG);
+	    	  ft.replace(R.id.feature_search_result_container, mSearchFragment, SEARCH_FRAGMENT_TAG);
+	    	  
+	    	  ft.commit();
+	      }
+	      
+	      //doMySearch(query);
 	    }
 	}
 	
 	private void doMySearch(String query) {
+		// get curret location
+		Location location = Preferences.getCheckedInLocation(this);
+		Feature feat = location.getFeature(mFeatureCategoryTag);
+		
+		Cursor cursor = feat.localQuery(query);
+		Log.d(TAG, "Cursor: " + cursor);
+		
+		if (cursor != null && cursor.moveToFirst()) {
+			
+			while (!cursor.isAfterLast()) {
+				int itemId = Integer.parseInt(cursor.getString(0));
+				String itemName = cursor.getString(1);
+				String itemCategory = cursor.getString(2);
+				String itemPrice = cursor.getString(3);
+				String itemDescription = cursor.getString(4);
+				
+				Log.d(TAG, "SEARCH RESULT ITEM ITEM: " + itemId + ", " + itemName + ", "
+						+ itemCategory + ", " + itemPrice + ", " + itemDescription);
+				
+				cursor.moveToNext();
+			}
+			
+			cursor.deactivate();
+		}
+		else {
+			Log.i(TAG, "SEARCH FOR " + query + " RETURNED NO RESULTS");
+		}
+		
 		Toast toast = Toast.makeText(this, "Pretend search in Feature.", Toast.LENGTH_LONG);
 		toast.show();
 	}

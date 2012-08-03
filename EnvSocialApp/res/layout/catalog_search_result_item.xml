@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    	android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+	    android:layout_marginLeft="5dip"
+	    android:layout_marginRight="5dip"
+	    android:layout_marginTop="5dip"
+	    android:layout_marginBottom="5dip"
+	    android:orientation="vertical"
+	    android:id="@+id/catalog_search_result_entry_wrapper"> 
+	<TextView
+	    android:id="@+id/catalog_search_result_category" 
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="horizontal"
+	    android:textStyle="bold"
+        android:gravity="center_vertical|left"
+        android:layout_marginLeft="5dip"
+        android:paddingTop="10dip"
+        android:paddingBottom="10dip"/>
+		
+	<RelativeLayout 
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+	    android:id="@+id/catalog_search_result_item_wrapper" >
+	    <LinearLayout android:id="@+id/catalog_search_result_quantity_layout" 
+	        android:layout_width="wrap_content"
+	        android:layout_height="fill_parent"
+	        android:layout_alignParentRight="true"
+	        android:paddingBottom="5dip"
+	        android:orientation="horizontal" >
+	        <Button android:id="@+id/catalog_search_result_btn_less" 	
+	            android:clickable="true"
+            	android:layout_width="45dip"
+            	android:layout_height="45dip"
+            	android:textStyle="bold"
+            	android:text="-" />
+	        <TextView android:id="@+id/catalog_search_result_quantity" 
+	            android:layout_width="20dip"
+	            android:layout_height="fill_parent"
+	            android:textStyle="bold"
+	            android:text="0"
+	            android:gravity="center_vertical|center_horizontal"/>
+	        <Button android:id="@+id/catalog_search_result_btn_more" 	
+	            android:clickable="true"
+	            android:layout_width="45dip"
+	            android:layout_height="45dip"
+	            android:textStyle="bold"
+	            android:text="+" />
+	    </LinearLayout>
+	    <RelativeLayout android:id="@+id/catalog_search_result_item_price_holder"
+	        android:layout_width="fill_parent"
+	        android:layout_height="45dip"
+	        android:layout_marginLeft="5dip"
+	        android:layout_marginRight="5dip"
+	        android:layout_toLeftOf="@id/catalog_search_result_quantity_layout">
+		    <TextView android:id="@+id/catalog_search_result_item" 
+		        android:focusable="true"
+		        android:layout_width="wrap_content"
+		        android:layout_height="45dip"
+		        android:textStyle="bold"
+		        android:ellipsize="end"
+		        android:lines="2"
+		        android:text="@string/lbl_item"
+		        android:gravity="center_vertical|left" />
+		    <TextView android:id="@+id/catalog_search_result_price" 
+		        android:layout_width="fill_parent"
+		        android:layout_height="45dip"
+		        android:layout_toRightOf="@id/catalog_search_result_item"
+		        android:textStyle="bold"
+		        android:ellipsize="end"
+		        android:lines="2"
+		        android:gravity="center_vertical|right" />
+	    </RelativeLayout>
+	</RelativeLayout>
+</LinearLayout>

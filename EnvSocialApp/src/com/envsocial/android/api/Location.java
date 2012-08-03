@@ -10,8 +10,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.database.sqlite.SQLiteException;
 import android.util.Log;
 
+import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
 
 public class Location implements Serializable {
@@ -48,18 +50,26 @@ public class Location implements Serializable {
 	private int mLevel;
 	
 	
+	private static Location mFullInstance = null;
+	private static String prevLocationString = null;
+	
 	public Location(String name, String uri) {
 		mName = name;
 		mUri = uri;
 	}
 	
 	// TODO
+	/*
 	public Location(String jsonString) throws JSONException {
 		this(new JSONObject(jsonString));
 	}
+	*/
 	
-	public Location(JSONObject data) throws JSONException {
-		mJSONString = data.toString();
+	//public Location(JSONObject data) throws JSONException {
+	private Location (String jsonString) throws JSONException {
+		//mJSONString = data.toString();
+		mJSONString = jsonString;
+		JSONObject data = new JSONObject(jsonString);
 
 		// Get location type
 		String type = data.getString("location_type");
@@ -91,20 +101,23 @@ public class Location implements Serializable {
 		int len = array.length();
 		for (int i = 0; i < len; ++ i) {
 			JSONObject item = array.getJSONObject(i);
-			String category = item.optString("category", null);
+			String category = item.getString("category");
 			String environmentUri = item.optString("environment", null);
 			String areaUri = item.optString("area", null);
 			String resourceUri = item.optString("resource_uri", null);
 			String featureData = item.optString("data", null);
 			
-			Feature feat = null;
+			
 			try {
-				feat = Feature.getInstance(category, resourceUri, environmentUri, areaUri, featureData);
+				Feature feat = Feature.getInstance(category, resourceUri, environmentUri, areaUri, featureData);
+				mFeatures.put(category, feat);
 			} catch (IllegalArgumentException ex) {
 				Log.d("Location", ex.getMessage());
+			} catch (EnvSocialContentException ex) {
+				Log.d("Location", "Failed to add feature of category :: " + category.toUpperCase() + ". Reason: " + ex.getMessage());
+			} catch (SQLiteException ex) {
+				Log.d("Location", "Failed to add feature of category ::" + category.toUpperCase() + ". Feature local DB error: " + ex.getMessage());
 			}
-			
-			mFeatures.put(category, feat);
 		}
 		
 		// Get tags
@@ -129,6 +142,42 @@ public class Location implements Serializable {
 		} else if (isArea()) {
 			mAreaType = locationData.getString("areaType");
 			mLevel = locationData.getInt("level");
+		}
+	}
+	
+	
+	public static Location fromSerialized(String jsonString) throws JSONException {
+		if (mFullInstance == null) {
+			prevLocationString = jsonString;
+			mFullInstance = new Location(jsonString);
+		}
+		else {
+			// compare the hashcodes, it is much faster than big string comparison
+			if (prevLocationString.hashCode() != jsonString.hashCode()) {
+				prevLocationString = jsonString;
+				mFullInstance = new Location(jsonString);
+			}
+		}
+		
+		return mFullInstance;
+	}
+	
+	public void initFeatures() throws EnvSocialContentException {
+		for (String category : mFeatures.keySet()) {
+			Feature feat = mFeatures.get(category);
+			if (feat != null ) {
+				feat.init();
+			}
+		}
+	}
+	
+	public void doCleanup() {
+		// close all local support databases for the current location
+		for (String category : mFeatures.keySet()) {
+			Feature feat = mFeatures.get(category);
+			if (feat != null ) {
+				feat.cleanup();
+			}
 		}
 	}
 	
@@ -163,12 +212,16 @@ public class Location implements Serializable {
 		return mOwnerEmail.compareToIgnoreCase(email) == 0;
 	}
 	
-	public Feature getFeatureData(String category) {
+	public Feature getFeature(String category) {
 		return mFeatures.get(category);
 	}
 	
 	public boolean hasFeature(String category) {
 		return mFeatures.get(category) != null;
+	}
+	
+	public Map<String, Feature> getFeatures() {
+		return mFeatures;
 	}
 	
 	public List<String> getTags() {
@@ -226,5 +279,4 @@ public class Location implements Serializable {
 		
 		return info;
 	}
-
 }

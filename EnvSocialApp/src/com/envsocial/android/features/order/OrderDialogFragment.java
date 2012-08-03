@@ -109,7 +109,7 @@ public class OrderDialogFragment extends DialogFragment implements OnClickListen
 			if (categorySummary.length() > 0) {
 				Map<String,String> catWrapper = new HashMap<String,String>();
 				Map<String,String> catData = mCategories.get(groupIndex);
-				catWrapper.put("category", catData.get(OrderFragment.OrderMenu.CATEGORY));
+				catWrapper.put("category", catData.get(OrderFeature.CATEGORY_NAME));
 				catWrapper.put("items", categorySummary.toString());
 				mOrderSummary.add(catWrapper);
 			}
@@ -130,7 +130,7 @@ public class OrderDialogFragment extends DialogFragment implements OnClickListen
 	}
 	
 	private String buildSummaryRow(Integer quantity, Map<String,String> itemData) {
-		String itemName = (String) itemData.get(OrderFragment.OrderMenu.ITEM_NAME);
+		String itemName = (String) itemData.get(OrderFeature.ITEM_NAME);
 		return quantity.toString() + " " + itemName + "\n";
 	}
 	

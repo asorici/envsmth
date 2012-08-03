@@ -6,10 +6,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -38,14 +34,15 @@ public class ProgramFragment extends SherlockFragment implements OnClickListener
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-	    //super.onCreate(savedInstanceState);
-	    //mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
+	    super.onCreate(savedInstanceState);
+	    mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
 	}
 	
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
-	    super.onCreate(savedInstanceState);
-	    mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
+	    super.onActivityCreated(savedInstanceState);
+	    //mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
+	    
 	}
 	
 	@Override
@@ -56,59 +53,47 @@ public class ProgramFragment extends SherlockFragment implements OnClickListener
 		// Inflate layout for this fragment.
 		View view = inflater.inflate(R.layout.program, container, false);
 		
-		try {
-			String programJSON = mLocation.getFeatureData(Feature.PROGRAM).getSerializedData();
-			
-			// Parse program's JSON
-			JSONObject program = (JSONObject) new JSONObject(programJSON).getJSONObject("program");
-			JSONArray sessionsArray = (JSONArray) program.getJSONArray("sessions");
-			JSONArray entriesArray = (JSONArray) program.getJSONArray("entries");
-			
-			// Inflate the in-memory database
-			ProgramDbHelper programDb = new ProgramDbHelper(getActivity());
-			programDb.insertSessions(sessionsArray);
-			programDb.insertEntries(entriesArray);
-			
-			mDayScroll = (LinearLayout) view.findViewById(R.id.dayScroll);
-			List<String> days = programDb.getDays();
-			int k = 0;
-			for (String d : days) {
-				TextView dayView = new TextView(getActivity());
-				
-				try {
-					SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-					Date date = formatter.parse(d);
-					formatter = new SimpleDateFormat("EEE, MMM d");
-					dayView.setText(formatter.format(date));
-				} catch (ParseException e) {
-					e.printStackTrace();
-					dayView.setText(d);
-				}
-				
-				dayView.setLayoutParams(
-						new LayoutParams(
-								ViewGroup.LayoutParams.WRAP_CONTENT,
-								ViewGroup.LayoutParams.WRAP_CONTENT
-						)
-				);
-				dayView.setTag(k ++);
-				dayView.setOnClickListener(this);
-				dayView.setPadding(15, 15, 15, 15);
-				dayView.setTextColor(getResources().getColor(R.color.white));
-				dayView.setBackgroundColor(getResources().getColor(R.color.dark_green));
-				mDayScroll.addView(dayView);
+		ProgramFeature programFeature = (ProgramFeature)mLocation.getFeature(Feature.PROGRAM);
+		ProgramDbHelper programDb = (ProgramDbHelper)programFeature.getLocalDatabaseSupport();
+
+		mDayScroll = (LinearLayout) view.findViewById(R.id.dayScroll);
+		List<String> days = programDb.getDays();
+		int k = 0;
+		for (String d : days) {
+			TextView dayView = new TextView(getActivity());
+
+			try {
+				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+				Date date = formatter.parse(d);
+				formatter = new SimpleDateFormat("EEE, MMM d");
+				dayView.setText(formatter.format(date));
+			} catch (ParseException e) {
+				e.printStackTrace();
+				dayView.setText(d);
 			}
-			
-			mDayScroll.getChildAt(currentDayIndex).setBackgroundColor(getResources().getColor(R.color.light_green));
-			
-			ListView listView = (ListView) view.findViewById(R.id.program);
-		    
-		    // Create and set adapter
-			mAdapter = new ProgramListAdapter(getActivity(), programDb);
-		    listView.setAdapter(mAdapter);
-		} catch (JSONException e) {
-			e.printStackTrace();
+
+			dayView.setLayoutParams(
+					new LayoutParams(
+							ViewGroup.LayoutParams.WRAP_CONTENT,
+							ViewGroup.LayoutParams.WRAP_CONTENT
+							)
+					);
+			dayView.setTag(k ++);
+			dayView.setOnClickListener(this);
+			dayView.setPadding(15, 15, 15, 15);
+			dayView.setTextColor(getResources().getColor(R.color.white));
+			dayView.setBackgroundColor(getResources().getColor(R.color.dark_green));
+			mDayScroll.addView(dayView);
 		}
+
+		mDayScroll.getChildAt(currentDayIndex).setBackgroundColor(getResources().getColor(R.color.light_green));
+
+		ListView listView = (ListView) view.findViewById(R.id.program);
+
+		// Create and set adapter
+		mAdapter = new ProgramListAdapter(getActivity(), programDb);
+		listView.setAdapter(mAdapter);
+		
 		
 		return view;
 	}

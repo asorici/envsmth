@@ -55,11 +55,33 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 
         mBtnCheckin = (Button) findViewById(R.id.btn_checkin);
         mBtnCheckin.setOnClickListener(this);
-        
-        displayCheckedInLocation();
 	}
 	
 	
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		
+		// if there is a current location
+		Location currentLocation = Preferences.getCheckedInLocation(this);
+		
+		if (currentLocation != null) {
+			// perform cleanup on exit
+			currentLocation.doCleanup();
+		}
+	}
+	
+	
+	@Override
+	public void onStart() {
+		super.onStart();
+		
+		// reset location if we have checked in at another activity in the meantime
+		displayCheckedInLocation();
+		this.findViewById(R.id.checked_in_location_name).invalidate();
+	}
+	
+	/*
 	@Override
 	public void onResume() {
 		super.onResume();
@@ -68,7 +90,7 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 		displayCheckedInLocation();
 		this.findViewById(R.id.checked_in_location_name).invalidate();
 	}
-	
+	*/
 	
 	private void displayCheckedInLocation() {
 		TextView v = (TextView)findViewById(R.id.checked_in_location_name);
@@ -85,7 +107,7 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 
 	public void onClick(View v) {
 		if (v == mBtnCheckin) {
-			Location currentLocation = Preferences.getCheckedInLocation(this);
+			final Location currentLocation = Preferences.getCheckedInLocation(this);
 			if (currentLocation != null) {
 				String dialogMessage = "Keep previous checkin location ("  
 						+ currentLocation.getName() + ") ?";
@@ -120,6 +142,9 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 				    @Override
 				    public void onClick(DialogInterface dialog, int which) {
 				    	dialog.cancel();
+				    	
+				    	// do current location cleanup before checking in somewhere else
+				    	currentLocation.doCleanup();
 				    	
 				    	IntentIntegrator integrator = new IntentIntegrator(HomeActivity.this);
 						integrator.initiateScan();

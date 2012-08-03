@@ -38,7 +38,7 @@ public class DescriptionFragment extends SherlockFragment {
 		
 		View v = inflater.inflate(R.layout.description, container, false);
 		TextView t = (TextView) v.findViewById(R.id.details);
-		t.setText(mData.getFeatureData(Feature.DESCRIPTION).getSerializedData());
+		t.setText(mData.getFeature(Feature.DESCRIPTION).getSerializedData());
 		
 	    return v;
 	}

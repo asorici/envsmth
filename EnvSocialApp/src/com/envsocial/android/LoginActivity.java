@@ -26,7 +26,6 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.exceptions.EnvSocialComException;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
-import com.envsocial.android.features.program.EntryDetailsActivity;
 import com.envsocial.android.utils.ResponseHolder;
 
 public class LoginActivity extends SherlockFragmentActivity implements OnClickListener {

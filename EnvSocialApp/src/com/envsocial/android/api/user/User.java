@@ -20,20 +20,19 @@ import com.envsocial.android.api.Url;
 public class User {
 	public static final String TAG = "user";
 	
-	private Context mContext;
 	private Location mLocation;
 	private UserProfileData mUserData;
 	
 	private String mUri;
 	
-	public User(Context context, Location location, UserProfileData userdata) {
-		mContext = context;
+	public User(Location location, UserProfileData userdata) {
+		
 		mLocation = location;
 		mUserData = userdata;
 	}
 	
-	public User(Context context, Location location, UserProfileData userdata, String uri) {
-		this(context, location, userdata);
+	public User(Location location, UserProfileData userdata, String uri) {
+		this(location, userdata);
 		mUri = uri;
 	}
 	
@@ -107,7 +106,7 @@ public class User {
 			String next = meta.getString("next");
 			
 			if (next != null && !next.equalsIgnoreCase("null")) {
-				//System.err.println("[DEBUG]>> Next url for list: " + next);
+				next = Url.fromUri(next);
 				users.addAll(getUsersList(context, next, location, true));
 			}
 		}
@@ -131,7 +130,7 @@ public class User {
 			String uri = user.getString("resource_uri");
 			UserProfileData userdata = UserProfileData.parseProfileData(user);
 			
-			users.add(new User(context, location, userdata, uri));
+			users.add(new User(location, userdata, uri));
 		}
 		
 		return users;

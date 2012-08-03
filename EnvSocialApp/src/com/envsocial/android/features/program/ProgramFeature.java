@@ -11,12 +11,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.envsocial.android.Envived;
 import com.envsocial.android.api.AppClient;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.api.Url;
+import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
 import com.envsocial.android.utils.ResponseHolder;
 
@@ -24,14 +27,35 @@ public class ProgramFeature extends Feature {
 	private static final String TAG = "ProgramFeature";
 	
 	public static final String ENTRY_QUERY_TYPE = "entry";
-	static final String ENTRY = "program_entry";
+	public static final String ENTRY = "program_entry";
+	
+	private ProgramDbHelper dbHelper;
 	
 	public ProgramFeature(String category, String resourceUri, 
-			String environmentUri, String areaUri, String data) {
+			String environmentUri, String areaUri, String data) throws EnvSocialContentException {
 		super(category, resourceUri, environmentUri, areaUri, data);
+	
+		
 	}
 	
+	@Override
+	public void init() throws EnvSocialContentException {
+		if (dbHelper == null && (hasLocalQuerySupport() || hasLocalDatabaseSupport())) {
+			dbHelper = new ProgramDbHelper(Envived.getContext(), this);
+		}
+		
+		if (dbHelper != null) {
+			dbHelper.init();
+		}
+	}
 	
+	@Override
+	public void cleanup() {
+		if (dbHelper != null) {
+			dbHelper.close();
+			dbHelper = null;
+		}
+	}
 	
 	/**
 	 * Gets the details of a single entry in the program. <br/>
@@ -113,8 +137,16 @@ public class ProgramFeature extends Feature {
 	}
 
 	@Override
-	public SQLiteOpenHelper getLocalDatabaseSupport(Context context) {
-		// TODO Auto-generated method stub
+	public SQLiteOpenHelper getLocalDatabaseSupport() {
+		return dbHelper;
+	}
+
+	@Override
+	public Cursor localQuery(String query) {
+		if (dbHelper != null) {
+			return dbHelper.searchQuery(query);
+		}
+		
 		return null;
 	}
 }

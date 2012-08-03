@@ -1,17 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content" >
-    <Button android:id="@+id/btn_order"
-         android:layout_width="0dip"
-         android:layout_height="wrap_content"
-         android:layout_weight="1"
-         android:layout_marginLeft="5dip"
-         android:text="@string/btn_order" />
-    <Button android:id="@+id/btn_cancel"
-         android:layout_width="0dip"
-         android:layout_height="wrap_content"
-         android:layout_weight="1"
-         android:layout_marginRight="5dip"
-         android:text="@string/btn_cancel" />
-</LinearLayout>
+    android:layout_height="wrap_content" 
+    android:orientation="vertical">
+    
+    <RelativeLayout
+        android:id="@+id/order_dialog_total_wrapper"
+        android:layout_width="fill_parent"
+        android:layout_height="45dip"
+        android:layout_marginLeft="5dip"
+        android:layout_marginRight="5dip">
+
+        <TextView
+            android:id="@+id/order_dialog_total_label"
+            android:layout_width="wrap_content"
+            android:layout_height="45dip"
+            android:textSize="16sp"
+            android:ellipsize="end"
+            android:gravity="center_vertical|left"
+            android:lines="2"
+            android:text="TOTAL:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/order_dialog_total_price"
+            android:layout_width="fill_parent"
+            android:layout_height="45dip"
+            android:textSize="16sp"
+            android:layout_toRightOf="@id/order_dialog_total_label"
+            android:ellipsize="end"
+            android:gravity="center_vertical|right"
+            android:lines="2"
+            android:textStyle="bold" />
+	</RelativeLayout>
+    
+    <ImageView 
+        	android:id="@+id/order_dialog_total_divider"
+        	android:layout_below="@id/order_dialog_total_wrapper"
+			android:src="@android:drawable/divider_horizontal_dark"
+			android:layout_width="fill_parent" android:layout_height="wrap_content"
+			android:scaleType="fitXY" android:paddingLeft="5dp"
+			android:paddingRight="5dp" android:paddingBottom="2dp"
+			android:paddingTop="2dp" />
+    
+    <LinearLayout
+        android:layout_width="fill_parent"
+    	android:layout_height="wrap_content"
+    	android:layout_below="@id/order_dialog_total_divider">
+	    <Button android:id="@+id/btn_order"
+	         android:layout_width="0dip"
+	         android:layout_height="wrap_content"
+	         android:layout_weight="1"
+	         android:layout_marginLeft="5dip"
+	         android:text="@string/btn_order" />
+	    <Button android:id="@+id/btn_cancel"
+	         android:layout_width="0dip"
+	         android:layout_height="wrap_content"
+	         android:layout_weight="1"
+	         android:layout_marginRight="5dip"
+	         android:text="@string/btn_cancel" />
+    </LinearLayout>
+</RelativeLayout>

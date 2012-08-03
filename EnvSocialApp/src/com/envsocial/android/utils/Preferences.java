@@ -81,8 +81,8 @@ public final class Preferences {
 		String jsonString = getStringPreference(context, CHECKED_IN_LOCATION);
 		if (jsonString != null) {
 			try {
-				System.out.println("[DEBUG]>> checkin location JSON:: " + jsonString);
-				return new Location(jsonString);
+				//return new Location(jsonString);
+				return Location.fromSerialized(jsonString);
 			} catch (JSONException e) {
 				e.printStackTrace();
 				removeStringPreference(context, CHECKED_IN_LOCATION);

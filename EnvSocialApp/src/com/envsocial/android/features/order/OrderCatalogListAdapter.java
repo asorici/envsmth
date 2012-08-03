@@ -33,8 +33,8 @@ public class OrderCatalogListAdapter extends SimpleExpandableListAdapter {
 			List<? extends Map<String, ?>> groupData, int groupLayout,
 			String[] groupFrom, int[] groupTo,
 			List<? extends List<? extends Map<String, ?>>> childData,
-			int childLayout, String[] childFrom, int[] childTo,
-			Map<Integer,Map<Integer,Integer>> counter) {
+			int childLayout, String[] childFrom, int[] childTo
+			) {
 		super(context, groupData, groupLayout, groupFrom, groupTo, null,
 				childLayout, null, null);
 		
@@ -42,7 +42,7 @@ public class OrderCatalogListAdapter extends SimpleExpandableListAdapter {
 		mGroupFrom = groupFrom;
 		mGroupTo = groupTo;
 		
-		mQuantityData = counter;
+		mQuantityData = new HashMap<Integer,Map<Integer,Integer>>();
 		mChildData = childData;
 		mChildFrom = childFrom;
 		mChildTo = childTo;
@@ -239,5 +239,9 @@ public class OrderCatalogListAdapter extends SimpleExpandableListAdapter {
 					mParentView.childPosition, qDelta);
 			mParentView.quantity.setText(q.toString());
 		}
+	}
+
+	public Map<Integer, Map<Integer, Integer>> getCounter() {
+		return mQuantityData;
 	}
 }

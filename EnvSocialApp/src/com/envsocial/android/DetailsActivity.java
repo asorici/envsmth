@@ -1,9 +1,11 @@
 package com.envsocial.android;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.http.HttpStatus;
 
 import android.app.Activity;
-import android.app.LoaderManager.LoaderCallbacks;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
@@ -23,6 +25,7 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.envsocial.android.api.ActionHandler;
+import com.envsocial.android.api.EnvSocialResource;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.api.exceptions.EnvSocialComException;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
@@ -47,7 +50,15 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 	public static final int LOCATION_LOADER = 0;
 	public static final int FEATURE_LOADER = 1;
 	
+	public static List<String> searchableFragmentTags;
+	static {
+		searchableFragmentTags = new ArrayList<String>();
+		searchableFragmentTags.add(Feature.ORDER);
+		searchableFragmentTags.add(Feature.PROGRAM);
+	}
+	
 	private Location mLocation;
+	private String mActiveFragmentTag;
 	
 	private ActionBar mActionBar;
 	private Tab mDefaultTab;
@@ -77,6 +88,15 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 	}
 	
 	@Override
+	public void onDestroy() {
+		if (mLocation != null) {
+			mLocation.doCleanup();
+		}
+		
+		super.onDestroy();
+	}
+	
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// add the search button
 		MenuItem item = menu.add(getText(R.string.menu_search));
@@ -95,6 +115,21 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 		
 		return true;
 	}
+	
+	@Override
+	public boolean onSearchRequested() {
+		// first check to see which fragment initiated the search
+		if (searchableFragmentTags.contains(mActiveFragmentTag)) {
+			Bundle appData = new Bundle();
+		    appData.putString(Feature.SEARCH_FEATURE, mActiveFragmentTag);
+			
+		    startSearch(null, false, appData, false);
+		    return true;
+		}
+		
+		return false;
+	}
+	
 	
 	@Override
 	public void onStart() {
@@ -117,6 +152,8 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 	@Override
 	public void onStop() {
 		Log.i(TAG, "[INFO] -------- ON STOP CALLED --------");
+		
+		
 		super.onStop();
 	}
 	
@@ -159,8 +196,6 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 					this, Feature.ORDER, OrderFragment.class, mLocation));
 	        actionBar.addTab(mOrderTab);
 	        
-	        System.out.println("[DEBUG]>> owner email: " + mLocation.getOwnerEmail());
-	        System.out.println("[DEBUG]>> loggedin email: " + Preferences.getLoggedInUserEmail(this));
 	        String loggedIn = Preferences.getLoggedInUserEmail(this);
 	        if (loggedIn != null && mLocation.isOwnerByEmail(loggedIn)) {
 	        	mOrderManagementTab = actionBar.newTab()
@@ -181,7 +216,7 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 	}
 	
 	
-	public static class TabListener<T extends SherlockFragment> implements ActionBar.TabListener {
+	private class TabListener<T extends SherlockFragment> implements ActionBar.TabListener {
 
 		private SherlockFragment mFragment;
 		private final Activity mActivity;
@@ -210,14 +245,17 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 				bundle.putSerializable(ActionHandler.CHECKIN, mLocation);
 				mFragment.setArguments(bundle);
 				
-				Log.i(TAG, "[DEBUG]>> Adding fragment " + mClass.getName());
+				//Log.i(TAG, "[DEBUG]>> Adding fragment " + mClass.getName());
 				ft.add(R.id.details_containter, mFragment, mTag);
-				Log.i(TAG, "[DEBUG]>> Adding ok!");
+				//Log.i(TAG, "[DEBUG]>> Adding ok!");
 			} else {
 				// If the fragment exists, attach it in order to show it
-				Log.i(TAG, "[DEBUG]>> Attaching fragment.");
+				//Log.i(TAG, "[DEBUG]>> Attaching fragment.");
 				ft.attach(mFragment);
 			}
+			
+			// set this fragment as the active one
+			mActiveFragmentTag = mTag;
 			
 			ft.commit();
 		}
@@ -256,7 +294,19 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 		
 		@Override
 		protected ResponseHolder doInBackground(Void...args) {
-			return ActionHandler.checkin(DetailsActivity.this, checkinUrl);
+			ResponseHolder holder = ActionHandler.checkin(DetailsActivity.this, checkinUrl);
+			if (!holder.hasError() && holder.getCode() == HttpStatus.SC_OK) {
+				Location location = (Location) holder.getTag();
+				
+				try {
+					location.initFeatures();
+				} catch (EnvSocialContentException e) {
+					holder = new ResponseHolder(new EnvSocialContentException(location.serialize(), 
+							EnvSocialResource.FEATURE, e));
+				}
+			}
+			
+			return holder;
 		}
 		
 		@Override

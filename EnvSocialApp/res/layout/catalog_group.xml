@@ -7,6 +7,5 @@
         android:layout_width="fill_parent"
         android:layout_height="45dip"
         android:textStyle="bold"
-        android:text="@string/lbl_group"
         android:gravity="center_vertical|center_horizontal" />
 </LinearLayout>

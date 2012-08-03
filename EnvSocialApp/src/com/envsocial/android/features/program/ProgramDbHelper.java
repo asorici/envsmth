@@ -13,10 +13,15 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
-public class ProgramDbHelper extends SQLiteOpenHelper {
+import com.envsocial.android.api.EnvSocialResource;
+import com.envsocial.android.api.exceptions.EnvSocialContentException;
+import com.envsocial.android.utils.FeatureDbHelper;
 
+public class ProgramDbHelper extends FeatureDbHelper {
+	private static final String TAG = "ProgramDbHelper";
+	
 	public static final String DB_NAME = "db_program";
 	public static final String ENTRY_TABLE = "entry";
 	public static final String COL_ENTRY_ID = "id";
@@ -33,22 +38,18 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 	public static final String COL_SESSION_TAG = "tag";
 	public static final String COL_SESSION_LOCATION = "location";
 	
-	private static final int DATABASE_VERSION = 1;
 	
-	private SQLiteDatabase database;
-	
-	
-	public ProgramDbHelper(Context context) {
-		super(context, null, null, DATABASE_VERSION);
+	public ProgramDbHelper(Context context, ProgramFeature feature) throws EnvSocialContentException {
+		super(context, DB_NAME, feature);
 		database = this.getWritableDatabase();
+		
+		//insertProgram();
 	}
 	
-	public void close() {
-		database.close();
-	}
 	
 	@Override
-	public void onCreate(SQLiteDatabase db) {
+	public void onDbCreate(SQLiteDatabase db) {
+		Log.d(TAG, "[DEBUG] >> ----------- Database " + DB_NAME + " JUST NOW created. ------------");
 		db.execSQL("CREATE TABLE " + SESSION_TABLE + "(" + COL_SESSION_ID + " INTEGER PRIMARY KEY, " + 
 				COL_SESSION_TITLE + " TEXT, " + COL_SESSION_TAG + " TEXT, " + COL_SESSION_LOCATION + " TEXT);");
 		
@@ -67,15 +68,61 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 			    " WHERE "+ COL_SESSION_ID +"=new." + COL_ENTRY_SESSIONID + " ) IS NULL)" +
 			    " THEN RAISE (ABORT,'Foreign Key Violation') END;"+
 			    "  END;");
+		
+		dbStatus = TABLES_CREATED;
+	}
+	
+	
+	@Override
+	public void onDbUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+		db.execSQL("DROP IF TABLE EXISTS " + ENTRY_TABLE);
+		db.execSQL("DROP IF TABLE EXISTS " + SESSION_TABLE);
+		
+		dbStatus = TABLES_INEXISTENT;
 	}
 	
 	@Override
-	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		db.execSQL("DROP IF TABLE EXISTS " + ENTRY_TABLE);
-		db.execSQL("DROP IF TABLE EXISTS " + SESSION_TABLE);
+	public void onOpen(SQLiteDatabase db) {
+		Log.d(TAG, "[DEBUG] >> ----------- Database " + DB_NAME + " already created. ------------");
+	}
+	
+	
+	public void init () throws EnvSocialContentException {
+		// do initial program insertion here
+		insertProgram();
+	}
+	
+	private void cleanupTables() {
+		database.delete(ENTRY_TABLE, null, null);
+		database.delete(SESSION_TABLE, null, null);
+	}
+	
+	private void insertProgram() throws EnvSocialContentException {
+		if (dbStatus == TABLES_CREATED) {
+			// perform initial insertion of the program if and only if the database is created
+			
+			String programJSON = feature.getSerializedData();
+			
+			try {
+				// Parse program's JSON
+				JSONObject program = (JSONObject) new JSONObject(programJSON).getJSONObject("program");
+				JSONArray sessionsArray = (JSONArray) program.getJSONArray("sessions");
+				JSONArray entriesArray = (JSONArray) program.getJSONArray("entries");
+				
+				insertSessions(sessionsArray);
+				insertEntries(entriesArray);
+			} catch (JSONException ex) {
+				cleanupTables();
+				throw new EnvSocialContentException(programJSON, EnvSocialResource.FEATURE, ex);
+			}
+		
+			dbStatus = TABLES_POPULATED;
+		}
 	}
 	
 	public void insertSessions(JSONArray sessionsArray) throws JSONException {
+		Log.d(TAG, "[DEBUG] >> ----------- INSERTING SESSIONS ------------");
+		
 		ContentValues values = new ContentValues();
 		int n = sessionsArray.length();
 		for (int i = 0; i < n; ++ i) {
@@ -90,6 +137,8 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 	}
 	
 	public void insertEntries(JSONArray entriesArray) throws JSONException {
+		Log.d(TAG, "[DEBUG] >> ----------- INSERTING ENTRIES ------------");
+		
 		ContentValues values = new ContentValues();
 		int n = entriesArray.length();
 		for (int i = 0; i < n; ++ i) {
@@ -282,4 +331,27 @@ public class ProgramDbHelper extends SQLiteOpenHelper {
 		return c;
 	}
 
+	
+	/**
+	 * Searches the FTS Program table for item and category names matching the query string 
+	 * @param query
+	 */
+	public Cursor searchQuery(String query) {
+		/*
+		String orderBy = COL_ORDER_FTS_CATEGORY + ", " + COL_ORDER_FTS_ITEM;
+		
+		String wildCardQuery = appendWildcard(query);
+		String selection = MENU_ORDER_TABLE_FTS + " MATCH ?";
+		String[] selectionArgs = new String[] {
+				"'" + COL_ORDER_FTS_ITEM + ":\"" + wildCardQuery + "\"" + " OR "
+					+ COL_ORDER_FTS_CATEGORY 	+ ":\"" + wildCardQuery + "\"" + "'" };
+		
+		Log.d("OrderDbHelper", "SEARCH QUERY WHERE CLAUSE: " + selectionArgs);
+		
+		return database.query(true, MENU_ORDER_TABLE_FTS, searchableColumns, 
+				selection, selectionArgs, null, null, orderBy, null);
+		*/
+		
+		return null;
+	}
 }

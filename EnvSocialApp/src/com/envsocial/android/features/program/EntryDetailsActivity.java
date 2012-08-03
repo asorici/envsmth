@@ -220,7 +220,7 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 			jsonComment.put("user", userNamingJSON);
 			
 			String jsonCommentString = jsonComment.toString();
-			Annotation entryComment = new Annotation(this, mLocation, Feature.PROGRAM, 
+			Annotation entryComment = new Annotation(mLocation, Feature.PROGRAM, 
 													Calendar.getInstance(), jsonCommentString);
 			
 			new SendEntryCommentTask(entryComment).execute();
@@ -362,7 +362,7 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		
 		@Override
 		protected ResponseHolder doInBackground(Void... params) {
-			return comment.post();
+			return comment.post(EntryDetailsActivity.this);
 		}
 		
 		@Override
