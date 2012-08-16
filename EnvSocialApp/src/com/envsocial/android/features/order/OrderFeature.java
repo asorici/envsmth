@@ -22,6 +22,10 @@ public class OrderFeature extends Feature {
 	private List<List<Map<String,String>>> mItems;
 	private OrderDbHelper dbHelper;
 	
+	public static final String TYPE_DRINKS = "drinks";
+	public static final String TYPE_FOOD = "food";
+	public static final String TYPE_DESERT = "desert";
+	
 	public static final String CATEGORY = "category";
 	public static final String CATEGORY_ID = "id";
 	public static final String CATEGORY_NAME = "name";
@@ -30,6 +34,7 @@ public class OrderFeature extends Feature {
 	public static final String ITEM = "item";
 	public static final String ITEM_ID = "id";
 	public static final String ITEM_CATEGORY_ID = "category_id";
+	//public static final String ITEM_TYPE = "item_type";
 	public static final String ITEM_NAME = "name";
 	public static final String ITEM_DESCRIPTION = "description";
 	public static final String ITEM_PRICE = "price";
@@ -98,6 +103,7 @@ public class OrderFeature extends Feature {
 					JSONObject item = itemsArray.getJSONObject(j);
 					
 					map.put(ITEM_ID, item.getString(ITEM_ID));
+					//map.put(ITEM_TYPE, categoryObject.getString(CATEGORY_TYPE));
 					map.put(ITEM_NAME, item.getString(ITEM_NAME));
 					map.put(ITEM_DESCRIPTION, item.optString("description", "No description available"));
 					map.put(ITEM_PRICE, item.getString(ITEM_PRICE));
@@ -131,6 +137,22 @@ public class OrderFeature extends Feature {
 		return mItems;
 	}
 	
+	public List<List<Map<String,String>>> getOrderItems(String type) {
+		List<List<Map<String,String>>> items = new ArrayList<List<Map<String,String>>>();
+		
+		// this is sort of a hack; I don't like it - the fault lies with the requirements of 
+		// SimpleExpandibleListAdapter
+		// the trick is based on the fact that mCategories and mItems match exactly in length and
+		// position of elements
+		for (int i = 0; i < mCategories.size(); i++) {
+			Map<String, String> cat = mCategories.get(i);
+			if (cat.get(CATEGORY_TYPE).equalsIgnoreCase(type)) {
+				items.add(mItems.get(i));
+			}
+		}
+		
+		return items;
+	}
 	
 	@Override
 	public boolean hasLocalDatabaseSupport() {

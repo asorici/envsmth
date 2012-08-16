@@ -1,6 +1,5 @@
 package com.envsocial.android.features.description;
 
-import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.envsocial.android.features.Feature;

@@ -32,15 +32,34 @@
             android:textStyle="bold"
             android:text="+" />
     </LinearLayout>
-    <TextView android:id="@+id/orderItem"
-        android:clickable="true"
+    <RelativeLayout
+        android:id="@+id/item_name_holder"
         android:layout_width="fill_parent"
         android:layout_height="45dip"
         android:layout_marginLeft="5dip"
-        android:layout_toLeftOf="@id/quantity_layout"
-        android:textStyle="bold"
-        android:ellipsize="end"
-        android:lines="2"
-        android:text="@string/lbl_item"
-        android:gravity="center_vertical" />
+        android:layout_marginRight="5dip"
+        android:layout_toLeftOf="@id/quantity_layout" >
+
+        <TextView
+            android:id="@+id/orderItem"
+            android:layout_width="wrap_content"
+            android:layout_height="45dip"
+            android:ellipsize="end"
+            android:focusable="true"
+            android:gravity="center_vertical|left"
+            android:lines="2"
+            android:text="@string/lbl_item"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/orderItemPrice"
+            android:layout_width="fill_parent"
+            android:layout_height="45dip"
+            android:layout_toRightOf="@id/orderItem"
+            android:ellipsize="end"
+            android:gravity="center_vertical|right"
+            android:lines="2"
+            android:textStyle="bold" />
+    </RelativeLayout>
+
 </RelativeLayout>

@@ -152,10 +152,15 @@ public abstract class Feature implements Serializable {
 		return location.getFeature(category);
 	}
 	
-	public abstract boolean hasLocalDatabaseSupport();
+	
 	public abstract boolean hasLocalQuerySupport();
 	
 	public abstract SQLiteOpenHelper getLocalDatabaseSupport();
+	
+	
+	public boolean hasLocalDatabaseSupport() {
+		return getLocalDatabaseSupport() != null;
+	}
 	
 	public Cursor localQuery(String query) {
 		return null;

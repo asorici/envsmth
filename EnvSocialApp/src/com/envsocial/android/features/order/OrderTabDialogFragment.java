@@ -6,15 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -23,18 +19,17 @@ import android.widget.TextView;
 import com.actionbarsherlock.app.SherlockDialogFragment;
 import com.envsocial.android.R;
 
-public class OrderDialogFragment extends SherlockDialogFragment implements OnClickListener {
+public class OrderTabDialogFragment extends SherlockDialogFragment implements OnClickListener {
+private final String SUMMARY_TITLE = "Order Summary";
 	
-	private final String SUMMARY_TITLE = "Order Summary";
+	private Button mBtnOk;
 	
-	private Button mBtnOrder;
-	private Button mBtnCancel;
 	private TextView mTotalOrderPrice;
 	private List<Map<String, Object>> mOrderSelections;
 	private List<Map<String,String>> mOrderSummary;
 	
-	static OrderDialogFragment newInstance(List<Map<String, Object>> searchOrderSelections) {
-		OrderDialogFragment f = new OrderDialogFragment();
+	static OrderTabDialogFragment newInstance(List<Map<String, Object>> searchOrderSelections) {
+		OrderTabDialogFragment f = new OrderTabDialogFragment();
 		
 		Bundle args = new Bundle();
 		args.putSerializable("selections", (Serializable)searchOrderSelections);
@@ -58,9 +53,9 @@ public class OrderDialogFragment extends SherlockDialogFragment implements OnCli
 			Bundle savedInstanceState) {
 		// Set title
 		getDialog().setTitle(SUMMARY_TITLE);
-		View v = inflater.inflate(R.layout.order_dialog, container, false);
+		View v = inflater.inflate(R.layout.order_tab_dialog, container, false);
 		
-		ListView list = (ListView) v.findViewById(R.id.summary_list);
+		ListView list = (ListView) v.findViewById(R.id.order_tab_summary_list);
 		double totalPrice = getOrderSummary();
 		
 		SimpleAdapter adapter = new SimpleAdapter(getActivity(),
@@ -69,17 +64,15 @@ public class OrderDialogFragment extends SherlockDialogFragment implements OnCli
 				new String[] { "category", "items" },
 				new int[] { R.id.category, R.id.items }
 				);
-		View footer = inflater.inflate(R.layout.order_dialog_footer, null, false);
+		View footer = inflater.inflate(R.layout.order_tab_dialog_footer, null, false);
 		list.addFooterView(footer);
 		list.setAdapter(adapter);
 		
-		mTotalOrderPrice = (TextView) footer.findViewById(R.id.order_dialog_total_price);
+		mTotalOrderPrice = (TextView) footer.findViewById(R.id.order_tab_dialog_total_price);
 		mTotalOrderPrice.setText("" + totalPrice + " RON");
 		
-		mBtnOrder = (Button) footer.findViewById(R.id.btn_order);
-		mBtnOrder.setOnClickListener(this);
-		mBtnCancel = (Button) footer.findViewById(R.id.btn_cancel);
-		mBtnCancel.setOnClickListener(this);
+		mBtnOk = (Button) footer.findViewById(R.id.btn_tab_ok);
+		mBtnOk.setOnClickListener(this);
 		
 		return v;
 	}
@@ -138,41 +131,11 @@ public class OrderDialogFragment extends SherlockDialogFragment implements OnCli
 		
 		return quantity + " x " + itemName + " (" + price + " RON)" + "\n";
 	}
+
 	
-	
-	public String getOrderJSONString() {
-		try {
-			JSONObject allOrderJSON = new JSONObject();
-			JSONArray orderListJSON = new JSONArray();
-			for (Map<String,String> group : mOrderSummary) {
-				JSONObject orderJSON = new JSONObject();
-				orderJSON.put("category", group.get("category"));
-				orderJSON.put("items", group.get("items"));
-				orderListJSON.put(orderJSON);
-			}
-			allOrderJSON.put("order", orderListJSON);
-			
-			return allOrderJSON.toString();
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-		
-		return null;
-	}
-	
-	
-	public boolean isEmpty() {
-		return mOrderSummary.isEmpty();
-	}
-	
-	public List<Map<String, Object>> getOrderSelections() {
-		return mOrderSelections;
-	}
-	
+	@Override
 	public void onClick(View v) {
-		if (v == mBtnOrder) {
-			((ISendOrder) getTargetFragment()).sendOrder(this);
-		} else if (v == mBtnCancel) {
+		if (v == mBtnOk) {
 			dismiss();
 		}
 	}

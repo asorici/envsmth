@@ -1,5 +1,7 @@
 package com.envsocial.android.features.order;
 
+import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,25 +16,25 @@ import android.widget.TextView;
 
 import com.envsocial.android.R;
 
-public class OrderCatalogListAdapter extends SimpleExpandableListAdapter {
+public class OrderCatalogListAdapter extends SimpleExpandableListAdapter implements IOrderCatalogAdapter {
 
-	private List<? extends Map<String, ?>> mGroupData;
+	private List<? extends Map<String, String>> mGroupData;
 	private String[] mGroupFrom;
 	private int[] mGroupTo;
 	
-	private List<? extends List<? extends Map<String,?>>> mChildData;
+	private List<? extends List<? extends Map<String,String>>> mChildData;
 	private String[] mChildFrom;
 	private int[] mChildTo;
 	
-	private Map<Integer,Map<Integer,Integer>> mQuantityData;
+	private Map<Integer,Map<Integer,Map<String, Object>>> mQuantityData;
 	
 	private int[] alternatingColors;
 	
 	
 	public OrderCatalogListAdapter(Context context,
-			List<? extends Map<String, ?>> groupData, int groupLayout,
+			List<? extends Map<String, String>> groupData, int groupLayout,
 			String[] groupFrom, int[] groupTo,
-			List<? extends List<? extends Map<String, ?>>> childData,
+			List<? extends List<? extends Map<String, String>>> childData,
 			int childLayout, String[] childFrom, int[] childTo
 			) {
 		super(context, groupData, groupLayout, groupFrom, groupTo, null,
@@ -42,7 +44,7 @@ public class OrderCatalogListAdapter extends SimpleExpandableListAdapter {
 		mGroupFrom = groupFrom;
 		mGroupTo = groupTo;
 		
-		mQuantityData = new HashMap<Integer,Map<Integer,Integer>>();
+		mQuantityData = new HashMap<Integer, Map<Integer,Map<String,Object>>>();
 		mChildData = childData;
 		mChildFrom = childFrom;
 		mChildTo = childTo;
@@ -53,8 +55,18 @@ public class OrderCatalogListAdapter extends SimpleExpandableListAdapter {
 		alternatingColors[1] = R.color.light_green;
 	}
 	
+	@Override 
+	public Map<String, String> getGroup(int groupPosition) {
+		return mGroupData.get(groupPosition);
+	}
+	
+	@Override 
+	public int getGroupCount() {
+		return mGroupData.size();
+	}
+	
 	@Override
-	public Map<String,?> getChild(int groupPosition, int childPosition) {
+	public Map<String, String> getChild(int groupPosition, int childPosition) {
 		return mChildData.get(groupPosition).get(childPosition);
 	}
 	
@@ -63,44 +75,64 @@ public class OrderCatalogListAdapter extends SimpleExpandableListAdapter {
 		return mChildData.get(groupPosition).size();
 	}
 	
-	public Integer updateChildQuantity(int groupPosition, int childPosition, int qDelta) {
-		Integer q = 0;
-		boolean newGroup = false;
-
-		// Check if we have an entry for group
-		Map<Integer,Integer> groupData = mQuantityData.get(groupPosition);
-		if (groupData == null) {
-			// Create new group data
-			groupData = new HashMap<Integer,Integer>();
-			newGroup = true;
-		} else {
-			// Check if we have an entry for child and compute quantity
-			q = groupData.get(childPosition);
-			if (q == null) {
-				q = 0;
-			}
-		}
-		// Update quantity
-		q += qDelta;
-		// TODO if q < 0 we can actually remove it
-		q = (q < 0) ? 0 : q;
-		groupData.put(childPosition, q);
-		if (newGroup) {
-			// We handle new group data
-			mQuantityData.put(groupPosition, groupData);
-		}
+	public void updateChildQuantity(ChildViewHolder holder, int qDelta) {
+		int groupPosition = holder.groupPosition;
+		int childPosition = holder.childPosition;
 		
-		return q;
-	}
-	
-	public Integer getChildQuantity(int groupPosition, int childPosition) {
-		Map<Integer,Integer> groupData = mQuantityData.get(groupPosition);
-		if (groupData == null) {
-			return 0;
-		}
-		Integer q = groupData.get(childPosition);
+		// update holder quantity data
+		holder.quantityCt += qDelta;
+		if (holder.quantityCt > 0) {
+			boolean newGroup = false;
+			
+			// Check if we have an entry for group
+			Map<Integer, Map<String, Object>> groupData = mQuantityData.get(groupPosition);
+			if (groupData == null) {
+				// Create new group data
+				groupData = new HashMap<Integer, Map<String, Object>>();
+				newGroup = true;
+			}
+			
+			// Check if we have an entry for child and compute quantity
+			Map<String, Object> itemMapping = groupData.get(childPosition);
+			if (itemMapping != null) {
+				itemMapping.put("quantity", holder.quantityCt);
+			}
+			else {
+				// set the data for this mapping
+				itemMapping = new HashMap<String, Object>();
 
-		return (q == null) ? 0 : q;
+				itemMapping.put(OrderFeature.CATEGORY, holder.categoryName);
+				itemMapping.put(OrderFeature.ITEM, holder.itemName);
+				itemMapping.put(OrderFeature.ITEM_ID, holder.itemId);
+				itemMapping.put(OrderFeature.ITEM_PRICE, holder.itemPrice);
+				itemMapping.put("quantity", holder.quantityCt);
+
+				groupData.put(childPosition, itemMapping);
+			}
+			
+			if (newGroup) {
+				mQuantityData.put(groupPosition, groupData);
+			}
+			
+			// finally update the text view too
+			holder.quantityView.setText("" + holder.quantityCt);
+		}
+		else {
+			// delete the item selection if it exists
+			Map<Integer, Map<String, Object>> groupData = mQuantityData.get(groupPosition);
+			if (groupData != null) {
+				groupData.remove(childPosition);
+				
+				// delete group too if it is empty
+				if (groupData.isEmpty()) {
+					mQuantityData.remove(groupPosition);
+				}
+			}
+			
+			// finally reset counter and update text view
+			holder.quantityCt = 0;
+			holder.quantityView.setText("" + holder.quantityCt);
+		}
 	}
 	
 	private void bindGroupData(GroupViewHolder holder, int groupPosition, 
@@ -121,21 +153,23 @@ public class OrderCatalogListAdapter extends SimpleExpandableListAdapter {
 	private void bindChildData(ChildViewHolder holder, int groupPosition, 
 			int childPosition, String from[], int to[]) {
 		
-		Map<String,?> childData = (Map<String,?>) getChild(groupPosition, childPosition);
-		Integer quantity = getChildQuantity(groupPosition, childPosition);
+		Map<String, String> groupData = (Map<String, String>) getGroup(groupPosition);
+		Map<String, String> childData = (Map<String, String>) getChild(groupPosition, childPosition);
 		
 		// Bind holder positions
 		holder.groupPosition = groupPosition;
 		holder.childPosition = childPosition;
 		
 		// Bind data
-		int len = from.length;
-		for (int i = 0; i < len; ++ i) {
-			if (to[i] == R.id.orderItem) {
-				holder.orderItem.setText((String) childData.get(from[i]));
-				holder.quantity.setText(quantity.toString());
-			}
-		}
+		holder.itemId = Integer.parseInt(childData.get(OrderFeature.ITEM_ID));
+		holder.categoryName = groupData.get(OrderFeature.CATEGORY_NAME);
+		holder.itemName = childData.get(OrderFeature.ITEM_NAME);
+		holder.itemPrice = Double.parseDouble(childData.get(OrderFeature.ITEM_PRICE));
+		
+		
+		holder.itemView.setText(holder.itemName);
+		holder.priceView.setText(new DecimalFormat("#.##").format(holder.itemPrice) + " RON");
+		holder.quantityView.setText("" + holder.quantityCt);
 	}
 	
 	@Override
@@ -177,12 +211,14 @@ public class OrderCatalogListAdapter extends SimpleExpandableListAdapter {
 			convertView = newChildView(isLastChild, parent);
 			
 			holder = new ChildViewHolder();
-			holder.groupPosition = groupPosition;
-			holder.childPosition = childPosition;
-			holder.orderItem = (TextView) convertView.findViewById(R.id.orderItem);
-			holder.quantity = (TextView) convertView.findViewById(R.id.quantity);
+		
+			holder.itemView = (TextView) convertView.findViewById(R.id.orderItem);
+			holder.quantityView = (TextView) convertView.findViewById(R.id.quantity);
+			holder.priceView = (TextView) convertView.findViewById(R.id.orderItemPrice);
+			
 			holder.btnLess = (Button) convertView.findViewById(R.id.btn_less);
 			holder.btnLess.setOnClickListener(new QuantityClickListener(this, holder));
+			
 			holder.btnMore = (Button) convertView.findViewById(R.id.btn_more);
 			holder.btnMore.setOnClickListener(new QuantityClickListener(this, holder));
 			
@@ -202,10 +238,19 @@ public class OrderCatalogListAdapter extends SimpleExpandableListAdapter {
 	}
 	
 	private static class ChildViewHolder {
+		int itemId;
+		String itemName;
+		double itemPrice;
+		String categoryName;
+		int quantityCt = 0;
+		
 		int groupPosition;
 		int childPosition;
-		TextView orderItem;
-		TextView quantity;
+		
+		TextView itemView;
+		TextView priceView;
+		TextView quantityView;
+		
 		Button btnLess;
 		Button btnMore;
 	}
@@ -235,13 +280,24 @@ public class OrderCatalogListAdapter extends SimpleExpandableListAdapter {
 			}
 			
 			// Update quantity in view holder 
-			Integer q = mAdapter.updateChildQuantity(mParentView.groupPosition, 
-					mParentView.childPosition, qDelta);
-			mParentView.quantity.setText(q.toString());
+			mAdapter.updateChildQuantity(mParentView, qDelta);
 		}
 	}
 
-	public Map<Integer, Map<Integer, Integer>> getCounter() {
-		return mQuantityData;
+	@Override
+	public List<Map<String, Object>> getOrderSelections() {
+		List<Map<String, Object>> orderList = 
+				new ArrayList<Map<String,Object>>();
+		
+		for (Integer groupIdx : mQuantityData.keySet()) {
+			orderList.addAll(mQuantityData.get(groupIdx).values());
+		}
+		
+		return orderList;
+	}
+
+	@Override
+	public void clearOrderSelections() {
+		mQuantityData.clear();
 	}
 }

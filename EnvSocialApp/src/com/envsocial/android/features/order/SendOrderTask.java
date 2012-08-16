@@ -20,12 +20,15 @@ public class SendOrderTask extends AsyncTask<Void, Void, ResponseHolder> {
 	// loader dialog for sending an order
 	private ProgressDialog mSendOrderDialog;
 	private Context mContext;
+	private ISendOrder mOrderFragment;
+	private boolean error = true;
 	
-	private Annotation order;
+	private Annotation mOrder;
 	
-	public SendOrderTask(Context context, Annotation order) {
-		this.order = order;
+	public SendOrderTask(Context context, ISendOrder orderFragment, Annotation order) {
+		this.mOrder = order;
 		this.mContext = context;
+		this.mOrderFragment = orderFragment;
 	}
 	
 	
@@ -38,7 +41,7 @@ public class SendOrderTask extends AsyncTask<Void, Void, ResponseHolder> {
 	
 	@Override
 	protected ResponseHolder doInBackground(Void...args) {
-		return order.post(mContext);
+		return mOrder.post(mContext);
 	}
 	
 	
@@ -47,7 +50,7 @@ public class SendOrderTask extends AsyncTask<Void, Void, ResponseHolder> {
 		mSendOrderDialog.cancel();
 		
 		if (!holder.hasError()) {
-			boolean error = false;
+			error = false;
 			int msgId = R.string.msg_send_order_ok;
 
 			switch(holder.getCode()) {
@@ -107,5 +110,13 @@ public class SendOrderTask extends AsyncTask<Void, Void, ResponseHolder> {
 			Toast toast = Toast.makeText(mContext, msgId, Toast.LENGTH_LONG);
 			toast.show();
 		}
+		
+		// call post send order handler on the parent fragment
+		mOrderFragment.postSendOrder(!error);
+	}
+	
+	
+	public boolean successful() {
+		return !error;
 	}
 }

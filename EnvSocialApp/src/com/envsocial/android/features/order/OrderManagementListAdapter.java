@@ -153,6 +153,7 @@ public class OrderManagementListAdapter extends BaseAdapter {
 			mHolder.locationName.setBackgroundColor(Color.GRAY);
 			mHolder.orderDetails.setBackgroundColor(Color.GRAY);
 			mHolder.resolve.setEnabled(false);
+			notifyDataSetChanged();
 		}
 		
 		@Override

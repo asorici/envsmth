@@ -1,7 +1,9 @@
 package com.envsocial.android.features.order;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import android.content.Context;
@@ -16,7 +18,7 @@ import android.widget.TextView;
 
 import com.envsocial.android.R;
 
-public class OrderSearchCursorAdapter extends ResourceCursorAdapter {
+public class OrderSearchCursorAdapter extends ResourceCursorAdapter implements IOrderCatalogAdapter {
 	private static final String TAG = "OrderSearchCursorAdapter";
 	
 	/**
@@ -133,6 +135,7 @@ public class OrderSearchCursorAdapter extends ResourceCursorAdapter {
 				else {
 					selectionMapping = new HashMap<String, Object>();
 					selectionMapping.put(OrderFeature.CATEGORY, mHolder.categoryName);
+					selectionMapping.put(OrderFeature.ITEM_ID, mHolder.itemId);
 					selectionMapping.put(OrderFeature.ITEM, mHolder.itemName);
 					selectionMapping.put(OrderFeature.ITEM_PRICE, mHolder.itemPrice);
 					selectionMapping.put("quantity", mHolder.quantityCt);
@@ -164,9 +167,17 @@ public class OrderSearchCursorAdapter extends ResourceCursorAdapter {
 		
 	}
 	
-	
-	public Map<Integer, Map<String, Object>> getSearchOrderSelections() {
-		return searchOrderSelection;
+	@Override
+	public List<Map<String, Object>> getOrderSelections() {
+		List<Map<String, Object>> searchOrderList = 
+				new ArrayList<Map<String,Object>>(searchOrderSelection.values());
+		
+		return searchOrderList;
+	}
+
+	@Override
+	public void clearOrderSelections() {
+		searchOrderSelection.clear();
 	}
 
 }

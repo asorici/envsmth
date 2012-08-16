@@ -1,26 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content" >
-    <LinearLayout android:id="@+id/footer"
+    android:layout_height="fill_parent" 
+    android:orientation="vertical">
+ 
+    <com.viewpagerindicator.TitlePageIndicator
+        android:id="@+id/catalog_page_titles"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true" >
-<!-- 	    <LinearLayout android:layout_width="fill_parent"
-	        android:layout_height="wrap_content" > -->
-			<Button android:id="@+id/btn_order"
-	            android:layout_width="0dip"
-	            android:layout_height="wrap_content"
-	            android:layout_weight="1"
-	            android:layout_marginLeft="5dip"
-	            android:text="@string/btn_order" />
-	        <Button android:id="@+id/btn_tab"
-	            android:layout_width="0dip"
-	            android:layout_height="wrap_content"
-	            android:layout_weight="1"
-	            android:layout_marginLeft="5dip"
-	            android:text="@string/btn_tab" />
-<!-- 		</LinearLayout>
+        android:background="@color/actionbar_gray"
+        android:padding="10dip"
+        android:textColor="@color/black"
+        app:footerColor="#FFAA2222"
+        app:footerIndicatorHeight="3dp"
+        app:footerIndicatorStyle="underline"
+        app:footerLineHeight="1dp"
+        app:selectedBold="true"
+        app:selectedColor="@color/light_green" />
+    
+    <android.support.v4.view.ViewPager
+	    	android:layout_width="fill_parent"
+	        android:layout_height="0dip"
+	        android:layout_weight="1"
+	    	android:id="@+id/catalog_pager"/>
+    
+    <LinearLayout
+        android:id="@+id/footer"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/btn_order"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight = "1"
+            android:layout_marginLeft="5dip"
+            android:clickable="true"
+            android:text="@string/btn_order" />
+
+        <Button
+            android:id="@+id/btn_tab"
+            android:layout_width="0dip"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dip"
+            android:clickable="true"
+            android:text="@string/btn_tab" />
+        <!--
+     		</LinearLayout>
 		<LinearLayout android:layout_width="fill_parent"
 	        android:layout_height="wrap_content" >
 	        <Button android:id="@+id/check"
@@ -35,10 +65,8 @@
 	            android:layout_weight="1"
 	            android:layout_marginRight="5dip"
 	            android:text="@string/btn_call_waiter" />
-		</LinearLayout> -->
+		</LinearLayout>
+        -->
     </LinearLayout>
-	<ExpandableListView android:id="@+id/catalog"
-	    android:layout_above="@id/footer"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent" />
-</RelativeLayout>
+    
+</LinearLayout>
