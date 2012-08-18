@@ -21,7 +21,7 @@
 
     <application
     	android:name="Envived"
-        android:icon="@drawable/ic_envived"
+        android:icon="@drawable/ic_envived_white"
         android:theme="@style/Theme.Envived"
         android:label="@string/app_name" >
         <activity

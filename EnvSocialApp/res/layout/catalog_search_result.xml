@@ -37,5 +37,7 @@
 	    android:layout_above="@id/catalog_search_result_footer"
 	    android:layout_below="@id/catalog_search_result_header"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent" />
+        android:layout_height="fill_parent" 
+        android:divider="@drawable/order_catalog_child_divider"
+        />
 </RelativeLayout>

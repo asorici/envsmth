@@ -13,7 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.envsocial.android.R;
@@ -45,8 +45,8 @@ public class OrderSearchCursorAdapter extends ResourceCursorAdapter implements I
 		holder.priceView = (TextView)convertView.findViewById(R.id.catalog_search_result_price);
 		holder.quantityView = (TextView)convertView.findViewById(R.id.catalog_search_result_quantity);
 		
-		holder.btnLess = (Button)convertView.findViewById(R.id.catalog_search_result_btn_less);
-		holder.btnMore = (Button)convertView.findViewById(R.id.catalog_search_result_btn_more);
+		holder.btnLess = (ImageButton)convertView.findViewById(R.id.catalog_search_result_btn_less);
+		holder.btnMore = (ImageButton)convertView.findViewById(R.id.catalog_search_result_btn_more);
 		
 		OnClickListener l = new OrderSearchQuantityListener(holder);
 		holder.btnLess.setOnClickListener(l);
@@ -108,8 +108,8 @@ public class OrderSearchCursorAdapter extends ResourceCursorAdapter implements I
 		TextView priceView;
 		
 		TextView quantityView;
-		Button btnLess;
-		Button btnMore;
+		ImageButton btnLess;
+		ImageButton btnMore;
 	}
 	
 	private class OrderSearchQuantityListener implements OnClickListener {

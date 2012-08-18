@@ -9,13 +9,16 @@ import android.content.Context;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ExpandableListView;
 
+import com.envsocial.android.Envived;
 import com.envsocial.android.R;
+import com.envsocial.android.utils.UIUtils;
 import com.viewpagerindicator.TitlePageIndicator;
 
 public class OrderCatalogPagerAdapter extends PagerAdapter 
@@ -79,6 +82,11 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
         
         // create the expandable list view
         ExpandableListView listView = (ExpandableListView) view.findViewById(R.id.catalog_page);
+        Context appContext = Envived.getContext();
+        DisplayMetrics metrics = appContext.getResources().getDisplayMetrics();
+        
+        int width = metrics.widthPixels;
+        listView.setIndicatorBounds(width - UIUtils.getDipsFromPixel(28, appContext), width - UIUtils.getDipsFromPixel(10, appContext));
         
      	// set button zone as list footer
      	//LinearLayout buttonLayout = (LinearLayout)inflater.inflate(R.layout.catalog_page_buttons, null);

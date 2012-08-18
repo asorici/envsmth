@@ -17,6 +17,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,12 +28,14 @@ import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
+import com.envsocial.android.Envived;
 import com.envsocial.android.R;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Annotation;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.features.Feature;
 import com.envsocial.android.utils.C2DMReceiver;
+import com.envsocial.android.utils.UIUtils;
 import com.google.android.c2dm.C2DMessaging;
 
 public class OrderManagerFragment extends SherlockFragment {
@@ -137,6 +140,12 @@ public class OrderManagerFragment extends SherlockFragment {
 		} else {
 			mList = (ExpandableListView) root.findViewById(R.id.order_list);
 		}
+		
+		Context appContext = Envived.getContext();
+        DisplayMetrics metrics = appContext.getResources().getDisplayMetrics();
+        
+        int width = metrics.widthPixels;
+        mList.setIndicatorBounds(width - UIUtils.getDipsFromPixel(28, appContext), width - UIUtils.getDipsFromPixel(10, appContext));
 		mList.setAdapter(mAdapter);
 		
 		int len = mAdapter.getGroupCount();

@@ -13,24 +13,24 @@
         android:layout_height="fill_parent"
         android:layout_alignParentRight="true"
         android:orientation="horizontal" >
-        <Button android:id="@+id/btn_less"
+        <ImageButton android:id="@+id/btn_less"
             android:clickable="true"
             android:layout_width="45dip"
             android:layout_height="45dip"
-            android:textStyle="bold"
-            android:text="-" />
+            android:src="@drawable/envived_sub_order"
+            android:background="@drawable/order_button"/>
         <TextView android:id="@+id/quantity"
             android:layout_width="20dip"
             android:layout_height="fill_parent"
             android:textStyle="bold"
             android:text="0"
             android:gravity="center_vertical|center_horizontal" />
-        <Button android:id="@+id/btn_more"
+        <ImageButton android:id="@+id/btn_more"
             android:clickable="true"
             android:layout_width="45dip"
             android:layout_height="45dip"
-            android:textStyle="bold"
-            android:text="+" />
+            android:src="@drawable/envived_add_order"
+            android:background="@drawable/order_button"/>
     </LinearLayout>
     <RelativeLayout
         android:id="@+id/item_name_holder"

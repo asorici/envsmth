@@ -9,6 +9,9 @@
         android:layout_height="fill_parent" 
         android:layout_marginTop="5dip"
         android:layout_marginBottom="5dip"
+        android:groupIndicator="@drawable/group_indicator"
+        android:divider="@drawable/order_catalog_group_divider"
+        android:childDivider="@drawable/order_catalog_child_divider"
         />
 	
 	<!-- 

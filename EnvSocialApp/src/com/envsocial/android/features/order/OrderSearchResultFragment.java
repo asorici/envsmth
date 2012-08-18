@@ -78,9 +78,11 @@ public class OrderSearchResultFragment extends SherlockFragment
 		noResultsView.setText(getString(R.string.search_no_results, mFeatureQuery));
 		mListView.setEmptyView(noResultsView);
 		
+		/*
 		int[] colors = {0, getResources().getColor(R.color.light_green), 0};
 		mListView.setDivider(new GradientDrawable(Orientation.RIGHT_LEFT, colors));
 		mListView.setDividerHeight(2);
+		*/
 		
 		mResultsCountText = (TextView) v.findViewById(R.id.catalog_search_result_header_text);
 		

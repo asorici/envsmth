@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 
@@ -216,10 +217,10 @@ public class OrderCatalogListAdapter extends SimpleExpandableListAdapter impleme
 			holder.quantityView = (TextView) convertView.findViewById(R.id.quantity);
 			holder.priceView = (TextView) convertView.findViewById(R.id.orderItemPrice);
 			
-			holder.btnLess = (Button) convertView.findViewById(R.id.btn_less);
+			holder.btnLess = (ImageButton) convertView.findViewById(R.id.btn_less);
 			holder.btnLess.setOnClickListener(new QuantityClickListener(this, holder));
 			
-			holder.btnMore = (Button) convertView.findViewById(R.id.btn_more);
+			holder.btnMore = (ImageButton) convertView.findViewById(R.id.btn_more);
 			holder.btnMore.setOnClickListener(new QuantityClickListener(this, holder));
 			
 			convertView.setTag(holder);
@@ -251,8 +252,8 @@ public class OrderCatalogListAdapter extends SimpleExpandableListAdapter impleme
 		TextView priceView;
 		TextView quantityView;
 		
-		Button btnLess;
-		Button btnMore;
+		ImageButton btnLess;
+		ImageButton btnMore;
 	}
 	
 	private static class GroupViewHolder {
