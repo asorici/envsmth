@@ -1,18 +1,17 @@
-from coresql.models import Environment, Area, Feature, Annotation,\
-                           Announcement, History, UserProfile,\
-                           ResearchProfile, UserContext, UserSubProfile
-#from coresql.forms import AnnotationForm
-from tastypie.resources import ModelResource
-from tastypie.exceptions import ImmediateHttpResponse, NotFound, HydrationError
-#from tastypie.validation import FormValidation
-from tastypie import fields, http
-from tastypie.authentication import Authentication
-from tastypie.api import Api
-from client.authorization import AnnotationAuthorization, UserAuthorization,\
+from client.authorization import AnnotationAuthorization, UserAuthorization, \
     FeatureAuthorization
 from client.validation import AnnotationValidation
+from coresql.models import Environment, Area, Feature, Annotation, Announcement, \
+    History, UserProfile, ResearchProfile, UserContext, UserSubProfile
 from datetime import datetime
-from django.core.exceptions import MultipleObjectsReturned
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from tastypie import fields, http
+from tastypie.api import Api
+from tastypie.authentication import Authentication
+from tastypie.exceptions import ImmediateHttpResponse, NotFound, HydrationError
+from tastypie.resources import ModelResource
+#from coresql.forms import AnnotationForm
+#from tastypie.validation import FormValidation
 
 
 class UserResource(ModelResource):
@@ -667,7 +666,18 @@ class AnnotationResource(ModelResource):
         
         ## make notification for 'order' type annotations
         if updated_bundle.data['category'] == 'order':
-            self._make_c2dm_notification(updated_bundle)
+            owner_profile = None
+            if not bundle.obj.environment is None:
+                owner_profile = bundle.obj.environment.owner
+                    
+            if not bundle.obj.area is None:
+                owner_profile = bundle.obj.area.environment.owner
+                    
+            registration_id = None
+            if owner_profile:
+                registration_id = owner_profile.c2dm_id
+            
+            self._make_c2dm_notification(registration_id, updated_bundle, params = {'type' : 'new_order'})
         
         return updated_bundle
         
@@ -683,25 +693,54 @@ class AnnotationResource(ModelResource):
             
             ## make notification for 'order' type annotations
             if updated_bundle.data['category'] == Annotation.ORDER:
-                self._make_c2dm_notification(updated_bundle)
+                owner_profile = None
+                if not bundle.obj.environment is None:
+                    owner_profile = bundle.obj.environment.owner
+                    
+                if not bundle.obj.area is None:
+                    owner_profile = bundle.obj.area.environment.owner
+                    
+                registration_id = None
+                if owner_profile:
+                    registration_id = owner_profile.c2dm_id
+                
+                self._make_c2dm_notification(registration_id, updated_bundle, params = {'type' : 'new_order'})
             
             return updated_bundle
         except (NotFound, MultipleObjectsReturned):
             raise ImmediateHttpResponse(http.HttpBadRequest())
     
     
-    def _make_c2dm_notification(self, bundle):
+    def obj_delete(self, request=None, **kwargs):
+        """
+        Adapted version of the method in TastyPie's ModelResource
+        to take into account the c2dm_notification need
+        """
+        annObj = kwargs.pop('_obj', None)
+
+        if not hasattr(annObj, 'delete'):
+            try:
+                annObj = self.obj_get(request, **kwargs)
+            except ObjectDoesNotExist:
+                raise NotFound("A model instance matching the provided arguments could not be found.")
+        
+        ## send notification of handled order before deleting the object
+        receiver_profile = annObj.user
+        registration_id = None
+        if receiver_profile:
+            registration_id = receiver_profile.c2dm_id
+        
+        bundle = AnnotationResource().build_bundle(obj = annObj)
+        self._make_c2dm_notification(registration_id, bundle, params = {'type' : 'resolved_order'})
+        
+        annObj.delete()
+    
+    
+    
+    def _make_c2dm_notification(self, registration_id, bundle, params = None):
         import socket, pickle, c2dm
         
-        user_profile = None
-        if not bundle.obj.environment is None:
-            user_profile = bundle.obj.environment.owner
-            
-        if not bundle.obj.area is None:
-            user_profile = bundle.obj.area.environment.owner
-            
-        if not user_profile is None and not user_profile.c2dm_id is None:
-            registration_id = user_profile.c2dm_id
+        if not registration_id is None:
             collapse_key = "annotation_" + bundle.obj.category
             resource_uri = self.get_resource_uri(bundle)
             
@@ -712,7 +751,21 @@ class AnnotationResource(ModelResource):
             location_uri = EnvironmentResource().get_resource_uri(environment)
             feature = bundle.obj.category
             
-            data = pickle.dumps((registration_id, collapse_key, location_uri, resource_uri, feature))
+            # prepare notification data
+            registration_ids = [registration_id]
+            notification_data = {'location_uri' : location_uri,
+                                 'resource_uri' : resource_uri,
+                                 'feature' : feature,
+                                 }
+            
+            if not params is None:
+                notification_data['params'] = params
+            
+            delay_while_idle = False
+            ttl = 600
+            
+            # pickle notification data and send it
+            data = pickle.dumps((registration_ids, collapse_key, delay_while_idle, ttl, notification_data))
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 # Connect to server and send data

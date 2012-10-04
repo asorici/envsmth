@@ -107,7 +107,11 @@ public class ResponseHolder {
 	public static ResponseHolder parseResponse(HttpResponse response) {
 		try {
 			int statusCode = response.getStatusLine().getStatusCode();
-			String responseBody = EntityUtils.toString(response.getEntity());
+			String responseBody = "";
+			if (response.getEntity() != null) {
+				// if there is a payload in the response
+				responseBody = EntityUtils.toString(response.getEntity());
+			}
 			
 			return new ResponseHolder(statusCode, responseBody, null);
 		} catch (ParseException e) {

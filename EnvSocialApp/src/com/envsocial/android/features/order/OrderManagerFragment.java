@@ -18,6 +18,7 @@ import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,20 +30,17 @@ import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 import com.envsocial.android.Envived;
+import com.envsocial.android.GCMIntentService;
 import com.envsocial.android.R;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Annotation;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.features.Feature;
-import com.envsocial.android.utils.C2DMReceiver;
+import com.envsocial.android.utils.NotificationDispatcher;
+import com.envsocial.android.utils.NotificationReceiver;
 import com.envsocial.android.utils.UIUtils;
-import com.google.android.c2dm.C2DMessaging;
 
 public class OrderManagerFragment extends SherlockFragment {
-	public static final int DIALOG_REQUEST = 0;
-	
-	public static final String REGISTER_CD2M_ITEM = "Notifications On";
-	public static final String UNREGISTER_CD2M_ITEM = "Notifications Off";
 	
 	public static final String RESOURCE_URI = "resource_uri";
 	public static final String LOCATION_NAME = "location_name";
@@ -81,21 +79,7 @@ public class OrderManagerFragment extends SherlockFragment {
 				new int[] { R.id.order_details }
 		);
 		
-		checkC2DMRegistration();
-		
 		getOrders();
-	}
-	
-	private void checkC2DMRegistration() {
-		// look for the C2DM registrationId stored in the private preferences
-		// if not found, pop-up a dialog to invite the user to register in order to receive notifications
-		String regId = C2DMessaging.getRegistrationId(this.getActivity());
-        if (regId == null || "".equals(regId)) {
-        	OrderNotificationDialogFragment orderNotificationDialog = 
-    				OrderNotificationDialogFragment.newInstance();
-        	orderNotificationDialog.setTargetFragment(this, DIALOG_REQUEST);
-        	orderNotificationDialog.show(getFragmentManager(), "dialog");
-        }
 	}
 	
 	
@@ -104,7 +88,7 @@ public class OrderManagerFragment extends SherlockFragment {
 		super.onStart();
 		mOrderReceiver = new OrderReceiver();
 		IntentFilter filter = new IntentFilter();
-		filter.addAction(C2DMReceiver.ACTION_RECEIVE_NOTIFICATION);
+		filter.addAction(GCMIntentService.ACTION_RECEIVE_NOTIFICATION);
 		filter.setPriority(1);
 		getActivity().registerReceiver(mOrderReceiver, filter);
 	}
@@ -114,6 +98,7 @@ public class OrderManagerFragment extends SherlockFragment {
 		super.onStop();
 		getActivity().unregisterReceiver(mOrderReceiver);
 	}
+	
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -164,32 +149,11 @@ public class OrderManagerFragment extends SherlockFragment {
 	public void onCreateOptionsMenu(Menu menu, MenuInflater menuInflater) {
 		//System.err.println("[DEBUG]>> In tab order manager menu creator");
 		
-		menu.add(REGISTER_CD2M_ITEM);
-		menu.add(UNREGISTER_CD2M_ITEM);
-		
 		super.onCreateOptionsMenu(menu, menuInflater);
 	}
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		
-		if (item.getTitle().toString().compareTo(REGISTER_CD2M_ITEM) == 0) {
-			String regId = C2DMessaging.getRegistrationId(this.getActivity());
-            if (regId != null && !"".equals(regId)) {
-            	try {
-            		ActionHandler.registerWithServer(this.getActivity(), regId);
-            	} catch (Exception e) {
-            		e.printStackTrace();
-            	}
-            } else {
-                C2DMessaging.register(this.getActivity(), C2DMReceiver.SENDER_ID);
-            }
-		}
-		
-		if (item.getTitle().toString().compareTo(UNREGISTER_CD2M_ITEM) == 0) {
-			C2DMessaging.unregister(this.getActivity());
-		}
-		
 		return true;
 	}
 	
@@ -238,7 +202,7 @@ public class OrderManagerFragment extends SherlockFragment {
 		
 		getOrders();
 		
-		// TODO
+		// TODO retrieve only the orders since the last update
 	}
 	
 	private void addOrder(String locationName, Map<String,String> order) {
@@ -268,9 +232,25 @@ public class OrderManagerFragment extends SherlockFragment {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			System.out.println("[DEBUG]>> App on receive");
-			loadOrders();
-			abortBroadcast();
+			String locationUri = intent.getStringExtra(GCMIntentService.LOCATION_URI);
+			String feature = intent.getStringExtra(GCMIntentService.FEATURE);
+			String resourceUri = intent.getStringExtra(GCMIntentService.RESOURCE_URI);
+			String params = intent.getStringExtra(GCMIntentService.PARAMS);
+			
+			JSONObject paramsJSON = null;
+			try {
+				if (params != null) {
+					paramsJSON = new JSONObject(params);
+				}
+			} catch(JSONException ex) {
+				Log.e("Notification", "Envived notification params are not JSON parceable.", ex);
+			}
+			
+			if (paramsJSON != null && paramsJSON.optString("type", null) != null 
+				&& paramsJSON.optString("type").equalsIgnoreCase(NotificationReceiver.NEW_ORDER_NOTIFICATION)) {
+				loadOrders();
+				abortBroadcast();
+			}
 		}
 		
 	}
@@ -303,8 +283,6 @@ public class OrderManagerFragment extends SherlockFragment {
 			mOrderRetrievalDialog.cancel();
 			
 			if (orders != null) {
-				System.out.println("[DEBUG]>> received orders: " + orders);
-				
 				// TODO: handle multiple order pages - currently all annotations are consumed
 				// TODO: order by smthg?
 				try {

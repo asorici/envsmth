@@ -61,15 +61,12 @@ class C2DMClientThread(threading.Thread):
         self.running = True
         threading.Thread.__init__(self)
     
-    def update_auth_token(self, c2dm_auth_token):
-        self.c2dm_auth_token = c2dm_auth_token
-        
     def run(self):
         while self.running:
             ## try to read from the queue
             try:
                 notification = self.c2dm_request_queue.get(timeout=15)
-                self.c2dm_request(notification, 0)
+                self.c2dm_request(notification)
             except Empty:
                 ## check if still running and if so wait some more
                 pass
@@ -78,169 +75,73 @@ class C2DMClientThread(threading.Thread):
         self.running = False
         
         
-    def c2dm_request(self, notification, trial_ct):
-        #from gdata.client import GDClient
-        #from gdata.auth import ClientLoginToken
+    def c2dm_request(self, notification, max_retries = 10):
+        from gcm.gcm import GCM, GCMConnectionException, GCMUnavailableException, GCMAuthenticationException
+        from settings import GOOGLE_GCM_API_KEY 
+        from coresql.models import UserProfile
         
-        import urllib, urllib2
-        from urllib2 import HTTPError
+        logger.info("[C2DMClientThread] Handling request for notification: " + str(notification))
         
-        if trial_ct < 10:
-            """
-            Add params and headers
-            """
-            logger.info("[C2DMClientThread] Handling request for notification: " + str(notification) + " :: trial_ct = " + str(trial_ct))
-            
-            registration_id, collapse_key, location_uri, resource_uri, feature = notification
-            params = {'registration_id': registration_id, 'collapse_key': collapse_key, 
-                      'data.location_uri': location_uri,
-                      'data.resource_uri': resource_uri,
-                      'data.feature': feature
-                      }
-            
-            credentials = 'GoogleLogin auth=' + self.c2dm_auth_token
-            headers = { 'Authorization' : credentials }
-            data = urllib.urlencode(params)
-            
-            """
-            Make request
-            """
-            try:
-                r = urllib2.Request('https://android.apis.google.com/c2dm/send', data, headers)
-                f = urllib2.urlopen(r)
-                content = f.read()
-                
-                self._handle_content(content, notification, trial_ct)
-            except HTTPError as e:
-                if e.code == 401:
-                    ## get new authentication token and try again
-                    self.c2dm_login()
-                    self.c2dm_request(notification, trial_ct + 1)
-                elif e.code == 503:
-                    self._handle503(e, notification, trial_ct)
-                else:
-                    ## some other unexpected code - log it
-                    logger.critical("[C2DM HTTP ERROR] Encountered at c2dm request (" + str(notification) + "): " + str(e.code) + " - " + e.read())
-            except Exception, e:
-                logger.critical("[C2DM EXCEPTION] Encountered at c2dm request (" + str(notification) + "): " + str(e))
-            
-        else:
-            logger.critical("[C2DM TIMEOUT ERROR] Tried to recover 10 times from failure sending notification: " + str(notification) + ". Aborting!")
-    
-    
-    def c2dm_login(self):
-        from gdata.client import GDClient
+        gcm_client = GCM(GOOGLE_GCM_API_KEY)
+        registration_ids, collapse_key, delay_while_idle, ttl, data = notification
         
-        email = 'aqua.envsocial@gmail.com'
-        password = '3nvsocial'
-        application_name = 'dev-test-v1'
-        
-        client = GDClient()
         try:
-            client.client_login(email=email, password=password, source=application_name, 
-                            service="ac2dm", account_type="GOOGLE", captcha_token=None, captcha_response=None)
-        except Exception, ex:
-            logger.critical("[C2DM LOGIN ERROR] Error while logging into GData service: " + str(ex))
+            response = gcm_client.json_request(registration_ids, data = data,
+                                           collapse_key = collapse_key, 
+                                           delay_while_idle = delay_while_idle,
+                                           time_to_live = ttl,
+                                           retries = max_retries)
             
-        
-        if client.auth_token:
-            #print "client token string:", client.auth_token.token_string
-            logger.info("client.auth_token is: " + str(client.auth_token.token_string))
-            self.update_auth_token(client.auth_token.token_string)
-       
-    
-    def _handle_content(self, content, notification, trial_ct):
-        import time
-        
-        content = content.strip()
-        ## parse the simple content string
-        response_bits = content.split("=")
-        
-        if response_bits[0] == "id":
-            ## if we got a message id it means the transmission was successful
-            logger.info("[C2DM SUCCESS] Successful transmission of notification (" + str(notification) + "). Response: " + content)
-        
-        elif response_bits[0].lower() == "error":
-            ## an error occurred, let's see if we can handle it
-            if response_bits[1] == "QuotaExceeded" or response_bits[1] == "DeviceQuotaExceeded":
-                """
-                We're in trouble here. We won't block the thread until the next day, but instead log the message
-                as critical. 
-                """
-                logger.critical("[C2DM " + response_bits[1] + " ERROR] Encountered at notification request: " + str(notification))
-                time.sleep(30)
+            # Handling errors
+            if 'errors' in response:
+                for error, reg_ids in response['errors'].items():
+                    # Check for errors and act accordingly
+                    if error in ['NotRegistered', 'InvalidRegistration']:
+                        # Remove reg_ids from database
+                        for reg_id in reg_ids:
+                            """
+                            Either the owner has turned off notifications (NotRegistered) or 
+                            there is a problem with the registration_id (InvalidRegistration).
+                            In both cases, log the error and set the corresponding registration_id to null in the UserProfile
+                            """
+                            try:
+                                user_profile = UserProfile.objects.get(c2dm_id = reg_id)
+                                user_profile.c2dm_id = None
+                                user_profile.save()
+                            except Exception:
+                                pass
+                            
+                            logger.error("[GCM " + error + " ERROR] Encountered at notification request: " 
+                                         + str(notification))
+                    else:
+                        """
+                        Any other error that should normally not be encountered because of the internal business logic: 
+                        MissingRegistration, MismatchSenderId, MessageTooBig, MissingCollapseKey 
+                        """
+                        logger.error("[GCM " + error + " ERROR] Encountered at notification request: " 
+                                     + str(notification))
                 
-            elif response_bits[1] == "InvalidRegistration" or response_bits[1] == "NotRegistered":
-                """
-                Either the owner has turned off notifications (NotRegistered) or 
-                there is a problem with the registration_id (InvalidRegistration).
-                In both cases, log the error and set the corresponding registration_id to null in the UserProfile
-                """
-                from coresql.models import UserProfile
-                
-                registration_id = notification[0]
-                try:
-                    user_profile = UserProfile.objects.get(c2dm_id = registration_id)
-                    user_profile.c2dm_id = None
-                    user_profile.save()
-                except Exception:
-                    pass
-                
-                logger.error("[C2DM " + response_bits[1] + " ERROR] Encountered at notification request: " + str(notification))
-            else:
-                """
-                Any other error that should normally not be encountered because of the internal business logic: 
-                MissingRegistration, MismatchSenderId, MessageTooBig, MissingCollapseKey 
-                """
-                logger.error("[C2DM " + response_bits[1] + " ERROR] Encountered at notification request: " + str(notification))
-    
-        
-    def _handle503(self, e, notification, trial_ct):
-        import random, time
-        import email.utils as eut
-        
-        ## first try and see if there is a Retry-After header
-        header_info = e.info()
-        retry_after_header = header_info.get("Retry-After")
-        
-        perform_retry_after = False
-        
-        if not retry_after_header is None:
-            ## see if it's a number
-            retry_after = None
-            try:
-                retry_after = float(retry_after_header)
-            except ValueError:
-                pass
+            if 'canonical' in response:
+                for canonical_id, reg_id in response['canonical'].items():
+                    # Repace reg_id with canonical_id in your database
+                    try:
+                        user_profile = UserProfile.objects.get(c2dm_id=reg_id)
+                        user_profile.c2dm_id = canonical_id
+                        user_profile.save()
+                    except Exception:
+                        pass
             
-            if retry_after:
-                perform_retry_after = True
-                time.sleep(int(retry_after) + 1)
-            else:
-                t_tuple = None
-                try:
-                    t_tuple = eut.parsedate_tz(retry_after_header)
-                except Exception:
-                    pass
-                
-                if t_tuple:
-                    t = time.mktime(t_tuple[:9])
-                    t += t_tuple[9]                     ## this should be seconds since epoch in UTC timezone
-                    
-                    now = time.mktime(time.gmtime())    ## this should be current time ins seoconds since epoch UTC
-                    t_diff = t - now
-                    if t_diff > 0 and t_diff < 100:    ## if a valid time diff results - perform retry-after
-                        perform_retry_after = True
-                        time.sleep(t_diff)
-                    
-        
-        if not perform_retry_after:    
-            ## if not, do exponential backoff
-            wait_time = random.randint(0, 2**trial_ct)
-            wait_time = wait_time / 5
-            if wait_time < 1:
-                wait_time = 1
+            logger.info("[GCM INFO] Finished processing GCM notifications: " + str(notification))
             
-            time.sleep(wait_time)
+        except GCMConnectionException, e:
+            logger.critical("[GCM EXCEPTION] Connection error at GCM request (" + str(notification) + "): " + str(e))
+        except GCMAuthenticationException, e:
+            logger.critical("[GCM EXCEPTION] Authentication error at GCM request (" + str(notification) + "): " + str(e) 
+                            + ". Revise SENDER_ID !!!")
+        except GCMUnavailableException, e:
+            logger.error("[GCM EXCEPTION] GCM Server Unaivailable even after 10 retries " + 
+                         "during request (" + str(notification) + "): " + str(e))
+        except Exception, e:
+            print e
+            logger.error("[GCM EXCEPTION] Error at GCM request (" + str(notification) + "): " + str(e))
         
-        self.c2dm_request(notification, trial_ct + 1)

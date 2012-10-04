@@ -144,7 +144,7 @@ def checkin(request):
             context = UserContext(user=user_profile, currentArea=area, currentEnvironment=area_env)
             context.save()
         
-        return checkin_succeeded(request, area = area, env = env)
+        return checkin_succeeded(request, user_profile, area = area, env = env)
     
     else:
         return checkin_failed(request, data = check_form.errors)
@@ -229,11 +229,15 @@ def login_failed(request, data = None):
     return view_response(request, response, 401)
 
 
-def checkin_succeeded(request, area = None, env = None):
-    from client.api import AreaResource, EnvironmentResource
+def checkin_succeeded(request, user, area = None, env = None):
+    from client.api import AreaResource, EnvironmentResource, UserResource
     
     ## default is to just return an 200 OK http response
     response = {"success": True, "code": 200, "data" : {}}
+    
+    ## add the user URI as data payload - will be used for all notifications
+    user_uri = UserResource().get_resource_uri(user)
+    response['data'].update({'user_uri' : user_uri})
     
     if area:
         ## return data about the area resource

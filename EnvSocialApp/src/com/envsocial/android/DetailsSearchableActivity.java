@@ -112,41 +112,7 @@ public class DetailsSearchableActivity extends SherlockFragmentActivity implemen
 	    	  ft.commit();
 	      }
 	      
-	      //doMySearch(query);
 	    }
-	}
-	
-	private void doMySearch(String query) {
-		// get curret location
-		Location location = Preferences.getCheckedInLocation(this);
-		Feature feat = location.getFeature(mFeatureCategoryTag);
-		
-		Cursor cursor = feat.localQuery(query);
-		Log.d(TAG, "Cursor: " + cursor);
-		
-		if (cursor != null && cursor.moveToFirst()) {
-			
-			while (!cursor.isAfterLast()) {
-				int itemId = Integer.parseInt(cursor.getString(0));
-				String itemName = cursor.getString(1);
-				String itemCategory = cursor.getString(2);
-				String itemPrice = cursor.getString(3);
-				String itemDescription = cursor.getString(4);
-				
-				Log.d(TAG, "SEARCH RESULT ITEM ITEM: " + itemId + ", " + itemName + ", "
-						+ itemCategory + ", " + itemPrice + ", " + itemDescription);
-				
-				cursor.moveToNext();
-			}
-			
-			cursor.deactivate();
-		}
-		else {
-			Log.i(TAG, "SEARCH FOR " + query + " RETURNED NO RESULTS");
-		}
-		
-		Toast toast = Toast.makeText(this, "Pretend search in Feature.", Toast.LENGTH_LONG);
-		toast.show();
 	}
 
 	@Override

@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import org.json.JSONStringer;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.envsocial.android.api.exceptions.EnvSocialComException;
 import com.envsocial.android.api.exceptions.EnvSocialComException.HttpMethod;
@@ -29,42 +30,48 @@ public class ActionHandler {
 	public final static String REGISTER = "register";
 	
 	
-	public static int registerWithServer(Context context, 
-			String deviceRegistrationId) throws Exception {
+	public static ResponseHolder registerWithServer(Context context, String deviceRegistrationId) {
 		return makeRegistrationRequestToServer(context, 
 				"c2dm_id", 
 				deviceRegistrationId
 				);
 	}
 	
-	public static int unregisterWithServer(Context context) throws Exception {
-		return makeRegistrationRequestToServer(context, 
-				"unregister_c2dm", 
-				true
-				);
+	public static ResponseHolder unregisterWithServer(Context context) {
+		return makeRegistrationRequestToServer(context, "unregister_c2dm", true);
 	}
 	
-	private static int makeRegistrationRequestToServer(Context context, 
-			String param, Object value) throws Exception {
-		
-		String url = Url.fromUri(Preferences.getLoggedInUserUri(context));
-		
-		String data = new JSONStringer()
-			.object()
-				.key(param)
-				.value(value)
-			.endObject()
-			.toString();
-		
+	private static ResponseHolder makeRegistrationRequestToServer(Context context, String param, Object value) {
 		// Perform registration request
 		AppClient client = new AppClient(context);
-		HttpResponse response = client.makePutRequest(url,
-				data,
-				new String[] {"Content-Type", "Data-Type"},
-				new String[] {"application/json", "json"}
-				);
+		HttpResponse response = null;
 		
-		return response.getStatusLine().getStatusCode();
+		try {
+			String url = Url.fromUri(Preferences.getLoggedInUserUri(context));
+			
+			String data = new JSONStringer()
+				.object()
+					.key(param)
+					.value(value)
+				.endObject()
+				.toString();
+			
+			response = client.makePutRequest(url,
+					data,
+					new String[] {"Content-Type", "Data-Type"},
+					new String[] {"application/json", "json"}
+					);
+		} catch (IOException e) {
+			return new ResponseHolder(new EnvSocialComException(null, 
+					HttpMethod.POST, EnvSocialResource.GCM, e));
+		} catch (JSONException e) {
+			return new ResponseHolder(new EnvSocialContentException((String)value, EnvSocialResource.GCM, e));
+		}
+		
+		// handle GCM registration response from server
+		ResponseHolder holder = ResponseHolder.parseResponse(response);
+		
+		return holder;
 	}
 	
 	
@@ -162,8 +169,14 @@ public class ActionHandler {
 					//Location checkinLoc = new Location(checkinData.getJSONObject("data"));
 					Location checkinLoc = Location.fromSerialized(checkinData.getString("data"));
 					
+					if (userUri == null) {
+						// it is null when we are doing an anonymous checkin
+						// we then use the user_uri created for the anonymous user by the server
+						userUri = checkinData.getJSONObject("data").getString("user_uri");
+					}
+					
 					holder.setTag(checkinLoc);
-					Preferences.checkin(context, checkinLoc);
+					Preferences.checkin(context, userUri, checkinLoc);
 				}
 			}
 			

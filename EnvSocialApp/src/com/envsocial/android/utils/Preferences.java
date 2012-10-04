@@ -64,13 +64,15 @@ public final class Preferences {
 	}
 	
 	
-	public static void checkin(Context context, Location location) {
+	public static void checkin(Context context, String userUri, Location location) {
 		setStringPreference(context, CHECKED_IN_LOCATION, location.serialize());
+		setStringPreference(context, USER_URI, userUri);
 	}
 	
 	public static void checkout(Context context) {
 		removeStringPreference(context, CHECKED_IN_LOCATION);
 		removeStringPreference(context, PEOPLE_IN_LOCATION);
+		removeStringPreference(context, USER_URI);
 	}
 	
 	public static void setPeopleInLocation(Context context, String peopleString) {

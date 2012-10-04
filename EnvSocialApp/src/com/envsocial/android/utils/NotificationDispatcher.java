@@ -1,8 +1,13 @@
 package com.envsocial.android.utils;
 
+import org.json.JSONObject;
+
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
 
+import com.envsocial.android.GCMIntentService;
 import com.envsocial.android.R;
 import com.envsocial.android.features.Feature;
 
@@ -13,7 +18,7 @@ public class NotificationDispatcher {
 	private String mLocationUri;
 	private String mFeature;
 	private String mResourceUri;
-	private String mParams;
+	private JSONObject mParams;
 	
 	private int mId;
 	private int mIconId;
@@ -22,7 +27,7 @@ public class NotificationDispatcher {
 	private String mMessage;
 	
 	public NotificationDispatcher(Context context, String locationUri, 
-			String feature, String resourceUri, String params) {
+			String feature, String resourceUri, JSONObject params) {
 		
 		mContext = context;
 		mLocationUri = locationUri;
@@ -31,11 +36,26 @@ public class NotificationDispatcher {
 		mParams = params;
 		
 		if (mFeature.compareTo(Feature.ORDER) == 0) {
-			mId = R.string.incoming_order;
-			mIconId = R.drawable.ic_launcher;
-			mTitle = mContext.getResources().getString(R.string.incoming_order);
-			mWhen = System.currentTimeMillis();
-			mMessage = "You have new orders!";
+			
+			if (mParams != null && mParams.optString("type", null) != null 
+				&& mParams.optString("type").equalsIgnoreCase(NotificationReceiver.RESOLVED_ORDER_NOTIFICATION)) {
+				
+				mId = R.string.resolved_order;
+				mIconId = R.drawable.ic_launcher;
+				mTitle = mContext.getResources().getString(R.string.resolved_order);
+				mWhen = System.currentTimeMillis();
+				mMessage = "Your order is on the way!";
+				
+			}
+			else if (mParams != null && mParams.optString("type", null) != null 
+					&& mParams.optString("type").equalsIgnoreCase(NotificationReceiver.NEW_ORDER_NOTIFICATION)) {
+				mId = R.string.incoming_order;
+				mIconId = R.drawable.ic_launcher;
+				mTitle = mContext.getResources().getString(R.string.incoming_order);
+				mWhen = System.currentTimeMillis();
+				
+				mMessage = "You have new orders!";
+			}
 		}
 	}
 	
@@ -68,7 +88,7 @@ public class NotificationDispatcher {
 		
 		intents[0] = new Intent(context, com.envsocial.android.HomeActivity.class);
 		intents[1] = new Intent(context, com.envsocial.android.DetailsActivity.class);
-		intents[1].putExtra(C2DMReceiver.NOTIFICATION, true);
+		intents[1].putExtra(GCMIntentService.NOTIFICATION, true);
 		
 		return null;
 	}

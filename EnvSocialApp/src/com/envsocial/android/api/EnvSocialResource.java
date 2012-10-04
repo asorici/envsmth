@@ -5,7 +5,8 @@ public enum EnvSocialResource {
 	ANNOTATION("annotation"), ANNOUNCEMENT("announcement"), 
 	HISTORY("history"), PRIVACY("privacy"),
 	REGISTER("register"), LOGIN("login"), LOGOUT("logout"), 
-	CHECKIN("checkin"), CHECKOUT("checkout");
+	CHECKIN("checkin"), CHECKOUT("checkout"), 
+	GCM("cloud_messaging");
 	
 	private String name;
 	

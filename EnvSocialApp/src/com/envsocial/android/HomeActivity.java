@@ -30,8 +30,8 @@ import com.google.zxing.integration.android.IntentResult;
 
 
 public class HomeActivity extends SherlockFragmentActivity implements OnClickListener {
-	private static final String TAG = "HomeActivity";
 	
+	private static final String TAG = "HomeActivity";
 	private static final String SIGN_OUT = "Sign out";
 	
 	private Button mBtnCheckin;
@@ -60,15 +60,14 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 	
 	@Override
 	public void onDestroy() {
-		super.onDestroy();
-		
 		// if there is a current location
 		Location currentLocation = Preferences.getCheckedInLocation(this);
-		
 		if (currentLocation != null) {
 			// perform cleanup on exit
 			currentLocation.doCleanup();
 		}
+		
+		super.onDestroy();
 	}
 	
 	
@@ -201,6 +200,7 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 		if (Preferences.isLoggedIn(this)) {
 			menu.add(SIGN_OUT);
 		}
+		
     	return true;
 	}
 	

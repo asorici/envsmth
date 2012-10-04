@@ -40,7 +40,7 @@
     <string name="btn_checkin">Check In</string>
 
     <string name="btn_order">Order</string>
-    <string name="btn_register_order_notification">Register</string>
+    <string name="btn_notification_register">Register</string>
     <string name="btn_check">Check Please!</string>
     <string name="btn_tab">View Tab</string>
     <string name="btn_call_waiter">Call Waiter</string>
@@ -92,10 +92,15 @@
     
     <!-- Message -->
     <string name="msg_internal_error">Oops. Internal Error.</string>
-    <string name="msg_malformed_checkin_url">The scanned QR Code is not an EnvSocial QR code.</string>
+    <string name="msg_malformed_checkin_url">The scanned QR Code is not an Envived QR code.</string>
     <string name="msg_bad_checkin_response">Service checkin problem or wrong URI. Please try again later.</string>
     <string name="msg_bad_login_response">Service login problem. Please try again later.</string>
     <string name="msg_bad_register_response">Service registration problem. Please try again later.</string>
+    
+    <string name="msg_gcm_registered">Envived Notification Service is now registered.</string>
+    <string name="msg_gcm_unregistered">Envived Notification Service is now unregistered.</string>
+    <string name="msg_gcm_already_registered">Envived Notification Service already registered.</string>
+    <string name="msg_gcm_registration_error">Envived Notification Service registration error. Please try registering again later.</string>
     
     <string name="msg_unauthorized_login">Incorrect email and / or password.</string>
     <string name="msg_service_unavailable">Service is currently unavailable.</string>
@@ -137,7 +142,7 @@
     
     <!-- Notifications -->
     <string name="incoming_order">New order</string>
-
+	<string name="resolved_order">Order on the way</string>
 
     <!-- Action strings -->
     <string name="action_notification">com.envsocial.android.intent.RECEIVE_NOTIFICATION</string>

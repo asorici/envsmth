@@ -35,17 +35,18 @@ import com.envsocial.android.features.order.OrderFragment;
 import com.envsocial.android.features.order.OrderManagerFragment;
 import com.envsocial.android.features.people.PeopleFragment;
 import com.envsocial.android.features.program.ProgramFragment;
-import com.envsocial.android.utils.C2DMReceiver;
+import com.envsocial.android.utils.NotificationRegistrationDialog;
 import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
+import com.google.android.gcm.GCMRegistrar;
 
 
 public class DetailsActivity extends SherlockFragmentActivity implements LoaderManager.LoaderCallbacks<Location> {
 	private static final String TAG = "DetailsActivity";
 	
 	public static final String ORDER_MANAGEMENT_FEATURE = "order_management";
-	public static final String REGISTER_CD2M_ITEM = "Notifications On";
-	public static final String UNREGISTER_CD2M_ITEM = "Notifications Off";
+	private static final String REGISTER_GCM_ITEM = "Notifications On";
+	private static final String UNREGISTER_GCM_ITEM = "Notifications Off";
 	
 	public static final int LOCATION_LOADER = 0;
 	public static final int FEATURE_LOADER = 1;
@@ -67,6 +68,7 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 	private Tab mOrderManagementTab;
 	private Tab mPeopleTab;
 	
+	private AsyncTask<Void, Void, ResponseHolder> mGCMRegisterTask;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -85,10 +87,48 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
         //getSupportLoaderManager().initLoader(0, loaderBundle, this);
         
         checkin(checkinUrl);
+        
+        // setup GCM notification registration
+        checkGCMRegistration();
 	}
+	
+	private void checkGCMRegistration() {
+		// look for the GCM registrationId stored in the GCMRegistrar
+		// if not found, pop-up a dialog to invite the user to register in order to receive notifications
+		final Context context = getApplicationContext();
+		
+		try {
+			GCMRegistrar.checkManifest(context);
+			GCMRegistrar.checkDevice(context);
+		}
+		catch (UnsupportedOperationException ex) {
+			// TODO : see how to handle non-existent GSF package
+			// this easy solution just catches an exception and presents a toast message
+			Log.d(TAG, ex.getMessage());
+			Toast toast = Toast.makeText(this, 
+					"GSF package missing. Will not receive notifications. " +
+					"Consider installing the Google Play App.", Toast.LENGTH_LONG);
+			toast.show();
+		}
+		
+		final String regId = GCMRegistrar.getRegistrationId(context);
+        if (regId == null || "".equals(regId)) {
+        	Log.d(TAG, "need to register for notifications");
+        	NotificationRegistrationDialog dialog = NotificationRegistrationDialog.newInstance();
+        	dialog.show(getSupportFragmentManager(), "dialog");
+        }
+	}
+	
 	
 	@Override
 	public void onDestroy() {
+		// stop the GCM 3rd party server registration process if it is on the way
+		if (mGCMRegisterTask != null) {
+			mGCMRegisterTask.cancel(true);
+		}
+		// unregister the GCM broadcast receiver
+		GCMRegistrar.onDestroy(getApplicationContext());
+		
 		if (mLocation != null) {
 			mLocation.doCleanup();
 		}
@@ -103,14 +143,92 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
         item.setIcon(R.drawable.ic_menu_search);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
 		
+        // add the register/unregister for notifications menu options
+     	menu.add(REGISTER_GCM_ITEM);
+     	menu.add(UNREGISTER_GCM_ITEM);
+     	
     	return true;
 	}
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+		final Context context = getApplicationContext();
 		
 		if (item.getTitle().toString().compareTo(getString(R.string.menu_search)) == 0) {
 			return onSearchRequested();
+		}
+		
+		else if (item.getTitle().toString().compareTo(REGISTER_GCM_ITEM) == 0) {
+            final String regId = GCMRegistrar.getRegistrationId(context);
+			
+			if (regId != null && !"".equals(regId)) {
+				
+				// device is already registered on GCM, check server
+				if (GCMRegistrar.isRegisteredOnServer(context)) {
+					Toast toast = Toast.makeText(this, R.string.msg_gcm_already_registered, Toast.LENGTH_LONG);
+					toast.show();
+				}
+				else {
+					Log.d(TAG, "---- WE HAVE TO REGISTER WITH OUR SERVER FIRST.");
+					
+					// need to register with the server first
+					// Try to register again, but not in the UI thread.
+	                // It's also necessary to cancel the thread onDestroy(),
+	                // hence the use of AsyncTask instead of a raw thread.
+					mGCMRegisterTask = new AsyncTask<Void, Void, ResponseHolder>() {
+
+	                    @Override
+	                    protected ResponseHolder doInBackground(Void... params) {
+	                        
+	                    	ResponseHolder holder = ActionHandler.registerWithServer(context, regId);
+	                    	
+	                        // At this point all attempts to register with the app
+	                        // server failed, so we need to unregister the device
+	                        // from GCM - the app will try to register again when
+	                        // it is restarted. Note that GCM will send an
+	                        // unregistered callback upon completion, but
+	                        // GCMIntentService.onUnregistered() will ignore it.
+	                        if (holder.hasError()) {
+	                        	Log.d(TAG, "Registration error: " + holder.getError().getMessage(), holder.getError());
+	                        	GCMRegistrar.unregister(context);
+	                        }
+	                        
+	                        return holder;
+	                    }
+
+	                    @Override
+	                    protected void onPostExecute(ResponseHolder holder) {
+	                    	if (holder.hasError()) {
+		                    	Toast toast = Toast.makeText(DetailsActivity.this, 
+		                    			R.string.msg_gcm_registration_error, Toast.LENGTH_LONG);
+		    					toast.show();
+	                    	}
+	                    	else {
+	                    		GCMRegistrar.setRegisteredOnServer(context, true);
+	                    		
+	                    		Toast toast = Toast.makeText(DetailsActivity.this, 
+		                    			R.string.msg_gcm_already_registered, Toast.LENGTH_LONG);
+		    					toast.show();
+	                    	}
+	                    	mGCMRegisterTask = null;
+	                    }
+
+	                };
+	                mGCMRegisterTask.execute(null, null, null);
+					
+				}
+            } else {
+            	Log.d(TAG, "---- WE HAVE TO REGISTER WITH GCM.");
+                GCMRegistrar.register(context, GCMIntentService.SENDER_ID);
+            }
+		}
+		
+		else if (item.getTitle().toString().compareTo(UNREGISTER_GCM_ITEM) == 0) {
+			GCMRegistrar.unregister(context);
+			GCMRegistrar.setRegisteredOnServer(context, false);
+			
+			// for now we are not interested that much in the response for unregistration from our 3rd party server
+			ActionHandler.unregisterWithServer(context);
 		}
 		
 		return true;
@@ -322,7 +440,7 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 
 					// We have location by now, so add tabs
 					addFeatureTabs();
-					String feature = getIntent().getStringExtra(C2DMReceiver.FEATURE);
+					String feature = getIntent().getStringExtra(GCMIntentService.FEATURE);
 					if (feature != null) {
 						// TODO
 						mActionBar.selectTab(mOrderManagementTab);
@@ -386,7 +504,7 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 
 				// We have location by now, so add tabs
 				addFeatureTabs();
-				String feature = getIntent().getStringExtra(C2DMReceiver.FEATURE);
+				String feature = getIntent().getStringExtra(GCMIntentService.FEATURE);
 				if (feature != null) {
 					// TODO
 					mActionBar.selectTab(mOrderManagementTab);

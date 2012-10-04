@@ -19,12 +19,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.envsocial.android.GCMIntentService;
 import com.envsocial.android.R;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Annotation;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.features.Feature;
-import com.envsocial.android.utils.C2DMReceiver;
 
 public class OrderManagementListFragment extends ListFragment {
 
@@ -50,7 +50,7 @@ public class OrderManagementListFragment extends ListFragment {
 		super.onStart();
 		mOrderReceiver = new OrderReceiver();
 		IntentFilter filter = new IntentFilter();
-		filter.addAction(C2DMReceiver.ACTION_RECEIVE_NOTIFICATION);
+		filter.addAction(GCMIntentService.ACTION_RECEIVE_NOTIFICATION);
 		filter.setPriority(1);
 		getActivity().registerReceiver(mOrderReceiver, filter);
 	}
