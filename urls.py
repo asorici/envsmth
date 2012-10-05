@@ -9,7 +9,7 @@ admin.autodiscover()
 
 
 ## before adding the patterns let's start our two c2dm helper threads
-def setup_c2dm_logger():
+def setup_gcm_logger():
     import logging 
     
     logger = logging.getLogger("c2dm")
@@ -21,18 +21,18 @@ def setup_c2dm_logger():
     fh.setFormatter(formatter)
     logger.addHandler(fh)
     
-def get_c2dm_queue():
+def get_gcm_queue():
     from Queue import Queue
     return Queue(1024)
 
-c2dm_queue = get_c2dm_queue()
-setup_c2dm_logger()
+gcm_queue = get_gcm_queue()
+setup_gcm_logger()
 
 import c2dm
-c2dm_server_thread = c2dm.C2DMServerThread(c2dm_queue)
+c2dm_server_thread = c2dm.GCMServerThread(gcm_queue)
 c2dm_server_thread.start()
 
-c2dm_client_thread = c2dm.C2DMClientThread(c2dm_queue)
+c2dm_client_thread = c2dm.GCMClientThread(gcm_queue)
 #c2dm_client_thread.c2dm_login()
 c2dm_client_thread.start()
 

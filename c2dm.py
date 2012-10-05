@@ -5,7 +5,7 @@ from Queue import Full, Empty
 
 logger = logging.getLogger("c2dm")
 
-class C2DMRequestEnqeueing(SocketServer.BaseRequestHandler):
+class GCMRequestEnqeueing(SocketServer.BaseRequestHandler):
     def __init__(self, request, client_address, server):
         SocketServer.BaseRequestHandler.__init__(self, request, client_address, server)
         
@@ -14,24 +14,24 @@ class C2DMRequestEnqeueing(SocketServer.BaseRequestHandler):
         self.data = pickle.loads(self.request.recv(1024).strip())
         
         try:
-            self.server.c2dm_request_queue.put(self.data, block=False)
-            logger.info("[C2DMReqEnqueue] enqueued the following data: " + str(self.data))
+            self.server.gcm_request_queue.put(self.data, block=False)
+            logger.info("[GCMReqEnqueue] enqueued the following data: " + str(self.data))
             self.request.sendall("OK") ## signal OK
         except Full:
-            logger.error("[C2DMReqEnqueue] Sorry: queue is full, this request has to be dropped: " + str(self.data))
+            logger.error("[GCMReqEnqueue] Sorry: queue is full, this request has to be dropped: " + str(self.data))
             self.request.sendall("NOK")
         
     
-class C2DMServer(SocketServer.TCPServer):
+class GCMServer(SocketServer.TCPServer):
     HOST = 'localhost'
     PORT = 9999
     
-    def __init__(self, c2dm_request_queue):
-        self.c2dm_request_queue = c2dm_request_queue
-        SocketServer.TCPServer.__init__(self, (C2DMServer.HOST, C2DMServer.PORT), C2DMRequestEnqeueing)
+    def __init__(self, gcm_request_queue):
+        self.gcm_request_queue = gcm_request_queue
+        SocketServer.TCPServer.__init__(self, (GCMServer.HOST, GCMServer.PORT), GCMRequestEnqeueing)
 
 
-class C2DMServerThread(threading.Thread):
+class GCMServerThread(threading.Thread):
     """
     This thread will be accepting postings(annotation notifications that have to be sent to mobile devices)
     from the main django threads which handle the annotation requests.
@@ -39,8 +39,8 @@ class C2DMServerThread(threading.Thread):
     notification will be discarded - this is as to protect the queue from getting to large if the thread consuming
     the queue can not operate
     """
-    def __init__(self, c2dm_request_queue):
-        self.server = C2DMServer(c2dm_request_queue) 
+    def __init__(self, gcm_request_queue):
+        self.server = GCMServer(gcm_request_queue) 
         threading.Thread.__init__(self)
                 
     def run(self):
@@ -51,12 +51,12 @@ class C2DMServerThread(threading.Thread):
         self.join()
         
 
-class C2DMClientThread(threading.Thread):
+class GCMClientThread(threading.Thread):
     """
     This thread will consume the queue and do the actual transmission of the requests
     """
-    def __init__(self, c2dm_request_queue, c2dm_auth_token = None):
-        self.c2dm_request_queue = c2dm_request_queue
+    def __init__(self, gcm_request_queue, c2dm_auth_token = None):
+        self.gcm_request_queue = gcm_request_queue
         self.c2dm_auth_token = c2dm_auth_token
         self.running = True
         threading.Thread.__init__(self)
@@ -65,8 +65,8 @@ class C2DMClientThread(threading.Thread):
         while self.running:
             ## try to read from the queue
             try:
-                notification = self.c2dm_request_queue.get(timeout=15)
-                self.c2dm_request(notification)
+                notification = self.gcm_request_queue.get(timeout=15)
+                self.gcm_request(notification)
             except Empty:
                 ## check if still running and if so wait some more
                 pass
@@ -75,12 +75,12 @@ class C2DMClientThread(threading.Thread):
         self.running = False
         
         
-    def c2dm_request(self, notification, max_retries = 10):
+    def gcm_request(self, notification, max_retries = 10):
         from gcm.gcm import GCM, GCMConnectionException, GCMUnavailableException, GCMAuthenticationException
         from settings import GOOGLE_GCM_API_KEY 
         from coresql.models import UserProfile
         
-        logger.info("[C2DMClientThread] Handling request for notification: " + str(notification))
+        logger.info("[GCMClientThread] Handling request for notification: " + str(notification))
         
         gcm_client = GCM(GOOGLE_GCM_API_KEY)
         registration_ids, collapse_key, delay_while_idle, ttl, data = notification
