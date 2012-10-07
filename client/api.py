@@ -650,7 +650,8 @@ class AnnotationResource(ModelResource):
                     instantiated = True
                     break
                 except Exception, ex:
-                    print ex
+                    #print ex
+                    pass
         
         if not instantiated:
             #raise ImmediateHttpResponse(response=http.HttpBadRequest())
@@ -738,7 +739,7 @@ class AnnotationResource(ModelResource):
     
     
     def _make_c2dm_notification(self, registration_id, bundle, params = None):
-        import socket, pickle, c2dm
+        import socket, pickle, c2dm, sys
         
         if not registration_id is None:
             collapse_key = "annotation_" + bundle.obj.category
@@ -769,18 +770,19 @@ class AnnotationResource(ModelResource):
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 # Connect to server and send data
-                sock.connect((c2dm.C2DMServer.HOST, c2dm.C2DMServer.PORT))
+                sock.connect((c2dm.GCMServer.HOST, c2dm.GCMServer.PORT))
                 sock.sendall(data + "\n")
             
                 # Receive data from the server and shut down
                 received = sock.recv(1024)
                 
+                
                 if received == "OK":
-                    print "[Annotation C2DM] Notification enqueued"
+                    print >> sys.stderr, "[Annotation C2DM] Notification enqueued"
                 else:
-                    print "[Annotation C2DM] Notification NOT enqueued"
+                    print >> sys.stderr, "[Annotation C2DM] Notification NOT enqueued"
             except Exception, ex:
-                print "[Annotation C2DM] failure enqueueing annotation: ", ex
+                print >>sys.stderr, "[Annotation C2DM] failure enqueueing annotation: ", ex
             finally:
                 sock.close()
         
