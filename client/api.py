@@ -741,6 +741,9 @@ class AnnotationResource(ModelResource):
     def _make_c2dm_notification(self, registration_id, bundle, params = None):
         import socket, pickle, c2dm, sys
         
+        if params is None:
+            params = {}
+        
         if not registration_id is None:
             collapse_key = "annotation_" + bundle.obj.category
             resource_uri = self.get_resource_uri(bundle)
@@ -759,8 +762,7 @@ class AnnotationResource(ModelResource):
                                  'feature' : feature,
                                  }
             
-            if not params is None:
-                notification_data['params'] = params
+            notification_data['params'] = params
             
             delay_while_idle = False
             ttl = 600

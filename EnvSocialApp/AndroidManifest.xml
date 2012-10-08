@@ -110,7 +110,7 @@
         <service android:name=".GCMIntentService"
             android:exported="false" />
          
-        <receiver android:name=".utils.NotificationReceiver"
+        <receiver android:name=".utils.EnvivedNotificationDispatcher"
             android:permission="com.envsocial.android.permission.NOTIFICATION" >
             <intent-filter>
                 <action android:name="com.envsocial.android.intent.RECEIVE_NOTIFICATION" />

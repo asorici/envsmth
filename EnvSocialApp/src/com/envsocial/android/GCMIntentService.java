@@ -18,10 +18,6 @@ public class GCMIntentService extends GCMBaseIntentService {
 	public final static String ACTION_RECEIVE_NOTIFICATION = "com.envsocial.android.intent.RECEIVE_NOTIFICATION";
 	
 	public static final String NOTIFICATION = "notification";
-	public static final String FEATURE = "feature";
-	public static final String LOCATION_URI = "location_uri";
-	public static final String RESOURCE_URI = "resource_uri";
-	public static final String PARAMS = "params";
 	
 	public GCMIntentService() {
 		super(SENDER_ID);

@@ -11,14 +11,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,8 +34,8 @@ import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Annotation;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.features.Feature;
-import com.envsocial.android.utils.NotificationDispatcher;
-import com.envsocial.android.utils.NotificationReceiver;
+import com.envsocial.android.utils.EnvivedNotificationContents;
+import com.envsocial.android.utils.EnvivedReceiver;
 import com.envsocial.android.utils.UIUtils;
 
 public class OrderManagerFragment extends SherlockFragment {
@@ -50,7 +48,7 @@ public class OrderManagerFragment extends SherlockFragment {
 
 	private ExpandableListView mList;
 	private OrderListAdapter mAdapter;
-	private OrderReceiver mOrderReceiver;
+	private NewOrderReceiver mOrderReceiver;
 	private ProgressDialog mOrderRetrievalDialog;
 	
 	private List<Map<String,String>> mOrderLocations;
@@ -86,7 +84,7 @@ public class OrderManagerFragment extends SherlockFragment {
 	@Override
 	public void onStart() {
 		super.onStart();
-		mOrderReceiver = new OrderReceiver();
+		mOrderReceiver = new NewOrderReceiver();
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(GCMIntentService.ACTION_RECEIVE_NOTIFICATION);
 		filter.setPriority(1);
@@ -228,29 +226,23 @@ public class OrderManagerFragment extends SherlockFragment {
 	}
 	
 		
-	private class OrderReceiver extends BroadcastReceiver {
-
+	private class NewOrderReceiver extends EnvivedReceiver {
+		
 		@Override
-		public void onReceive(Context context, Intent intent) {
-			String locationUri = intent.getStringExtra(GCMIntentService.LOCATION_URI);
-			String feature = intent.getStringExtra(GCMIntentService.FEATURE);
-			String resourceUri = intent.getStringExtra(GCMIntentService.RESOURCE_URI);
-			String params = intent.getStringExtra(GCMIntentService.PARAMS);
+		public boolean handleNotification(Context context, Intent intent,
+				EnvivedNotificationContents notificationContents) {
 			
-			JSONObject paramsJSON = null;
-			try {
-				if (params != null) {
-					paramsJSON = new JSONObject(params);
-				}
-			} catch(JSONException ex) {
-				Log.e("Notification", "Envived notification params are not JSON parceable.", ex);
-			}
+			JSONObject paramsJSON = notificationContents.getParams();
 			
-			if (paramsJSON != null && paramsJSON.optString("type", null) != null 
-				&& paramsJSON.optString("type").equalsIgnoreCase(NotificationReceiver.NEW_ORDER_NOTIFICATION)) {
+			if (notificationContents.getFeature().equals(Feature.ORDER) 
+				&& paramsJSON.optString("type", null) != null 
+				&& paramsJSON.optString("type").equalsIgnoreCase(OrderFeature.NEW_ORDER_NOTIFICATION)) {
+					
 				loadOrders();
-				abortBroadcast();
+				return true;
 			}
+			
+			return false;
 		}
 		
 	}
