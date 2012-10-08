@@ -139,7 +139,10 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 			}
 		}
 		
+		// clear current temporary selections in OrderFragment
 		mCurrentOrderSelections = null;
+		// clear them in the pager adapter as well
+		mCatalogPagerAdapter.clearOrderSelections();
 	}
 	
 	
