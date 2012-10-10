@@ -80,7 +80,7 @@ public class SendOrderTask extends AsyncTask<Void, Void, ResponseHolder> {
 			}
 
 			if (error) {
-				Log.d(TAG, "[DEBUG]>> Error sending order: " + msgId);
+				Log.d(TAG, "[DEBUG]>> Error sending order: " + mContext.getString(msgId));
 				Toast toast = Toast.makeText( mContext,
 						msgId, Toast.LENGTH_LONG);
 				toast.show();

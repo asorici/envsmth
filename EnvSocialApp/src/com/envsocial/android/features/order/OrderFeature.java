@@ -18,6 +18,8 @@ import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
 
 public class OrderFeature extends Feature {
+	private static final long serialVersionUID = 1L;
+	
 	private List<Map<String,String>> mCategories;
 	private List<List<Map<String,String>>> mItems;
 	private OrderDbHelper dbHelper;
@@ -38,6 +40,9 @@ public class OrderFeature extends Feature {
 	public static final String ITEM_NAME = "name";
 	public static final String ITEM_DESCRIPTION = "description";
 	public static final String ITEM_PRICE = "price";
+	
+	public static final String NEW_ORDER_NOTIFICATION = "new_order";
+	public static final String RESOLVED_ORDER_NOTIFICATION = "resolved_order";
 	
 	public OrderFeature(String category, String resourceUri,
 			String environmentUri, String areaUri, String data) throws EnvSocialContentException {

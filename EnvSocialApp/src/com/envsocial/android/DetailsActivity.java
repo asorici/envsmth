@@ -35,6 +35,7 @@ import com.envsocial.android.features.order.OrderFragment;
 import com.envsocial.android.features.order.OrderManagerFragment;
 import com.envsocial.android.features.people.PeopleFragment;
 import com.envsocial.android.features.program.ProgramFragment;
+import com.envsocial.android.utils.EnvivedNotificationContents;
 import com.envsocial.android.utils.NotificationRegistrationDialog;
 import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
@@ -440,7 +441,7 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 
 					// We have location by now, so add tabs
 					addFeatureTabs();
-					String feature = getIntent().getStringExtra(GCMIntentService.FEATURE);
+					String feature = getIntent().getStringExtra(EnvivedNotificationContents.FEATURE);
 					if (feature != null) {
 						// TODO
 						mActionBar.selectTab(mOrderManagementTab);
@@ -504,7 +505,7 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 
 				// We have location by now, so add tabs
 				addFeatureTabs();
-				String feature = getIntent().getStringExtra(GCMIntentService.FEATURE);
+				String feature = getIntent().getStringExtra(EnvivedNotificationContents.FEATURE);
 				if (feature != null) {
 					// TODO
 					mActionBar.selectTab(mOrderManagementTab);
