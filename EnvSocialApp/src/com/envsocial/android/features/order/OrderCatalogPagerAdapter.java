@@ -11,7 +11,6 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -100,7 +99,7 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
         // restore list state if any was saved
         Bundle listSavedData = mCatalogListStateMap.get(position);
         if (listSavedData != null) {
-        	Log.d(TAG, "--- Trying to restore state for position: " + position);
+        	//Log.d(TAG, "--- Trying to restore state for position: " + position);
         	
         	ArrayList<Long> expandedListState = (ArrayList<Long>)listSavedData.getSerializable(LIST_EXPANDED_GROUPS_KEY);
         	int listPosition = listSavedData.getInt(ITEM_POSITION_KEY);
@@ -108,7 +107,7 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
         	
         	if (expandedListState != null) {
         		restoreExpandedState(expandedListState, listView);
-        		Log.d(TAG, ":-) -- list state being restored");
+        		//Log.d(TAG, ":-) -- list state being restored");
         	}
         	listView.setSelectionFromTop(listPosition, listItemPosition);
         	
@@ -133,7 +132,7 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
 		ExpandableListView listView = (ExpandableListView) ((View)view).findViewById(R.id.catalog_page);
 		Bundle listSavedData = new Bundle();
 		
-		Log.d(TAG, "--- Trying to SAVE state for position: " + position);
+		//Log.d(TAG, "--- Trying to SAVE state for position: " + position);
 		
 		// save list state
 		ArrayList<Long> expandedListState = getExpandedIds(listView);

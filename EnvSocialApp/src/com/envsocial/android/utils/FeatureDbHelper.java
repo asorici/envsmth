@@ -12,9 +12,9 @@ import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
 
 public abstract class FeatureDbHelper extends SQLiteOpenHelper implements Serializable {
+	private static final long serialVersionUID = 1L;
+
 	private static final String TAG = "FeatureDbHelper";
-	
-	protected static int DATABASE_VERSION = 1;
 	
 	protected Feature feature;
 	protected String databaseName;
@@ -27,8 +27,8 @@ public abstract class FeatureDbHelper extends SQLiteOpenHelper implements Serial
 	
 	protected int dbStatus = TABLES_INEXISTENT;
 	
-	public FeatureDbHelper(Context context, String databaseName, Feature feature) {
-		super(context, databaseName, null, DATABASE_VERSION);
+	public FeatureDbHelper(Context context, String databaseName, Feature feature, int version) {
+		super(context, databaseName, null, version);
 		
 		this.feature = feature;
 		this.databaseName = databaseName;

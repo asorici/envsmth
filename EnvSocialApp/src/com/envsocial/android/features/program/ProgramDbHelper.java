@@ -20,6 +20,8 @@ import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.utils.FeatureDbHelper;
 
 public class ProgramDbHelper extends FeatureDbHelper {
+	private static final long serialVersionUID = 1L;
+
 	private static final String TAG = "ProgramDbHelper";
 	
 	public static final String DB_NAME = "db_program";
@@ -39,8 +41,8 @@ public class ProgramDbHelper extends FeatureDbHelper {
 	public static final String COL_SESSION_LOCATION = "location";
 	
 	
-	public ProgramDbHelper(Context context, ProgramFeature feature) throws EnvSocialContentException {
-		super(context, DB_NAME, feature);
+	public ProgramDbHelper(Context context, ProgramFeature feature, int version) throws EnvSocialContentException {
+		super(context, DB_NAME, feature, version);
 		database = this.getWritableDatabase();
 		
 		//insertProgram();
@@ -75,8 +77,8 @@ public class ProgramDbHelper extends FeatureDbHelper {
 	
 	@Override
 	public void onDbUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		db.execSQL("DROP IF TABLE EXISTS " + ENTRY_TABLE);
-		db.execSQL("DROP IF TABLE EXISTS " + SESSION_TABLE);
+		db.execSQL("DROP TABLE IF EXISTS " + ENTRY_TABLE);
+		db.execSQL("DROP TABLE IF EXISTS " + SESSION_TABLE);
 		
 		dbStatus = TABLES_INEXISTENT;
 	}

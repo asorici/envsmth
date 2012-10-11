@@ -44,10 +44,10 @@ public class OrderFeature extends Feature {
 	public static final String NEW_ORDER_NOTIFICATION = "new_order";
 	public static final String RESOLVED_ORDER_NOTIFICATION = "resolved_order";
 	
-	public OrderFeature(String category, String resourceUri,
+	public OrderFeature(String category, int version, String resourceUri,
 			String environmentUri, String areaUri, String data) throws EnvSocialContentException {
 		
-		super(category, resourceUri, environmentUri, areaUri, data);
+		super(category, version, resourceUri, environmentUri, areaUri, data);
 	}
 
 	@Override
@@ -57,7 +57,7 @@ public class OrderFeature extends Feature {
 		}	
 		
 		if (dbHelper == null && (hasLocalQuerySupport() || hasLocalDatabaseSupport())) {
-			dbHelper = new OrderDbHelper(Envived.getContext(), this);
+			dbHelper = new OrderDbHelper(Envived.getContext(), this, version);
 		}
 		
 		if (dbHelper != null) {

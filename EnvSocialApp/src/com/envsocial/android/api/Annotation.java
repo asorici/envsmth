@@ -100,7 +100,7 @@ public class Annotation {
 		url.setItemId(mLocation.getId());
 		String urlString = url.toString();
 		
-		Object data;
+		Object data = null;
 		try {
 			data = new JSONObject(mData);
 		} catch (JSONException e) {

@@ -58,12 +58,6 @@ public class Location implements Serializable {
 		mUri = uri;
 	}
 	
-	// TODO
-	/*
-	public Location(String jsonString) throws JSONException {
-		this(new JSONObject(jsonString));
-	}
-	*/
 	
 	//public Location(JSONObject data) throws JSONException {
 	private Location (String jsonString) throws JSONException {
@@ -102,6 +96,7 @@ public class Location implements Serializable {
 		for (int i = 0; i < len; ++ i) {
 			JSONObject item = array.getJSONObject(i);
 			String category = item.getString("category");
+			int version = item.optInt("version", 1);
 			String environmentUri = item.optString("environment", null);
 			String areaUri = item.optString("area", null);
 			String resourceUri = item.optString("resource_uri", null);
@@ -109,7 +104,7 @@ public class Location implements Serializable {
 			
 			
 			try {
-				Feature feat = Feature.getInstance(category, resourceUri, environmentUri, areaUri, featureData);
+				Feature feat = Feature.getInstance(category, version, resourceUri, environmentUri, areaUri, featureData);
 				mFeatures.put(category, feat);
 			} catch (IllegalArgumentException ex) {
 				Log.d("Location", ex.getMessage());

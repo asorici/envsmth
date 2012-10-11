@@ -33,11 +33,11 @@ public class OrderDialogFragment extends SherlockDialogFragment implements OnCli
 	private List<Map<String, Object>> mOrderSelections;
 	private List<Map<String,String>> mOrderSummary;
 	
-	static OrderDialogFragment newInstance(List<Map<String, Object>> searchOrderSelections) {
+	static OrderDialogFragment newInstance(List<Map<String, Object>> orderSelections) {
 		OrderDialogFragment f = new OrderDialogFragment();
 		
 		Bundle args = new Bundle();
-		args.putSerializable("selections", (Serializable)searchOrderSelections);
+		args.putSerializable("selections", (Serializable)orderSelections);
 		
 		f.setArguments(args);
 		return f;
@@ -151,6 +151,19 @@ public class OrderDialogFragment extends SherlockDialogFragment implements OnCli
 				orderListJSON.put(orderJSON);
 			}
 			allOrderJSON.put("order", orderListJSON);
+			
+			// put the item IDs in a separate list
+			JSONArray itemIdListJSON = new JSONArray();  
+			int orderLen = mOrderSelections.size();
+			for (int idx = 0; idx < orderLen; idx++ ) {
+				Map<String, Object> selection = mOrderSelections.get(idx);
+				
+				JSONObject itemJSON = new JSONObject();
+				itemJSON.put(OrderFeature.ITEM_ID, selection.get(OrderFeature.ITEM_ID));
+				itemJSON.put("quantity", selection.get("quantity"));
+				itemIdListJSON.put(itemJSON);
+			}
+			allOrderJSON.put("item_id_list", itemIdListJSON);
 			
 			return allOrderJSON.toString();
 		} catch (JSONException e) {

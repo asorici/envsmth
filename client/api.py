@@ -685,7 +685,7 @@ class AnnotationResource(ModelResource):
     
     def obj_update(self, bundle, request=None, **kwargs):
         """
-        Could be an intentional bug that the default obj_update treats DoesNotExist and MultipleObjectReturned
+        Could be an intentional feature that the default obj_update treats DoesNotExist and MultipleObjectReturned
         as acceptable exceptions which get transformed into a CREATE operation.
         We don't want such a behavior. So we catch those exceptions and throw a BadRequest message
         """    

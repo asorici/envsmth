@@ -53,7 +53,6 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 							Bundle savedInstanceState) {
-		Log.i(TAG, "[INFO] onCreateView called.");
 		
 		// Inflate layout for this fragment.
 		View v = inflater.inflate(R.layout.catalog, container, false);
@@ -109,8 +108,7 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 		mCurrentOrderSelections = dialog.getOrderSelections();
 		dialog.dismiss();
 		
-		Annotation order = new Annotation(mLocation, 
-				Feature.ORDER, Calendar.getInstance(), orderJSON);
+		Annotation order = new Annotation(mLocation, Feature.ORDER, Calendar.getInstance(), orderJSON);
 		new SendOrderTask(getActivity(), this, order).execute();
 	}
 	

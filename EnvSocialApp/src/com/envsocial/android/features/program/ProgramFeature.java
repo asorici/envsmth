@@ -24,6 +24,8 @@ import com.envsocial.android.features.Feature;
 import com.envsocial.android.utils.ResponseHolder;
 
 public class ProgramFeature extends Feature {
+	private static final long serialVersionUID = 1L;
+
 	private static final String TAG = "ProgramFeature";
 	
 	public static final String ENTRY_QUERY_TYPE = "entry";
@@ -31,9 +33,9 @@ public class ProgramFeature extends Feature {
 	
 	private ProgramDbHelper dbHelper;
 	
-	public ProgramFeature(String category, String resourceUri, 
+	public ProgramFeature(String category, int version, String resourceUri, 
 			String environmentUri, String areaUri, String data) throws EnvSocialContentException {
-		super(category, resourceUri, environmentUri, areaUri, data);
+		super(category, version, resourceUri, environmentUri, areaUri, data);
 	
 		
 	}
@@ -41,7 +43,7 @@ public class ProgramFeature extends Feature {
 	@Override
 	public void init() throws EnvSocialContentException {
 		if (dbHelper == null && (hasLocalQuerySupport() || hasLocalDatabaseSupport())) {
-			dbHelper = new ProgramDbHelper(Envived.getContext(), this);
+			dbHelper = new ProgramDbHelper(Envived.getContext(), this, version);
 		}
 		
 		if (dbHelper != null) {
