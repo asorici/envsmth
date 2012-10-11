@@ -6,10 +6,10 @@ import com.envsocial.android.features.Feature;
 
 public class DescriptionFeature extends Feature {
 
-	public DescriptionFeature(String category, String resourceUri,
+	public DescriptionFeature(String category, int version, String resourceUri,
 			String environmentUri, String areaUri, String data) {
 		
-		super(category, resourceUri, environmentUri, areaUri, data);
+		super(category, version, resourceUri, environmentUri, areaUri, data);
 	}
 
 	@Override

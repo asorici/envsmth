@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import android.content.Context;
 import android.util.Log;
@@ -181,8 +180,8 @@ public class OrderCatalogListAdapter extends SimpleExpandableListAdapter impleme
 			quantityCt = (Integer)mOrderSelections.get(groupPosition).get(childPosition).get("quantity");
 		}
 		
-		Log.d("OrderCatalogListAdapter", "binding child view data: " + 
-					groupPosition + "::" + childPosition + "::" + itemName + "::" + quantityCt);
+		//Log.d("OrderCatalogListAdapter", "binding child view data: " + 
+		//			groupPosition + "::" + childPosition + "::" + itemName + "::" + quantityCt);
 		
 		// bind child view data
 		holder.itemView.setText(itemName);

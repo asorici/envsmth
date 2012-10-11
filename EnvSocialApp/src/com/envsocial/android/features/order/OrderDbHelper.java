@@ -16,8 +16,8 @@ import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.utils.FeatureDbHelper;
 
 public class OrderDbHelper extends FeatureDbHelper {
-	private static final long serialVersionUID = 4734280435129896523L;
-
+	private static final long serialVersionUID = 1L;
+	
 	private static final String TAG = "OrderDbHelper";
 	
 	private static final String DATABASE_NAME = "db_order";
@@ -45,8 +45,8 @@ public class OrderDbHelper extends FeatureDbHelper {
 												 COL_ORDER_FTS_DESCRIPTION };
 	
 	
-	public OrderDbHelper(Context context, OrderFeature orderFeature) throws EnvSocialContentException {
-		super(context, DATABASE_NAME, orderFeature);
+	public OrderDbHelper(Context context, OrderFeature orderFeature, int version) throws EnvSocialContentException {
+		super(context, DATABASE_NAME, orderFeature, version);
 		
 		this.database = this.getWritableDatabase();
 	}
@@ -89,9 +89,9 @@ public class OrderDbHelper extends FeatureDbHelper {
 
 	@Override
 	public void onDbUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		db.execSQL("DROP IF TABLE EXISTS " + MENU_CATEGORY_TABLE);
-		db.execSQL("DROP IF TABLE EXISTS " + MENU_ITEM_TABLE);
-		db.execSQL("DROP IF TABLE EXISTS " + MENU_ORDER_TABLE_FTS);
+		db.execSQL("DROP TABLE IF EXISTS " + MENU_CATEGORY_TABLE);
+		db.execSQL("DROP TABLE IF EXISTS " + MENU_ITEM_TABLE);
+		db.execSQL("DROP TABLE IF EXISTS " + MENU_ORDER_TABLE_FTS);
 		dbStatus = TABLES_INEXISTENT;
 		
 		onCreate(db);
@@ -135,12 +135,12 @@ public class OrderDbHelper extends FeatureDbHelper {
 					String categoryType = categoryObject.getString(OrderFeature.CATEGORY_TYPE);
 					
 					// fill values container
-					//values.put(COL_CATEGORY_ID, categoryId);
-					//values.put(COL_CATEGORY_NAME, categoryName);
-					//values.put(COL_CATEGORY_TYPE, categoryType);
+					values.put(COL_CATEGORY_ID, categoryId);
+					values.put(COL_CATEGORY_NAME, categoryName);
+					values.put(COL_CATEGORY_TYPE, categoryType);
 					
-					//database.insert(MENU_CATEGORY_TABLE, COL_CATEGORY_ID, values);
-					//values.clear();
+					database.insert(MENU_CATEGORY_TABLE, COL_CATEGORY_ID, values);
+					values.clear();
 	
 					// insert items for current category
 					JSONArray itemsArray = elem.getJSONArray("items");
@@ -162,14 +162,14 @@ public class OrderDbHelper extends FeatureDbHelper {
 							Double itemPrice = item.getDouble(OrderFeature.ITEM_PRICE);
 									
 							// insert in the item table
-							//values.put(COL_ITEM_CATEGORY_ID, itemId);
-							//values.put(COL_ITEM_CATEGORY_ID, itemCategoryId);
-							//values.put(COL_ITEM_NAME, itemName);
-							//values.put(COL_ITEM_DESCRIPTION, itemDescription);
-							//values.put(COL_ITEM_PRICE, itemPrice);
+							values.put(COL_ITEM_CATEGORY_ID, itemId);
+							values.put(COL_ITEM_CATEGORY_ID, itemCategoryId);
+							values.put(COL_ITEM_NAME, itemName);
+							values.put(COL_ITEM_DESCRIPTION, itemDescription);
+							values.put(COL_ITEM_PRICE, itemPrice);
 							
-							//database.insert(MENU_ITEM_TABLE, COL_ITEM_ID, values);
-							//values.clear();
+							database.insert(MENU_ITEM_TABLE, COL_ITEM_ID, values);
+							values.clear();
 							
 							// insert in FST table
 							values.put(COL_ORDER_FTS_ID, "" + itemId);

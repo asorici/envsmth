@@ -39,13 +39,19 @@ class ListWrapper(object):
     def setLimit(self, limit):
         assert_arg_type(limit, int)
         self.limit = limit
-        
+    
+    
     def to_serializable(self):
         """
         should return a basic type value (int, float, boolean, string, tuple, list, dict, datetime) that can be
         easily serialized. The default is to return the contained arglist 
         """
         return self.argList
+    
+    
+    def __unicode__(self):
+        return " ; ".join(self.argList)
+    
 
 
 class TagList(ListWrapper):
@@ -53,7 +59,6 @@ class TagList(ListWrapper):
     
     def __init__(self, tags = None, limit = 100):
         super(TagList, self).__init__(argList = tags, limit = limit)
-        
         
 
 from datetime import datetime

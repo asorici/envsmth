@@ -292,7 +292,6 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
         ActionBar actionBar = getSupportActionBar();
         
         if (mLocation.hasFeature(Feature.DESCRIPTION)) {
-        	System.out.println("[DEBUG] >> Creating DESCRIPTION tab");
         	mDefaultTab = actionBar.newTab()
 			.setText(R.string.tab_description)
 			.setTabListener(new TabListener<DescriptionFragment>(
@@ -364,12 +363,9 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 				bundle.putSerializable(ActionHandler.CHECKIN, mLocation);
 				mFragment.setArguments(bundle);
 				
-				//Log.i(TAG, "[DEBUG]>> Adding fragment " + mClass.getName());
 				ft.add(R.id.details_containter, mFragment, mTag);
-				//Log.i(TAG, "[DEBUG]>> Adding ok!");
 			} else {
 				// If the fragment exists, attach it in order to show it
-				//Log.i(TAG, "[DEBUG]>> Attaching fragment.");
 				ft.attach(mFragment);
 			}
 			

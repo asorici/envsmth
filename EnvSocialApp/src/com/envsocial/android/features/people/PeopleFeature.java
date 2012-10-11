@@ -7,10 +7,10 @@ import com.envsocial.android.features.Feature;
 
 public class PeopleFeature extends Feature {
 
-	public PeopleFeature(String category, String resourceUri,
+	public PeopleFeature(String category, int version, String resourceUri,
 			String environmentUri, String areaUri, String data) {
 		
-		super(category, resourceUri, environmentUri, areaUri, data);
+		super(category, version, resourceUri, environmentUri, areaUri, data);
 	}
 
 	@Override

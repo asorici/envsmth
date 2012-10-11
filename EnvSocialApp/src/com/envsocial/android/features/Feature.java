@@ -35,14 +35,16 @@ public abstract class Feature implements Serializable {
 	public static final String SEARCH_FEATURE 	= 	"search_feature";
 	
 	protected String category;
+	protected int version;
 	protected String resourceUri;
 	protected String environmentUri;
 	protected String areaUri;
 	protected String data;
 	
-	protected Feature(String category, String resourceUri, 
+	protected Feature(String category, int version, String resourceUri, 
 			String environmentUri, String areaUri, String data) {
 		this.category = category;
+		this.version = version;
 		this.resourceUri = resourceUri;
 		this.environmentUri = environmentUri;
 		this.areaUri = areaUri;
@@ -101,6 +103,7 @@ public abstract class Feature implements Serializable {
 					JSONObject featureData = featureList.getJSONObject(0);
 					
 					String remoteCategory = featureData.optString("category", category);
+					int remoteVersion = featureData.optInt("version", 1);
 					String environmentUri = featureData.optString("environment", null);
 					String areaUri = featureData.optString("area", null);
 					String resourceUri = featureData.optString("resource_uri", null);
@@ -111,7 +114,7 @@ public abstract class Feature implements Serializable {
 						data = programDataJSON.toString();
 					}
 					
-					return getInstance(remoteCategory, resourceUri, environmentUri, areaUri, data);
+					return getInstance(remoteCategory, remoteVersion, resourceUri, environmentUri, areaUri, data);
 				}
 			}
 		} catch (IOException e) {
@@ -123,7 +126,7 @@ public abstract class Feature implements Serializable {
 		return null;
 	}
 	
-	public static Feature getInstance(String category, String resourceUri, 
+	public static Feature getInstance(String category, int version, String resourceUri, 
 			String environmentUri, String areaUri, String data) 
 					throws IllegalArgumentException, EnvSocialContentException {
 		
@@ -132,16 +135,16 @@ public abstract class Feature implements Serializable {
 		}
 		
 		if (category.equals(PROGRAM)) {
-			return new ProgramFeature(category, resourceUri, environmentUri, areaUri, data); 
+			return new ProgramFeature(category, version, resourceUri, environmentUri, areaUri, data); 
 		}
 		else if (category.equals(DESCRIPTION)) {
-			return new DescriptionFeature(category, resourceUri, environmentUri, areaUri, data);
+			return new DescriptionFeature(category, version, resourceUri, environmentUri, areaUri, data);
 		}
 		else if (category.equals(ORDER)) {
-			return new OrderFeature(category, resourceUri, environmentUri, areaUri, data);
+			return new OrderFeature(category, version, resourceUri, environmentUri, areaUri, data);
 		}
 		else if (category.equals(PEOPLE)) {
-			return new PeopleFeature(category, resourceUri, environmentUri, areaUri, data);
+			return new PeopleFeature(category, version, resourceUri, environmentUri, areaUri, data);
 		}
 		else {
 			throw new IllegalArgumentException("No feature matching category (" + category + ").");
