@@ -508,6 +508,11 @@ class PeopleFeature(Feature):
 
 ####################################### Order Feature Classes #############################################
 class OrderFeature(Feature):
+    NEW_ORDER           = "new_order"
+    RESOLVED_ORDER      = "resolved_order"
+    UPDATE_CONTENT      = "update_content"
+    UPDATE_STRUCTURE    = "update_structure"
+    
     """
     For now replicates the old functionality and data model - a single level: category with items
     """

@@ -179,7 +179,7 @@ public class OrderSearchResultFragment extends SherlockFragment
 			Location location = Preferences.getCheckedInLocation(this.getContext());
 			Feature feat = location.getFeature(Feature.ORDER);
 			
-			Cursor cursor = feat.localQuery(mQuery);
+			Cursor cursor = feat.localSearchQuery(mQuery);
 			
 			return cursor;
 		}

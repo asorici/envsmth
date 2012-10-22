@@ -18,7 +18,6 @@ public class DescriptionFragment extends SherlockFragment {
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		//System.out.println("[DEBUG] >> Created DESCRIPTION fragment");
 	    super.onCreate(savedInstanceState);
 	    mData = (Location) getArguments().get(ActionHandler.CHECKIN);
 	}

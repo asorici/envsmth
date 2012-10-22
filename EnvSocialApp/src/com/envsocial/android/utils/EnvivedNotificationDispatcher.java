@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import com.envsocial.android.EnvivedFeatureUpdateService;
 import com.envsocial.android.features.Feature;
 import com.envsocial.android.features.order.NewOrderNotification;
 import com.envsocial.android.features.order.OrderFeature;
@@ -44,6 +45,15 @@ public class EnvivedNotificationDispatcher extends EnvivedReceiver {
 				
 				return true;
 			}
+			else if (paramsJSON.optString("type", null) != null 
+					&& paramsJSON.optString("type").compareTo(OrderFeature.UPDATE_CONTENT_NOTIFICATION) == 0) {
+				// start the update service directly
+				Intent updateService = new Intent(context, EnvivedFeatureUpdateService.class);
+				updateService.putExtra(
+						EnvivedFeatureUpdateService.UPDATE_SERVICE_INPUT, notificationContents);
+				
+				context.startService(updateService);
+			}
 			
 			Log.d(TAG, "Order notification dispatch error: 'type` parameter missing or unknown in " 
 						+ paramsJSON.toString());
@@ -51,5 +61,5 @@ public class EnvivedNotificationDispatcher extends EnvivedReceiver {
 		
 		return false;
 	}
-
+	
 }

@@ -19,7 +19,7 @@ import com.envsocial.android.R;
 import com.envsocial.android.api.Annotation;
 
 
-public class OrderListAdapter extends SimpleExpandableListAdapter {
+public class OrderManagerListAdapter extends SimpleExpandableListAdapter {
 
 	private Context mContext;
 	
@@ -28,7 +28,7 @@ public class OrderListAdapter extends SimpleExpandableListAdapter {
 	private int[] mChildTo;
 	
 	
-	public OrderListAdapter(Context context,
+	public OrderManagerListAdapter(Context context,
 			List<? extends Map<String, String>> groupData, int groupLayout,
 			String[] groupFrom, int[] groupTo,
 			List<List<Map<String, String>>> childData,

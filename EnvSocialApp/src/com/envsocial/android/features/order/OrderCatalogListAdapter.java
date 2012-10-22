@@ -6,8 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import android.content.Context;
-import android.util.Log;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.util.SparseArray;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -18,50 +19,46 @@ import android.widget.TextView;
 import com.envsocial.android.R;
 
 public class OrderCatalogListAdapter extends SimpleExpandableListAdapter implements IOrderCatalogAdapter {
-
+	
+	private OrderFragment mParentFragment;
 	private List<? extends Map<String, String>> mGroupData;
+	private List<? extends List<? extends Map<String,String>>> mChildData;
+	
 	private String[] mGroupFrom;
 	private int[] mGroupTo;
 	
-	private List<? extends List<? extends Map<String,String>>> mChildData;
-	private String[] mChildFrom;
-	private int[] mChildTo;
 	
-	private Map<Integer, Map<Integer, Map<String, Object>>> mOrderSelections;
-	private Map<Integer, Map<Integer, ChildViewHolder>> mChildViewHolderMap;
-	
-	private int[] alternatingColors;
+	private SparseArray<Map<Integer, Map<String, Object>>> mOrderSelections;
+	private SparseArray<Map<Integer, ChildViewHolder>> mChildViewHolderMap;
 	
 	
-	public OrderCatalogListAdapter(Context context,
+	public OrderCatalogListAdapter(OrderFragment parentFragment,
 			List<? extends Map<String, String>> groupData, int groupLayout,
 			String[] groupFrom, int[] groupTo,
 			List<? extends List<? extends Map<String, String>>> childData,
 			int childLayout, String[] childFrom, int[] childTo
 			) {
-		super(context, groupData, groupLayout, groupFrom, groupTo, null,
+		super(parentFragment.getActivity(), groupData, groupLayout, groupFrom, groupTo, null,
 				childLayout, null, null);
 		
+		mParentFragment = parentFragment;
 		mGroupData = groupData;
 		mGroupFrom = groupFrom;
 		mGroupTo = groupTo;
 		
-		mOrderSelections = new HashMap<Integer, Map<Integer,Map<String,Object>>>();
-		mChildViewHolderMap = new HashMap<Integer, Map<Integer,ChildViewHolder>>();
+		mOrderSelections = new SparseArray<Map<Integer,Map<String,Object>>>();
+		mChildViewHolderMap = new SparseArray<Map<Integer,ChildViewHolder>>();
 		
 		mChildData = childData;
-		mChildFrom = childFrom;
-		mChildTo = childTo;
-		
-		// set the alternating colors of the list view
-		alternatingColors = new int[2];
-		alternatingColors[0] = R.color.white;
-		alternatingColors[1] = R.color.light_green;
 	}
 	
 	@Override 
 	public Map<String, String> getGroup(int groupPosition) {
 		return mGroupData.get(groupPosition);
+	}
+	
+	protected Fragment getParentFragment() {
+		return mParentFragment;
 	}
 	
 	@Override 
@@ -79,7 +76,8 @@ public class OrderCatalogListAdapter extends SimpleExpandableListAdapter impleme
 		return mChildData.get(groupPosition).size();
 	}
 	
-	public void updateChildQuantity(ChildViewHolder holder, int qDelta) {
+	
+	private void updateChildQuantity(ChildViewHolder holder, int qDelta) {
 		int groupPosition = holder.groupPosition;
 		int childPosition = holder.childPosition;
 		
@@ -230,6 +228,8 @@ public class OrderCatalogListAdapter extends SimpleExpandableListAdapter impleme
 			holder = new ChildViewHolder();
 		
 			holder.itemView = (TextView) convertView.findViewById(R.id.orderItem);
+			holder.itemView.setOnClickListener(new ItemNameClickListener(this, holder));
+			
 			holder.quantityView = (TextView) convertView.findViewById(R.id.quantity);
 			holder.priceView = (TextView) convertView.findViewById(R.id.orderItemPrice);
 			
@@ -305,13 +305,56 @@ public class OrderCatalogListAdapter extends SimpleExpandableListAdapter impleme
 			mAdapter.updateChildQuantity(mParentView, qDelta);
 		}
 	}
+	
+	
+	static class ItemNameClickListener implements OnClickListener {
+		private ChildViewHolder mParentView;
+		private OrderCatalogListAdapter mAdapter;
+		
+		ItemNameClickListener(OrderCatalogListAdapter adapter, ChildViewHolder view) {
+			mAdapter = adapter;
+			mParentView = view;
+		}
+		
+		
+		@Override
+		public void onClick(View v) {
+			Map<String, String> itemData = 
+					mAdapter.getChild(mParentView.groupPosition, mParentView.childPosition);
+			
+			String itemDescription = itemData.get(OrderFeature.ITEM_DESCRIPTION);
+			float itemUsageRating = Integer.parseInt(itemData.get(OrderFeature.ITEM_USAGE_RANK)) / (float)2.0;
+			
+			OrderCatalogItemDescriptionFragment newFragment = 
+					OrderCatalogItemDescriptionFragment.newInstance(itemDescription, itemUsageRating);
+			
+			FragmentManager fm = mAdapter.getParentFragment().getActivity().getSupportFragmentManager(); 
+			newFragment.show(fm, "description");
+		}
+		
+	}
+	
 
+	public void updateFeature(List<Map<String, String>> groupData, 
+			List<List<Map<String, String>>> childData) {
+		// this where we need to update the feature
+		// TODO: it should be a new cursor adapter
+		clearOrderSelections();
+		
+		mGroupData = groupData;
+		mChildData = childData;
+		
+		notifyDataSetChanged();
+	}
+	
+	
 	@Override
 	public List<Map<String, Object>> getOrderSelections() {
 		List<Map<String, Object>> orderList = 
 				new ArrayList<Map<String,Object>>();
 		
-		for (Integer groupIdx : mOrderSelections.keySet()) {
+		for (int i = 0; i < mOrderSelections.size(); i++) {
+			int groupIdx = mOrderSelections.keyAt(i);
 			orderList.addAll(mOrderSelections.get(groupIdx).values());
 		}
 		
@@ -320,23 +363,14 @@ public class OrderCatalogListAdapter extends SimpleExpandableListAdapter impleme
 
 	@Override
 	public void clearOrderSelections() {
-		// clear views first
-		/*
-		for (Integer groupIdx : mOrderSelections.keySet()) {
-			Set<Integer> childPositions = mOrderSelections.get(groupIdx).keySet();
-			
-			for (Integer childIdx : childPositions) {
-				ChildViewHolder holder = mChildViewHolderMap.get(groupIdx).get(childIdx);
-				holder.quantityCt = 0;
-				holder.quantityView.setText("" + holder.quantityCt);
-			}
-		}
-		*/
 		
 		// then clear all selections as well
 		mOrderSelections.clear();
 		notifyDataSetChanged();
 	}
 	
-	
+	@Override
+	public void doCleanup() {
+		
+	}
 }

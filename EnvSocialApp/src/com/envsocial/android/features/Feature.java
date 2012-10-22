@@ -52,12 +52,20 @@ public abstract class Feature implements Serializable {
 	}
 	
 	public void init() throws EnvSocialContentException {
-		
 	}
 	
-	public void cleanup() {
-		
+	
+	public void doUpdate() throws EnvSocialContentException {
 	}
+	
+	
+	public void doCleanup(Context context) {
+	}
+
+	
+	public void doClose(Context context) {
+	}
+	
 	
 	public String getCategory() {
 		return category;
@@ -78,6 +86,7 @@ public abstract class Feature implements Serializable {
 	public String getSerializedData() {
 		return data;
 	}
+	
 	
 	public static Feature getFromServer(Context context, Location location, String category) {
 		AppClient client = new AppClient(context);
@@ -165,7 +174,8 @@ public abstract class Feature implements Serializable {
 		return getLocalDatabaseSupport() != null;
 	}
 	
-	public Cursor localQuery(String query) {
+	public Cursor localSearchQuery(String query) {
 		return null;
 	}
+
 }

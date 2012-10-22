@@ -9,6 +9,7 @@ import java.util.Map;
 import android.content.Context;
 import android.database.Cursor;
 import android.support.v4.widget.ResourceCursorAdapter;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -25,12 +26,12 @@ public class OrderSearchCursorAdapter extends ResourceCursorAdapter implements I
 	 * Holds the mappings between position of quantity > 0 elements in list (cursor) and the data in the cursor.
 	 * It is to be used when sending an order from the OrderSearch view.
 	 */
-	private Map<Integer, Map<String, Object>> searchOrderSelection;
+	private SparseArray<Map<String, Object>> searchOrderSelection;
 	
 	public OrderSearchCursorAdapter(Context context, int layout, Cursor c, int flags) {
 		super(context, layout, c, flags);
 		
-		searchOrderSelection = new HashMap<Integer, Map<String, Object>>();
+		searchOrderSelection = new SparseArray<Map<String, Object>>();
 	}
 	
 	@Override
@@ -169,8 +170,11 @@ public class OrderSearchCursorAdapter extends ResourceCursorAdapter implements I
 	
 	@Override
 	public List<Map<String, Object>> getOrderSelections() {
-		List<Map<String, Object>> searchOrderList = 
-				new ArrayList<Map<String,Object>>(searchOrderSelection.values());
+		List<Map<String, Object>> searchOrderList = new ArrayList<Map<String,Object>>();
+		
+		for (int i = 0; i < searchOrderSelection.size(); i++) {
+			searchOrderList.add(searchOrderSelection.valueAt(i));
+		}
 		
 		return searchOrderList;
 	}
@@ -178,6 +182,13 @@ public class OrderSearchCursorAdapter extends ResourceCursorAdapter implements I
 	@Override
 	public void clearOrderSelections() {
 		searchOrderSelection.clear();
+	}
+
+	@Override
+	public void doCleanup() {
+		// we don't need to do anything here as the ResourceCursorAdapter will take
+		// care of the cursor lifecycle
+		//changeCursor(null);
 	}
 
 }

@@ -1,5 +1,7 @@
 package com.envsocial.android.utils;
 
+import java.io.Serializable;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -7,7 +9,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-public class EnvivedNotificationContents {
+public class EnvivedNotificationContents implements Serializable {
+	private static final long serialVersionUID = 1L;
+
 	private static final String TAG = "EnvivedNotificationContents"; 
 	
 	public static final String FEATURE = "feature";

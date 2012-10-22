@@ -34,6 +34,10 @@ public abstract class FeatureDbHelper extends SQLiteOpenHelper implements Serial
 		this.databaseName = databaseName;
 	}
 	
+	public SQLiteDatabase getDatabase() {
+		return database;
+	}
+	
 	
 	@Override
 	public void onCreate(SQLiteDatabase db) {
@@ -61,6 +65,19 @@ public abstract class FeatureDbHelper extends SQLiteOpenHelper implements Serial
 	 * from the feature is unsuccessful.
 	 */
 	public void init() throws EnvSocialContentException {
+		
+	}
+	
+	/**
+	 * Allows the update of the database tables typically by
+	 * doing an insertion of the serialized data from an updated feature.
+	 * <br/>
+	 * Default method does nothing.
+	 * 
+	 * @throws {@link EnvSocialContentException} if the parsing of the serialized data
+	 * from the feature is unsuccessful.
+	 */
+	public void update() throws EnvSocialContentException {
 		
 	}
 	

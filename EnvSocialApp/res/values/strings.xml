@@ -117,13 +117,13 @@
     <!-- Feature Error Messages -->
     <string name="msg_send_order_err">Service error sending order.</string>
     <string name="msg_send_order_400">Send order bad request.</string>
-    <string name="msg_send_order_401">Unauthorized order request.</string>
-    <string name="msg_send_order_405">Order sending not allowed.</string>
+    <string name="msg_send_order_401">Unauthorized order request. Make sure you are checked-in at an ENVIVED location.</string>
+    <string name="msg_send_order_405">Order sending not allowed in this ENVIVED location.</string>
     
     <string name="msg_get_orders_err">Error retrieving orders.</string>
     <string name="msg_get_order_400">Retrieve orders bad request.</string>
-    <string name="msg_get_order_401">Unauthorized access to orders.</string>
-    <string name="msg_get_order_405">Order retrieval not allowed.</string>
+    <string name="msg_get_order_401">Unauthorized access to orders. Make sure you are checked-in at an ENVIVED location.</string>
+    <string name="msg_get_order_405">Order retrieval not allowed in this ENVIVED location.</string>
     
     <string name="msg_send_entry_comment_ok">Comment sent.</string>
     
@@ -143,7 +143,8 @@
     <!-- Notifications -->
     <string name="incoming_order">New order</string>
 	<string name="resolved_order">Order on the way</string>
-
+	<string name="update_order_feature">Menu Update!</string>
+	
     <!-- Action strings -->
     <string name="action_notification">com.envsocial.android.intent.RECEIVE_NOTIFICATION</string>
     

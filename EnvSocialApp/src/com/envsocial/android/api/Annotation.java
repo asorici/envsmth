@@ -1,8 +1,9 @@
 package com.envsocial.android.api;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -23,6 +24,7 @@ import com.envsocial.android.api.exceptions.EnvSocialComException.HttpMethod;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
+import com.envsocial.android.utils.Utils;
 
 public class Annotation {
 	
@@ -229,11 +231,11 @@ public class Annotation {
 	
 	// this can be re-written in terms of getAnnotations + an extra
 	public static List<Annotation> getAllAnnotationsForEnvironment(Context context, 
-			Location location, String category) throws EnvSocialComException, EnvSocialContentException {
+			Location location, String category, Calendar timestamp) throws EnvSocialComException, EnvSocialContentException {
 		
 		String envId = location.getId();
 		if (location.isArea()) {
-			envId = Url.resourceIdFromUri(location.getParent());
+			envId = Url.resourceIdFromUri(location.getParentUri());
 		}
 		
 		Url url = new Url(Url.RESOURCE, TAG);
@@ -242,8 +244,19 @@ public class Annotation {
 				new String[] { envId, "true", category, "-timestamp" }
 		);
 		
+		String uri  = url.toString();
+		if (timestamp != null) {
+			String timeStr = Utils.calendarToString(timestamp, "yyyy-MM-dd HH:mm:ss");
+			try {
+				timeStr = URLEncoder.encode(timeStr, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				throw new EnvSocialContentException(timeStr, EnvSocialResource.ANNOTATION, e);
+			}
+			uri = Url.appendParameter(uri, "timestamp__gt", timeStr);
+		}
+		
 		// consume all annotations from server - no pagination needed afterwards
-		return getAnnotationsList(context, url.toString(), null, true);
+		return getAnnotationsList(context, uri, null, true);
 	}
 	
 	
@@ -292,13 +305,15 @@ public class Annotation {
 		
 		} catch (JSONException e) {
 			throw new EnvSocialContentException(responseData, EnvSocialResource.ANNOTATION, e);
+		} catch (ParseException e) {
+			throw new EnvSocialContentException(responseData, EnvSocialResource.ANNOTATION, e);
 		}
 	}
 	
 	
 	// Parse response to get a list of Annotation objects
 	private static List<Annotation> parse(Context context, 
-			String jsonString, Location location) throws JSONException {
+			String jsonString, Location location) throws JSONException, ParseException {
 		
 		JSONArray array = new JSONObject(jsonString).getJSONArray("objects");
 		int len = array.length();
@@ -311,14 +326,8 @@ public class Annotation {
 			String category = annotation.getString("category");
 			
 			String strTimestamp = annotation.getString("timestamp").replace('T', ' ');
-			Calendar timestamp = Calendar.getInstance();
+			Calendar timestamp = Utils.stringToCalendar(strTimestamp, "yyyy-MM-dd HH:mm:ss");
 			
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			try {
-				timestamp.setTime(sdf.parse(strTimestamp));
-			} catch (ParseException e1) {
-				
-			}
 			
 			Location annLocation = null;
 			
