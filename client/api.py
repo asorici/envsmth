@@ -809,11 +809,11 @@ class AnnotationResource(ModelResource):
                 
                 
                 if received == "OK":
-                    print >> sys.stderr, "[Annotation C2DM] Notification enqueued"
+                    print >> sys.stderr, "[Annotation GCM] Notification enqueued"
                 else:
-                    print >> sys.stderr, "[Annotation C2DM] Notification NOT enqueued"
+                    print >> sys.stderr, "[Annotation GCM] Notification NOT enqueued"
             except Exception, ex:
-                print >>sys.stderr, "[Annotation C2DM] failure enqueueing annotation: ", ex
+                print >>sys.stderr, "[Annotation GCM] failure enqueueing annotation: ", ex
             finally:
                 sock.close()
         

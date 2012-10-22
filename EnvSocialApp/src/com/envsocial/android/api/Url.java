@@ -6,8 +6,8 @@ public class Url {
 	public static final String HTTPS = "https://";
 	//public static final String HOSTNAME = "192.168.1.6:8000";
 	//public static final String HOSTNAME = "192.168.100.101:8000";
-	//public static final String HOSTNAME = "192.168.1.105:8000";
-	public static final String HOSTNAME = "192.168.1.105:8800";
+	public static final String HOSTNAME = "192.168.1.105:8000";
+	//public static final String HOSTNAME = "192.168.1.105:8800";
 	//public static final String HOSTNAME = "141.85.227.108";
 	//public static final String HOSTNAME = "192.168.8.55:8000";
 	//public static final String HOSTNAME = "172.16.2.181:8000";

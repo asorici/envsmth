@@ -18,7 +18,6 @@ import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -161,7 +160,7 @@ public class OrderManagerFragment extends SherlockFragment {
 		if (item.getTitle().toString().compareTo(REFRESH_ORDERS_MENU_ITEM) == 0) {
 			
 			// get all orders since the last one handled
-			getOrders(lastRefreshTimestamp, true);
+			getOrders(lastRefreshTimestamp, false);
 			return true;
 		}
 		
@@ -268,7 +267,8 @@ public class OrderManagerFragment extends SherlockFragment {
 				&& paramsJSON.optString("type", null) != null 
 				&& paramsJSON.optString("type").equalsIgnoreCase(OrderFeature.NEW_ORDER_NOTIFICATION)) {
 					
-				loadAllOrders();
+				//loadAllOrders();
+				getOrders(lastRefreshTimestamp, false);
 				return true;
 			}
 			

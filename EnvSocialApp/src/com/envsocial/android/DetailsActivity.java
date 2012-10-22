@@ -7,7 +7,10 @@ import org.apache.http.HttpStatus;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
@@ -100,6 +103,10 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
         
         checkin(checkinUrl);
         
+        // register GCM status receiver
+        registerReceiver(mHandleGCMMessageReceiver,
+                new IntentFilter(GCMIntentService.ACTION_DISPLAY_GCM_MESSAGE));
+        
         // setup GCM notification registration
         checkGCMRegistration();
 	}
@@ -131,6 +138,21 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
         	dialog.show(getSupportFragmentManager(), "dialog");
         }
 	}
+	
+	
+	private final BroadcastReceiver mHandleGCMMessageReceiver =
+            new BroadcastReceiver() {
+        
+		@Override
+        public void onReceive(Context context, Intent intent) {
+            String newGCMMessage = intent.getExtras().getString(GCMIntentService.EXTRA_GCM_MESSAGE);
+            
+            Toast toast = Toast.makeText(DetailsActivity.this, 
+					newGCMMessage, Toast.LENGTH_LONG);
+			toast.show();
+        }
+    };
+	
 	
 	@Override
 	public void onPause() {
@@ -171,6 +193,9 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 		
 		// unregister the GCM broadcast receiver
 		GCMRegistrar.onDestroy(getApplicationContext());
+		
+		// unregister the GCM status receiver
+		unregisterReceiver(mHandleGCMMessageReceiver);
 		
 		/*
 		if (mLocation != null) {

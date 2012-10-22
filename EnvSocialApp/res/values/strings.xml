@@ -140,10 +140,15 @@
     <string name="msg_get_entry_details_err">Service error retrieving program entry detail.</string>
     
     
-    <!-- Notifications -->
+    <!-- Feature Notifications -->
     <string name="incoming_order">New order</string>
 	<string name="resolved_order">Order on the way</string>
 	<string name="update_order_feature">Menu Update!</string>
+	
+	<!-- GCM Notifications -->
+	<string name="gcm_registered">Successfully registered for ENVIVED notifications.</string>
+	<string name="gcm_unregistered">Unregistered from ENVIVED notifications.</string>
+	<string name="gcm_register_error">Error registering for ENVIVED notifications. Please try again later.</string>
 	
     <!-- Action strings -->
     <string name="action_notification">com.envsocial.android.intent.RECEIVE_NOTIFICATION</string>
