@@ -16,6 +16,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -37,6 +38,17 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 	private static final String TAG = "OrderFragment";
 	private static boolean active = false;
 	
+	// mapping of selections by the item ID contained within them
+	private static SparseArray<Map<String, Object>> mOrderTab;
+	
+	public static SparseArray<Map<String,Object>> getOrderTabInstance() {
+		if (mOrderTab == null) {
+			mOrderTab = new SparseArray<Map<String,Object>>();
+		}
+		
+		return mOrderTab;
+	}
+	
 	public static final int DIALOG_REQUEST = 0;
 	
 	private Location mLocation;
@@ -48,8 +60,6 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 	private ViewPager mCatalogPager;
 	private OrderCatalogPagerAdapter mCatalogPagerAdapter;
 	
-	// mapping of selections by the item ID contained within them
-	private Map<Integer, Map<String, Object>> mOrderTab;
 	private List<Map<String, Object>> mCurrentOrderSelections;
 	
 	private OrderFeatureUpdateReceiver mUpdateReceiver;
@@ -58,8 +68,6 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
-		
-		mOrderTab = new HashMap<Integer, Map<String, Object>>();
 		
 		mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
 		mOrderFeature = (OrderFeature)mLocation.getFeature(Feature.ORDER);
@@ -133,11 +141,16 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 		Log.d(TAG, " --- onDestroy called in OrderFragment");
 		super.onDestroy();
 		
+		SparseArray<Map<String, Object>> orderTab = getOrderTabInstance();
+		orderTab.clear();
+		orderTab = null;
+		
 		mCatalogPagerAdapter.doCleanup();
 		getActivity().unregisterReceiver(mUpdateReceiver);
 	}
 	
 	
+	@Override
 	public void onClick(View v) {
 		
 		if (v == mBtnOrder) {
@@ -150,7 +163,12 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 			}
 		}
 		else if (v == mBtnTab) {
-			List<Map<String, Object>> orderTabSelections = new ArrayList<Map<String,Object>>(mOrderTab.values());
+			SparseArray<Map<String,Object>> orderTab = getOrderTabInstance();
+			List<Map<String, Object>> orderTabSelections = new ArrayList<Map<String,Object>>();
+			for (int i = 0; i < orderTab.size(); i++) {
+				orderTabSelections.add(orderTab.valueAt(i));
+			}
+			
 			OrderTabDialogFragment orderTabDialog = OrderTabDialogFragment.newInstance(orderTabSelections);
 			orderTabDialog.setTargetFragment(this, DIALOG_REQUEST);
 			orderTabDialog.show(getFragmentManager(), "dialog");
@@ -159,6 +177,7 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 	}
 	
 	
+	@Override
 	public void sendOrder(OrderDialogFragment dialog) {
 		String orderJSON = dialog.getOrderJSONString();
 		
@@ -174,29 +193,30 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 	@Override
 	public void postSendOrder(boolean success) {
 		if (success) {
+			SparseArray<Map<String, Object>> orderTab = getOrderTabInstance();
+			
 			// add current selections to tab then clear them
 			for (Map<String, Object> itemData : mCurrentOrderSelections) {
 				int itemId = (Integer) itemData.get(OrderFeature.ITEM_ID);
 				
-				Map<String, Object> itemTab = mOrderTab.get(itemId);
+				Map<String, Object> itemTab = orderTab.get(itemId);
 				if (itemTab == null) {
 					itemTab = new HashMap<String, Object>();
 					itemTab.putAll(itemData);
 					
-					mOrderTab.put(itemId, itemTab);
+					orderTab.put(itemId, itemTab);
 				}
 				else {
 					Integer tabQuantity = (Integer)itemTab.get("quantity");
 					tabQuantity += (Integer)itemData.get("quantity");
 					itemTab.put("quantity", tabQuantity);
-					
-					//Log.d(TAG, "new tab quantity: " + itemId + " >> " + mOrderTab);
 				}
 			}
 		}
 		
 		// clear current temporary selections in OrderFragment
 		mCurrentOrderSelections = null;
+		
 		// clear them in the pager adapter as well
 		mCatalogPagerAdapter.clearOrderSelections();
 	}

@@ -1,6 +1,7 @@
 package com.envsocial.android.features.order;
 
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -11,6 +12,7 @@ import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -28,8 +30,7 @@ import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.SimpleCursorLoader;
 
 public class OrderSearchResultFragment extends SherlockFragment 
-					implements LoaderManager.LoaderCallbacks<Cursor>,
-								OnClickListener, ISendOrder {
+					implements LoaderManager.LoaderCallbacks<Cursor>, OnClickListener, ISendOrder {
 	
 	private static final String TAG = "OrderSearchResultFragment";
 	
@@ -42,6 +43,8 @@ public class OrderSearchResultFragment extends SherlockFragment
 	private Button mBtnOrder;
 	private ListView mListView;
 	private OrderSearchCursorAdapter mAdapter;
+	
+	private List<Map<String, Object>> mCurrentOrderSelections;
 	
 	private ProgressDialog mSearchLoaderDialog;
 	
@@ -102,6 +105,14 @@ public class OrderSearchResultFragment extends SherlockFragment
 	}
 	
 	
+	@Override
+	public void onDestroy() {
+		Log.d(TAG, " --- onDestroy called in OrderFragment");
+		super.onDestroy();
+		
+		mAdapter.doCleanup();
+	}
+	
 	public void newSearchQuery(String query) {
 		// update internal query and restart loader
 		mFeatureQuery = query;
@@ -149,19 +160,45 @@ public class OrderSearchResultFragment extends SherlockFragment
 	@Override
 	public void sendOrder(OrderDialogFragment dialog) {
 		String orderJSON = dialog.getOrderJSONString();
+		mCurrentOrderSelections = dialog.getOrderSelections();
+		
 		dialog.dismiss();
 		
 		Location location = Preferences.getCheckedInLocation(getActivity());
-		
-		Annotation order = new Annotation(location, 
-				Feature.ORDER, Calendar.getInstance(), orderJSON);
+		Annotation order = new Annotation(location, Feature.ORDER, Calendar.getInstance(), orderJSON);
 		new SendOrderTask(getActivity(), this, order).execute();
 		
 	}
 	
 	@Override
 	public void postSendOrder(boolean success) {
+		if (success) {
+			SparseArray<Map<String, Object>> orderTab = OrderFragment.getOrderTabInstance();
+			
+			// add current selections to tab then clear them
+			for (Map<String, Object> itemData : mCurrentOrderSelections) {
+				int itemId = (Integer) itemData.get(OrderFeature.ITEM_ID);
+				
+				Map<String, Object> itemTab = orderTab.get(itemId);
+				if (itemTab == null) {
+					itemTab = new HashMap<String, Object>();
+					itemTab.putAll(itemData);
+					
+					orderTab.put(itemId, itemTab);
+				}
+				else {
+					Integer tabQuantity = (Integer)itemTab.get("quantity");
+					tabQuantity += (Integer)itemData.get("quantity");
+					itemTab.put("quantity", tabQuantity);
+				}
+			}
+		}
 		
+		// clear current temporary selections in OrderSearchResultFragment
+		mCurrentOrderSelections = null;
+		
+		// clear them in the pager adapter as well
+		mAdapter.clearOrderSelections();
 	}
 	
 	// ##################################### Helper static classes #####################################

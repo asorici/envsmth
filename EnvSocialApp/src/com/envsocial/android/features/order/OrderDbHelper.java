@@ -258,7 +258,7 @@ public class OrderDbHelper extends FeatureDbHelper {
 	}
 
 	public Cursor getItemCursor(int categoryId) {
-		String orderBy = COL_ITEM_USAGE_RANK + ", " + COL_ITEM_NAME;
+		String orderBy = COL_ITEM_USAGE_RANK + " DESC" + ", " + COL_ITEM_NAME;
 		String selection = COL_ITEM_CATEGORY_ID + " = ?";
 		String[] selectionArgs = new String[] {"" + categoryId};
 		

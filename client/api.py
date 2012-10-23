@@ -697,7 +697,9 @@ class AnnotationResource(ModelResource):
             if owner_profile:
                 registration_id = owner_profile.c2dm_id
             
-            self._make_c2dm_notification(registration_id, updated_bundle, 
+            collapse_key = "annotation_" + Annotation.ORDER 
+            
+            self._make_c2dm_notification(registration_id, collapse_key, updated_bundle, 
                                          params = {'type' : OrderFeature.NEW_ORDER})
         
         return updated_bundle
@@ -728,7 +730,9 @@ class AnnotationResource(ModelResource):
                 if owner_profile:
                     registration_id = owner_profile.c2dm_id
                 
-                self._make_c2dm_notification(registration_id, updated_bundle, 
+                collapse_key = "annotation_" + Annotation.ORDER
+                
+                self._make_c2dm_notification(registration_id, collapse_key, updated_bundle, 
                                              params = {'type' : OrderFeature.NEW_ORDER})
             
             return updated_bundle
@@ -760,21 +764,23 @@ class AnnotationResource(ModelResource):
                 registration_id = receiver_profile.c2dm_id
             
             bundle = AnnotationResource().build_bundle(obj = annObj)
-            self._make_c2dm_notification(registration_id, bundle, 
-                                         params = {'type' : OrderFeature.RESOLVED_ORDER})
+            
+            params = {'type' : OrderFeature.RESOLVED_ORDER,
+                      'order': annObj.get_annotation_data()}
+            self._make_c2dm_notification(registration_id, None, bundle, params = params)
         
         annObj.delete()
     
     
     
-    def _make_c2dm_notification(self, registration_id, bundle, params = None):
+    def _make_c2dm_notification(self, registration_id, collapse_key, bundle, params = None):
         import socket, pickle, c2dm, sys
         
         if params is None:
             params = {}
         
         if not registration_id is None:
-            collapse_key = "annotation_" + bundle.obj.category
+            #collapse_key = "annotation_" + bundle.obj.category
             resource_uri = self.get_resource_uri(bundle)
             
             environment = bundle.obj.environment
@@ -794,7 +800,9 @@ class AnnotationResource(ModelResource):
             notification_data['params'] = params
             
             delay_while_idle = False
-            ttl = 600
+            ttl = None
+            if not collapse_key is None:
+                ttl = 600 
             
             # pickle notification data and send it
             data = pickle.dumps((registration_ids, collapse_key, delay_while_idle, ttl, notification_data))

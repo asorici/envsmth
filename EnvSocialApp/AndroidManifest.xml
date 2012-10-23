@@ -81,6 +81,9 @@
             
         <activity android:name=".features.program.EntryDetailsActivity" />
         
+        <activity
+            android:name=".features.order.ResolvedOrderDialogActivity"
+            android:theme="@android:style/Theme.Dialog" />
         
         <receiver android:name="com.google.android.gcm.GCMBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >

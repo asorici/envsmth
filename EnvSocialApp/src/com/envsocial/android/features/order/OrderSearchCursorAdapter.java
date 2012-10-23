@@ -22,6 +22,8 @@ import com.envsocial.android.R;
 public class OrderSearchCursorAdapter extends ResourceCursorAdapter implements IOrderCatalogAdapter {
 	private static final String TAG = "OrderSearchCursorAdapter";
 	
+	private SparseArray<ViewHolder> mViewHolderMap;
+	
 	/**
 	 * Holds the mappings between position of quantity > 0 elements in list (cursor) and the data in the cursor.
 	 * It is to be used when sending an order from the OrderSearch view.
@@ -32,6 +34,7 @@ public class OrderSearchCursorAdapter extends ResourceCursorAdapter implements I
 		super(context, layout, c, flags);
 		
 		searchOrderSelection = new SparseArray<Map<String, Object>>();
+		mViewHolderMap = new SparseArray<OrderSearchCursorAdapter.ViewHolder>();
 	}
 	
 	@Override
@@ -53,6 +56,10 @@ public class OrderSearchCursorAdapter extends ResourceCursorAdapter implements I
 		holder.btnLess.setOnClickListener(l);
 		holder.btnMore.setOnClickListener(l);
 		
+		int itemIdColumnIdx = cursor.getColumnIndex(OrderDbHelper.COL_ORDER_FTS_ID);
+		int itemId = cursor.getInt(itemIdColumnIdx);
+		
+		mViewHolderMap.put(itemId, holder);
 		convertView.setTag(holder);
 		
 		return convertView;
@@ -89,7 +96,13 @@ public class OrderSearchCursorAdapter extends ResourceCursorAdapter implements I
 		holder.categoryView.setText(category);
 		holder.itemView.setText(item);
 		holder.priceView.setText(new DecimalFormat("#.##").format(price) + " RON");
-		holder.quantityView.setText("" + holder.quantityCt);
+		
+		int quantityCt = 0;
+		if (searchOrderSelection.get(itemId) != null ) {
+			quantityCt = (Integer)searchOrderSelection.get(itemId).get("quantity");
+		}
+		
+		holder.quantityView.setText("" + quantityCt);
 	}
 	
 	
@@ -100,9 +113,6 @@ public class OrderSearchCursorAdapter extends ResourceCursorAdapter implements I
 		String itemName;
 		double itemPrice;
 		String categoryName;
-		
-		int quantityCt = 0;
-		
 		
 		TextView categoryView;
 		TextView itemView;
@@ -123,45 +133,52 @@ public class OrderSearchCursorAdapter extends ResourceCursorAdapter implements I
 		@Override
 		public void onClick(View v) {
 			if (v.getId() == R.id.catalog_search_result_btn_more) {
-				mHolder.quantityCt++;
-				mHolder.quantityView.setText("" + mHolder.quantityCt);
+				int itemId = mHolder.itemId;
 				
 				// add to searchOrderSelection mapping
-				int position = mHolder.cursorPosition;
-				Map<String, Object> selectionMapping = searchOrderSelection.get(position); 
+				Map<String, Object> selectionMapping = searchOrderSelection.get(itemId); 
 				
 				if (selectionMapping != null) {
-					selectionMapping.put("quantity", mHolder.quantityCt);
+					int quantityCt = (Integer)selectionMapping.get("quantity");
+					quantityCt += 1;
+					selectionMapping.put("quantity", quantityCt);
+					mHolder.quantityView.setText("" + quantityCt);
 				}
 				else {
+					int quantityCt = 1;
+					
 					selectionMapping = new HashMap<String, Object>();
 					selectionMapping.put(OrderFeature.CATEGORY, mHolder.categoryName);
 					selectionMapping.put(OrderFeature.ITEM_ID, mHolder.itemId);
 					selectionMapping.put(OrderFeature.ITEM, mHolder.itemName);
 					selectionMapping.put(OrderFeature.ITEM_PRICE, mHolder.itemPrice);
-					selectionMapping.put("quantity", mHolder.quantityCt);
+					selectionMapping.put("quantity", quantityCt);
 					
-					searchOrderSelection.put(position, selectionMapping);
+					searchOrderSelection.put(itemId, selectionMapping);
+					mHolder.quantityView.setText("" + quantityCt);
 				}
+				
 				
 			}
 			else if (v.getId() == R.id.catalog_search_result_btn_less) {
-				if (mHolder.quantityCt > 0) {
-					mHolder.quantityCt--;
-					mHolder.quantityView.setText("" + mHolder.quantityCt);
+				int itemId = mHolder.itemId;
+				
+				// subtract from searchOrderSelection mapping
+				Map<String, Object> selectionMapping = searchOrderSelection.get(itemId); 
+				
+				if (selectionMapping != null) {
+					int quantityCt = (Integer)selectionMapping.get("quantity");
+					quantityCt -= 1;
 					
-					
-					// update searchOrderSelection mapping
-					int position = mHolder.cursorPosition;
-					if (mHolder.quantityCt == 0) {
-						searchOrderSelection.remove(position);
+					if (quantityCt > 0) {
+						selectionMapping.put("quantity", quantityCt);
 					}
 					else {
-						Map<String, Object> selectionMapping = searchOrderSelection.get(position);
-						
-						// selectionMapping must be non-null since it is only created when tapping on the + button
-						selectionMapping.put("quantity", mHolder.quantityCt);
+						quantityCt = 0;
+						searchOrderSelection.remove(itemId);
 					}
+					
+					mHolder.quantityView.setText("" + quantityCt);
 				}
 			}
 		}
@@ -181,6 +198,14 @@ public class OrderSearchCursorAdapter extends ResourceCursorAdapter implements I
 
 	@Override
 	public void clearOrderSelections() {
+		// clear quantity views
+		int quantityCt = 0;
+		for (int i = 0; i < searchOrderSelection.size(); i++) {
+			int itemId = searchOrderSelection.keyAt(i);
+			mViewHolderMap.get(itemId).quantityView.setText("" + quantityCt);
+		}
+		
+		// clear selections
 		searchOrderSelection.clear();
 	}
 

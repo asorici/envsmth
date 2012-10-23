@@ -19,6 +19,8 @@ public class EnvivedNotificationContents implements Serializable {
 	public static final String RESOURCE_URI = "resource_uri";
 	public static final String PARAMS = "params";
 	
+	public static final String INTENT_EXTRA_PARAMS = "com.envsocial.android.notification_params";
+	
 	private String mLocationUri;
 	private String mFeature;
 	private String mResourceUri;
