@@ -1,13 +1,21 @@
 package com.envsocial.android.features.order;
 
+import java.text.ParseException;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.apache.http.HttpStatus;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.text.Html;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -17,16 +25,19 @@ import android.widget.TextView;
 
 import com.envsocial.android.R;
 import com.envsocial.android.api.Annotation;
+import com.envsocial.android.features.IFeatureAdapter;
+import com.envsocial.android.utils.Utils;
 
-
-public class OrderManagerListAdapter extends SimpleExpandableListAdapter {
-
+public class OrderManagerListAdapter extends SimpleExpandableListAdapter implements IFeatureAdapter {
+	private static final String TAG = "OrderManagerListAdapter";
 	private Context mContext;
 	
 	private List<List<Map<String,String>>> mChildData;
 	private String[] mChildFrom;
 	private int[] mChildTo;
 	
+	private Map<String, ChildViewHolder> mChildViewHolderMap;
+	private Timer mTimestampGapTimer;
 	
 	public OrderManagerListAdapter(Context context,
 			List<? extends Map<String, String>> groupData, int groupLayout,
@@ -40,8 +51,45 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter {
 		mChildData = childData;
 		mChildFrom = childFrom;
 		mChildTo = childTo;
+		
+		mChildViewHolderMap = new HashMap<String, OrderManagerListAdapter.ChildViewHolder>();
+		
+		monitorTimegaps();
 	}
 	
+	private void monitorTimegaps() {
+		mTimestampGapTimer = new Timer();
+		final Handler handler = new Handler();
+		
+		TimerTask updateTimegapTask = new TimerTask() {
+			@Override
+			public void run() {
+				handler.post(new Runnable() {
+					@Override
+					public void run() {
+						if (mChildViewHolderMap != null) {
+							synchronized(mChildViewHolderMap) {
+								Log.d(TAG, "processing for " + mChildViewHolderMap.size() + " items");
+								for (ChildViewHolder holder : mChildViewHolderMap.values()) {
+									if (holder.orderTimestamp != null) {
+										Calendar now = Calendar.getInstance(TimeZone.getTimeZone("Europe/Bucharest"));
+										
+										String prettyTimeDiff = getPrettyTimeDiffInMinutes(holder.orderTimestamp, now);
+										holder.orderTimegapView.setText(prettyTimeDiff);
+									}
+								}
+							}
+						}
+					}
+				});
+			}
+		};
+		
+		
+		mTimestampGapTimer.schedule(updateTimegapTask, 10000, 5000);
+	}
+	
+
 	public void setChildData(List<List<Map<String,String>>> mOrderLocations) {
 		mChildData = mOrderLocations;
 	}
@@ -58,7 +106,16 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter {
 	
 	public void removeItem(int groupPosition, int childPosition) {
 		List<Map<String,String>> orders = mChildData.get(groupPosition);
+		String orderAnnotationUri = orders.get(childPosition).get(OrderManagerFragment.RESOURCE_URI);
+		
+		// first remove from child view holder map
+		synchronized(mChildViewHolderMap) {
+			mChildViewHolderMap.remove(orderAnnotationUri);
+		}
+		
+		// then remove from list
 		orders.remove(childPosition);
+		
 		// TODO also remove the group if all orders are removed
 		notifyDataSetChanged();
 	}
@@ -73,11 +130,15 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter {
 			convertView = newChildView(isLastChild, parent);
 			
 			holder = new ChildViewHolder();
-			holder.orderDetails = (TextView) convertView.findViewById(R.id.order_details);
+			holder.orderDetailsView = (TextView) convertView.findViewById(R.id.order_details);
+			holder.orderTimegapView = (TextView) convertView.findViewById(R.id.order_timegap);
 			holder.btnResolve = (Button) convertView.findViewById(R.id.btn_resolve);
 			holder.btnResolve.setOnClickListener(new OrderClickListener(holder));
 			
 			convertView.setTag(holder);
+			
+			Log.d(TAG, "----------- calling get Child view");
+			
 		} else {
 			holder = (ChildViewHolder) convertView.getTag();
 		}
@@ -96,12 +157,30 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter {
 		holder.childPosition = childPosition;
 		holder.uri = childData.get(OrderManagerFragment.RESOURCE_URI);
 		
-		int len = from.length;
-		for (int i = 0; i < len; ++ i) {
-			if (to[i] == R.id.order_details) {
-				String orderDetails = childData.get(from[i]);
-				holder.orderDetails.setText(Html.fromHtml(orderDetails));
-			}
+		// this should not fail
+		try {
+			holder.orderTimestamp = Utils.stringToCalendar(childData.get(OrderManagerFragment.ORDER_TIMESTAMP), null);
+			//holder.orderTimestamp.setTimeZone(TimeZone.getTimeZone("Europe/Bucharest"));
+		} catch (ParseException e) {
+			holder.orderTimestamp = null;
+		}
+		
+		String orderDetails = childData.get(OrderManagerFragment.ORDER_DETAILS);
+		holder.orderDetailsView.setText(Html.fromHtml(orderDetails));
+		
+		if (holder.orderTimestamp != null) {
+			Calendar now = Calendar.getInstance(TimeZone.getTimeZone("Europe/Bucharest"));
+			
+			String prettyTimeDiff = getPrettyTimeDiffInMinutes(holder.orderTimestamp, now);
+			holder.orderTimegapView.setText(prettyTimeDiff);
+		}
+		else {
+			holder.orderTimegapView.setText("n.a.");
+		}
+		
+		synchronized(mChildViewHolderMap) {
+			Log.d(TAG, "----------- calling append to map");
+			mChildViewHolderMap.put(childData.get(OrderManagerFragment.RESOURCE_URI), holder);
 		}
 	}
 	
@@ -109,9 +188,41 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter {
 	private static class ChildViewHolder {
 		int groupPosition;
 		int childPosition;
-		TextView orderDetails;
-		Button btnResolve;
+		
+		Calendar orderTimestamp;
 		String uri;
+		
+		TextView orderDetailsView;
+		TextView orderTimegapView;
+		Button btnResolve;
+	}
+	
+	/**
+	 * Returns a pretty formated time difference between two calendar dates in the same TimeZone
+	 * in the format ``x min(s) ago'' if x < 60 and ``many hours ago'' or ``many days ago'' otherwise  
+	 * @param c1 the before Calendar value
+	 * @param c2 the after Calendar value
+	 * @return a String of the explained format or the value ``n.a.'' if the calendars are not in the same timezone 
+	 */
+	private static String getPrettyTimeDiffInMinutes(Calendar c1, Calendar c2) {
+		if (c1.getTimeZone() == null || c2.getTimeZone() == null 
+				|| c1.getTimeZone().getRawOffset() != c2.getTimeZone().getRawOffset()) {
+			return "N.A.";
+		}
+		else {
+			//Log.d(TAG, "c2: " + c2 + ",  c1: " + c1);
+			long diff = c2.getTimeInMillis() - c1.getTimeInMillis();
+			
+			if (diff / Utils.DAY_SCALE != 0) {
+				return "many days ago";
+			}
+			else if (diff / Utils.HOUR_SCALE != 0) {
+				return "many hours ago";
+			}
+			else {
+				return (diff / Utils.MINUTE_SCALE) + " min(s) ago";
+			}
+		}
 	}
 	
 	
@@ -157,5 +268,18 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter {
 			}
 		}
 		
+	}
+
+	@Override
+	public void doCleanup() {
+		// cancel the timegap refresh timer 
+		mTimestampGapTimer.cancel();
+		
+		// clear the view holder map
+		synchronized(mChildViewHolderMap) {
+			mChildViewHolderMap.clear();
+		}
+		
+		mChildViewHolderMap = null;
 	}
 }

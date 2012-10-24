@@ -577,9 +577,16 @@ class AnnotationResource(ModelResource):
     
     
     def dehydrate_data(self, bundle):
-        ## return the data representation of this annotation according to its type
+        ## return the data representation of this annotation according to its type        
         return bundle.obj.get_annotation_data()
+        
     
+    def dehydrate_timestamp(self, bundle):
+        from pytz import timezone
+        local_tz = timezone("Europe/Bucharest")
+        
+        return local_tz.localize(bundle.obj.timestamp)
+     
     
     def dehydrate(self, bundle):
         """

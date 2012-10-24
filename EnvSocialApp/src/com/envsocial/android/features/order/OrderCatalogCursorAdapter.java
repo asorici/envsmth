@@ -10,6 +10,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -19,16 +20,18 @@ import android.widget.ResourceCursorTreeAdapter;
 import android.widget.TextView;
 
 import com.envsocial.android.R;
+import com.envsocial.android.features.IFeatureAdapter;
 
 public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter 
-		implements /*OnChildClickListener,*/ IOrderCatalogAdapter {
+		implements IOrderCatalogAdapter, IFeatureAdapter {
 	
 	private static final String TAG = "OrderCatalogCursorAdapter";
 	
 	private OrderFragment mParentFragment;
 	private SparseArray<Map<String, Object>> mOrderSelections;
-	private SparseArray<GroupViewHolder> mGroupViewMap;
-	private SparseArray<ChildViewHolder> mChildViewMap;
+	private Context mContext;
+	
+	private Map<Integer, ChildViewHolder> mChildViewHolderMap;
 	
 	public OrderCatalogCursorAdapter(OrderFragment parentFragment, Context context, Cursor cursor,
 			int groupLayout, int childLayout) {
@@ -36,8 +39,9 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 		
 		mParentFragment = parentFragment;
 		mOrderSelections = new SparseArray<Map<String,Object>>();
-		mGroupViewMap = new SparseArray<OrderCatalogCursorAdapter.GroupViewHolder>();
-		mChildViewMap = new SparseArray<OrderCatalogCursorAdapter.ChildViewHolder>();
+		mContext = context;
+		
+		mChildViewHolderMap = new HashMap<Integer, OrderCatalogCursorAdapter.ChildViewHolder>();
 	}	
 	
 	
@@ -46,93 +50,103 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 	}
 	
 	
-	@Override 
-	public View newGroupView(Context context, Cursor cursor, boolean isExpanded, ViewGroup parent) {
-		View view = super.newGroupView(context, cursor, isExpanded, parent);
-		GroupViewHolder holder = new GroupViewHolder();
-		
-		int categoryIdColumnIdx = cursor.getColumnIndex(OrderDbHelper.COL_CATEGORY_ID);
-		int categoryId = cursor.getInt(categoryIdColumnIdx);
-		
-		holder.orderCategoryNameView = (TextView) view.findViewById(R.id.orderGroup);
-		
-		mGroupViewMap.put(categoryId, holder);
-		view.setTag(holder);
-		
-		//Log.d(TAG, "New Group View for categId: " + categoryId);
-		
-		return view;
-	}
-	
 	@Override
 	public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
-		View v = super.getGroupView(groupPosition, isExpanded, convertView, parent);
+		Cursor groupCursor = getGroup(groupPosition);
+		if (groupCursor == null) {
+			throw new IllegalStateException("this should only be called when the cursor is valid");
+		}
 		
-		if (isExpanded) {
-			v.setBackgroundResource(R.color.dark_green);
+		GroupViewHolder holder;
+		
+		if (convertView == null) {
+			convertView = newGroupView(mContext, groupCursor, isExpanded, parent);
+			
+			holder = new GroupViewHolder();
+			holder.orderCategoryNameView = (TextView) convertView.findViewById(R.id.orderGroup);
+			convertView.setTag(holder);
 		}
 		else {
-			v.setBackgroundResource(R.color.white);
+			holder = (GroupViewHolder)convertView.getTag();
 		}
 		
-		return v;
+		if (isExpanded) {
+			convertView.setBackgroundResource(R.color.dark_green);
+		}
+		else {
+			convertView.setBackgroundResource(R.color.white);
+		}
+		
+		bindGroupData(holder, mContext, groupPosition, groupCursor, isExpanded);
+		
+		return convertView;
 	}
 	
-	
 	@Override
-	protected void bindGroupView(View view, Context context, Cursor cursor, boolean isExpanded) {
+	protected void bindGroupView(View view, Context context, Cursor cursor,
+			boolean isExpanded) {
+	}
+	
+	protected void bindGroupData(GroupViewHolder holder, Context context, int groupPosition, 
+			Cursor cursor, boolean isExpanded) {
 		// we know there is one because we put it there in the newGroupView call
 		//Object tag = view.getTag();
 		//Log.d(TAG, "Group view TAG has class: " + tag.getClass().getName());
 		
-		GroupViewHolder holder = (GroupViewHolder) view.getTag();
-		
+		int categoryIdColumnIdx = cursor.getColumnIndex(OrderDbHelper.COL_CATEGORY_ID);
 		int categoryNameColumnIdx = cursor.getColumnIndex(OrderDbHelper.COL_CATEGORY_NAME);
+		
+		int categoryId = cursor.getInt(categoryIdColumnIdx);
 		String categoryName = cursor.getString(categoryNameColumnIdx);
 		
+		holder.categoryId = categoryId;
+		holder.groupPosition = groupPosition;
 		holder.orderCategoryName = categoryName;
 		holder.orderCategoryNameView.setText(categoryName);
 	}
 	
 	@Override
-	public View newChildView(Context context, Cursor cursor, boolean isLastChild, ViewGroup parent) {
-		View view = super.newChildView(context, cursor, isLastChild, parent);
-		ChildViewHolder holder = new ChildViewHolder();
+	public View getChildView(int groupPosition, int childPosition, boolean isLastChild, 
+			View convertView, ViewGroup parent) {
+		Cursor childCursor = getChild(groupPosition, childPosition);
+		if (childCursor == null) {
+			throw new IllegalStateException("this should only be called when the cursor is valid");
+		}
 		
-		holder.itemView = (TextView) view.findViewById(R.id.orderItem);
-		holder.itemView.setOnClickListener(new ItemNameClickListener(this, holder));
+		ChildViewHolder holder;
 		
-		holder.quantityView = (TextView) view.findViewById(R.id.quantity);
-		holder.priceView = (TextView) view.findViewById(R.id.orderItemPrice);
+		if (convertView == null) {
+			convertView = newChildView(mContext, childCursor, isLastChild, parent);
+			
+			holder = new ChildViewHolder();
+			
+			holder.itemView = (TextView) convertView.findViewById(R.id.orderItem);
+			holder.itemView.setOnClickListener(new ItemNameClickListener(this, holder));
+			
+			holder.quantityView = (TextView) convertView.findViewById(R.id.quantity);
+			holder.priceView = (TextView) convertView.findViewById(R.id.orderItemPrice);
+			
+			holder.btnLess = (ImageButton) convertView.findViewById(R.id.btn_less);
+			holder.btnLess.setOnClickListener(new QuantityClickListener(this, holder));
+			
+			holder.btnMore = (ImageButton) convertView.findViewById(R.id.btn_more);
+			holder.btnMore.setOnClickListener(new QuantityClickListener(this, holder));
+			
+			convertView.setTag(holder);
+		}
+		else {
+			holder = (ChildViewHolder)convertView.getTag();
+		}
 		
-		holder.btnLess = (ImageButton) view.findViewById(R.id.btn_less);
-		holder.btnLess.setOnClickListener(new QuantityClickListener(this, holder));
+		bindChildData(holder, mContext, groupPosition, childPosition, childCursor, isLastChild);
 		
-		holder.btnMore = (ImageButton) view.findViewById(R.id.btn_more);
-		holder.btnMore.setOnClickListener(new QuantityClickListener(this, holder));
-		
-		int itemIdColumnIdx = cursor.getColumnIndex(OrderDbHelper.COL_ITEM_ID);
-		int itemId = cursor.getInt(itemIdColumnIdx);
-		
-		mChildViewMap.put(itemId, holder);
-		
-		view.setTag(holder);
-		
-		//Log.d(TAG, "New Child View for child: " + itemId);
-		
-		return view;
+		return convertView;
 	}
 	
 	
-	@Override
-	protected void bindChildView(View view, Context context, Cursor cursor, boolean isLastChild) {
-		// we know there is one because we put it there in the newGroupView call
+	protected void bindChildData(ChildViewHolder holder, Context context, int groupPosition, 
+			int childPosition, Cursor cursor, boolean isLastChild) {
 		
-		//Object tag = view.getTag();
-		//Log.d(TAG, "Child view TAG has class: " + tag.getClass().getName());
-		
-		ChildViewHolder holder = (ChildViewHolder) view.getTag();
-
 		int itemIdColumnIdx = cursor.getColumnIndex(OrderDbHelper.COL_ITEM_ID);
 		int itemCategIdColumnIdx = cursor.getColumnIndex(OrderDbHelper.COL_ITEM_CATEGORY_ID);
 		int itemNameColumnIdx = cursor.getColumnIndex(OrderDbHelper.COL_ITEM_NAME);
@@ -153,6 +167,9 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 		}
 		
 		// bind child view data
+		holder.groupPosition = groupPosition;
+		holder.childPosition = childPosition;
+		
 		holder.itemId = itemId;
 		holder.itemCategId = itemCategId;
 		holder.itemName = itemName;
@@ -163,6 +180,14 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 		holder.itemView.setText(itemName);
 		holder.priceView.setText(new DecimalFormat("#.##").format(itemPrice) + " RON");
 		holder.quantityView.setText("" + quantityCt);
+		
+		mChildViewHolderMap.put(itemId, holder);
+	}
+	
+	
+	@Override
+	protected void bindChildView(View view, Context context, Cursor cursor, boolean isLastChild) {
+		
 	}
 	
 	
@@ -176,6 +201,8 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 
 	
 	private static class ChildViewHolder {
+		public int childPosition;
+		public int groupPosition;
 		int itemId;
 		int itemCategId;
 		String itemName;
@@ -193,6 +220,8 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 	}
 	
 	private static class GroupViewHolder {
+		public int categoryId;
+		public int groupPosition;
 		String orderCategoryName;
 		TextView orderCategoryNameView;
 	}
@@ -200,7 +229,11 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 	
 	private void updateChildQuantity(ChildViewHolder holder, int qDelta) {
 		
-		String categoryName = mGroupViewMap.get(holder.itemCategId).orderCategoryName;
+		int groupPosition = holder.groupPosition;
+		Cursor categoryCursor = getGroup(groupPosition);
+		
+		int categoryNameColumnIdx = categoryCursor.getColumnIndex(OrderDbHelper.COL_CATEGORY_NAME);
+		String categoryName = categoryCursor.getString(categoryNameColumnIdx);
 		
 		int itemId = holder.itemId;
 		String itemName = holder.itemName;
@@ -318,18 +351,21 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 		
 		return orderList;
 	}
-
-
+	
+	
 	@Override
 	public void clearOrderSelections() {
+		for (int itemId : mChildViewHolderMap.keySet()) {
+			Log.d(TAG, "Mapping of id " + itemId + " -> " + mChildViewHolderMap.get(itemId).itemName);
+		}
+		
 		// first reset all quantity views in selection to 0
 		for (int i = 0; i < mOrderSelections.size(); i++) {
 			int itemId = mOrderSelections.keyAt(i);
+			Log.d(TAG,  "CLEARING SELECTION FOR item: " + itemId + "-> " 
+					+ mChildViewHolderMap.get(itemId).itemName);
 			
-			ChildViewHolder holder = mChildViewMap.get(itemId);
-			if (holder != null) {
-				holder.quantityView.setText("0");
-			}
+			mChildViewHolderMap.get(itemId).quantityView.setText("0");
 		}
 		
 		// the clear all order selections
@@ -340,17 +376,11 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 	@Override
 	public void doCleanup() {
 		// cleanup all mappings
-		mGroupViewMap.clear();
-		mChildViewMap.clear();
 		mOrderSelections.clear();
-		
 		mOrderSelections = null;
-		mGroupViewMap = null;
-		mChildViewMap = null;
 		
 		// we have to close all cursors here
-		// the following will close the group cursor and all child cursors
-		
+		// the following will close the group cursor and all child cursors		
 		changeCursor(null);
 	}
 }

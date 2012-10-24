@@ -20,11 +20,12 @@ import android.widget.ExpandableListView.OnChildClickListener;
 
 import com.envsocial.android.Envived;
 import com.envsocial.android.R;
+import com.envsocial.android.features.IFeatureAdapter;
 import com.envsocial.android.utils.UIUtils;
 import com.viewpagerindicator.TitlePageIndicator;
 
 public class OrderCatalogPagerAdapter extends PagerAdapter 
-								implements OnClickListener, OnPageChangeListener, IOrderCatalogAdapter {
+					implements OnClickListener, OnPageChangeListener, IOrderCatalogAdapter, IFeatureAdapter {
 	
 	private static final String TAG = "OrderCatalogPagerAdapter";
 	private static final String LIST_EXPANDED_GROUPS_KEY = "listExpandedGroups";

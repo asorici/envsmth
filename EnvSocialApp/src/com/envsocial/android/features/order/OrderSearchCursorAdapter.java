@@ -18,8 +18,10 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.envsocial.android.R;
+import com.envsocial.android.features.IFeatureAdapter;
 
-public class OrderSearchCursorAdapter extends ResourceCursorAdapter implements IOrderCatalogAdapter {
+public class OrderSearchCursorAdapter extends ResourceCursorAdapter 
+					implements IOrderCatalogAdapter, IFeatureAdapter {
 	private static final String TAG = "OrderSearchCursorAdapter";
 	
 	private SparseArray<ViewHolder> mViewHolderMap;

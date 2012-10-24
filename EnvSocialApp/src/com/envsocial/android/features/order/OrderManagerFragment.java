@@ -38,6 +38,7 @@ import com.envsocial.android.features.Feature;
 import com.envsocial.android.utils.EnvivedNotificationContents;
 import com.envsocial.android.utils.EnvivedReceiver;
 import com.envsocial.android.utils.UIUtils;
+import com.envsocial.android.utils.Utils;
 
 public class OrderManagerFragment extends SherlockFragment {
 	
@@ -78,7 +79,7 @@ public class OrderManagerFragment extends SherlockFragment {
 				new String[] { LOCATION_NAME },
 				new int[] { R.id.order_group }, 
 				mOrders, R.layout.order_item,
-				new String[] { ORDER_DETAILS },
+				new String[] { ORDER_DETAILS, ORDER_TIMESTAMP },
 				new int[] { R.id.order_details }
 		);
 		
@@ -102,6 +103,11 @@ public class OrderManagerFragment extends SherlockFragment {
 		getActivity().unregisterReceiver(mOrderReceiver);
 	}
 	
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		mAdapter.doCleanup();
+	}
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -211,6 +217,7 @@ public class OrderManagerFragment extends SherlockFragment {
 			orderMap.put(RESOURCE_URI, annotation.getUri());
 			orderMap.put(LOCATION_NAME, locationName);
 			orderMap.put(ORDER_DETAILS, entry);
+			orderMap.put(ORDER_TIMESTAMP, Utils.calendarToString(annotation.getTimestamp(), "yyyy-MM-dd'T'HH:mm:ssZ"));
 			addOrder(locationName, orderMap, reverseOrder);
 		}
 	}

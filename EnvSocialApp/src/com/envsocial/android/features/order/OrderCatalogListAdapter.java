@@ -17,8 +17,10 @@ import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 
 import com.envsocial.android.R;
+import com.envsocial.android.features.IFeatureAdapter;
 
-public class OrderCatalogListAdapter extends SimpleExpandableListAdapter implements IOrderCatalogAdapter {
+public class OrderCatalogListAdapter extends SimpleExpandableListAdapter 
+										implements IOrderCatalogAdapter, IFeatureAdapter {
 	
 	private OrderFragment mParentFragment;
 	private List<? extends Map<String, String>> mGroupData;

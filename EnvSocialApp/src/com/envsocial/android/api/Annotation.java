@@ -241,7 +241,7 @@ public class Annotation {
 		Url url = new Url(Url.RESOURCE, TAG);
 		url.setParameters(
 				new String[] { Location.ENVIRONMENT, "all", "category", "order_by" }, 
-				new String[] { envId, "true", category, "-timestamp" }
+				new String[] { envId, "true", category, "timestamp" }
 		);
 		
 		String uri  = url.toString();
@@ -325,9 +325,9 @@ public class Annotation {
 			String userUri = annotation.getString("user");
 			String category = annotation.getString("category");
 			
-			String strTimestamp = annotation.getString("timestamp").replace('T', ' ');
-			Calendar timestamp = Utils.stringToCalendar(strTimestamp, "yyyy-MM-dd HH:mm:ss");
-			
+			//String strTimestamp = annotation.getString("timestamp").replace('T', ' ');
+			String strTimestamp = annotation.getString("timestamp");
+			Calendar timestamp = Utils.stringToCalendar(strTimestamp, "yyyy-MM-dd'T'HH:mm:ssZ");
 			
 			Location annLocation = null;
 			
