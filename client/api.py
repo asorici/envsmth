@@ -183,6 +183,16 @@ class EnvironmentResource(ModelResource):
         return bundle.obj.tags.to_serializable()
     
     
+    def dehydrate_parent(self, bundle):
+        if not bundle.data['parent'] is None:
+            parent_data = bundle.data['parent']
+            parent_name = bundle.obj.parent.name
+        
+            return {'uri' : parent_data, 'name': parent_name}
+        
+        return None
+    
+    
     def dehydrate_features(self, bundle):
         ## return a list of dictionary values from the features of this environment
         feature_list = []
@@ -263,6 +273,14 @@ class AreaResource(ModelResource):
     def dehydrate_tags(self, bundle):
         return bundle.obj.tags.to_serializable()
     
+    
+    def dehydrate_parent(self, bundle):
+        parent_data = bundle.data['parent']
+        parent_name = bundle.obj.environment.name
+        
+        return {'uri' : parent_data, 'name': parent_name}
+    
+    
     def dehydrate_owner(self, bundle):
         user_res = UserResource()
         user_bundle = user_res.build_bundle(bundle.obj.environment.owner, request=bundle.request)
@@ -327,7 +345,7 @@ class FeatureResource(ModelResource):
         queryset = Feature.objects.all().select_subclasses()
         resource_name = 'feature'
         allowed_methods = ['get']
-        excludes = ['id', 'timestamp', 'is_general']
+        excludes = ['id', 'is_general']
         filtering = {
             'area' : ['exact'],
             'environment' : ['exact'],
@@ -489,7 +507,6 @@ class AnnotationResource(ModelResource):
         resource_name = 'annotation'
         detail_allowed_methods = ['get', 'put', 'delete']
         list_allowed_methods = ['get', 'post']
-        #fields = ['data', 'category', 'timestamp']
         fields = ['category', 'timestamp']
         #excludes = ['id', 'area']
         filtering = {
@@ -560,9 +577,16 @@ class AnnotationResource(ModelResource):
     
     
     def dehydrate_data(self, bundle):
-        ## return the data representation of this annotation according to its type
+        ## return the data representation of this annotation according to its type        
         return bundle.obj.get_annotation_data()
+        
     
+    def dehydrate_timestamp(self, bundle):
+        from pytz import timezone
+        local_tz = timezone("Europe/Bucharest")
+        
+        return local_tz.localize(bundle.obj.timestamp)
+     
     
     def dehydrate(self, bundle):
         """
@@ -667,6 +691,8 @@ class AnnotationResource(ModelResource):
         
         ## make notification for 'order' type annotations
         if updated_bundle.data['category'] == 'order':
+            from coresql.models import OrderFeature
+            
             owner_profile = None
             if not bundle.obj.environment is None:
                 owner_profile = bundle.obj.environment.owner
@@ -678,7 +704,10 @@ class AnnotationResource(ModelResource):
             if owner_profile:
                 registration_id = owner_profile.c2dm_id
             
-            self._make_c2dm_notification(registration_id, updated_bundle, params = {'type' : 'new_order'})
+            collapse_key = "annotation_" + Annotation.ORDER 
+            
+            self._make_c2dm_notification(registration_id, collapse_key, updated_bundle, 
+                                         params = {'type' : OrderFeature.NEW_ORDER})
         
         return updated_bundle
         
@@ -688,12 +717,15 @@ class AnnotationResource(ModelResource):
         Could be an intentional feature that the default obj_update treats DoesNotExist and MultipleObjectReturned
         as acceptable exceptions which get transformed into a CREATE operation.
         We don't want such a behavior. So we catch those exceptions and throw a BadRequest message
-        """    
+        """
+            
         try:
             updated_bundle = super(AnnotationResource, self).obj_update(bundle, request, **kwargs)
             
             ## make notification for 'order' type annotations
             if updated_bundle.data['category'] == Annotation.ORDER:
+                from coresql.models import OrderFeature
+                
                 owner_profile = None
                 if not bundle.obj.environment is None:
                     owner_profile = bundle.obj.environment.owner
@@ -705,7 +737,10 @@ class AnnotationResource(ModelResource):
                 if owner_profile:
                     registration_id = owner_profile.c2dm_id
                 
-                self._make_c2dm_notification(registration_id, updated_bundle, params = {'type' : 'new_order'})
+                collapse_key = "annotation_" + Annotation.ORDER
+                
+                self._make_c2dm_notification(registration_id, collapse_key, updated_bundle, 
+                                             params = {'type' : OrderFeature.NEW_ORDER})
             
             return updated_bundle
         except (NotFound, MultipleObjectsReturned):
@@ -725,27 +760,34 @@ class AnnotationResource(ModelResource):
             except ObjectDoesNotExist:
                 raise NotFound("A model instance matching the provided arguments could not be found.")
         
+        ## if it is an order annotation that we are just solving
         ## send notification of handled order before deleting the object
-        receiver_profile = annObj.user
-        registration_id = None
-        if receiver_profile:
-            registration_id = receiver_profile.c2dm_id
-        
-        bundle = AnnotationResource().build_bundle(obj = annObj)
-        self._make_c2dm_notification(registration_id, bundle, params = {'type' : 'resolved_order'})
+        if annObj.category == Annotation.ORDER:
+            from coresql.models import OrderFeature
+            
+            receiver_profile = annObj.user
+            registration_id = None
+            if receiver_profile:
+                registration_id = receiver_profile.c2dm_id
+            
+            bundle = AnnotationResource().build_bundle(obj = annObj)
+            
+            params = {'type' : OrderFeature.RESOLVED_ORDER,
+                      'order': annObj.get_annotation_data()}
+            self._make_c2dm_notification(registration_id, None, bundle, params = params)
         
         annObj.delete()
     
     
     
-    def _make_c2dm_notification(self, registration_id, bundle, params = None):
+    def _make_c2dm_notification(self, registration_id, collapse_key, bundle, params = None):
         import socket, pickle, c2dm, sys
         
         if params is None:
             params = {}
         
         if not registration_id is None:
-            collapse_key = "annotation_" + bundle.obj.category
+            #collapse_key = "annotation_" + bundle.obj.category
             resource_uri = self.get_resource_uri(bundle)
             
             environment = bundle.obj.environment
@@ -765,7 +807,9 @@ class AnnotationResource(ModelResource):
             notification_data['params'] = params
             
             delay_while_idle = False
-            ttl = 600
+            ttl = None
+            if not collapse_key is None:
+                ttl = 600 
             
             # pickle notification data and send it
             data = pickle.dumps((registration_ids, collapse_key, delay_while_idle, ttl, notification_data))
@@ -780,11 +824,11 @@ class AnnotationResource(ModelResource):
                 
                 
                 if received == "OK":
-                    print >> sys.stderr, "[Annotation C2DM] Notification enqueued"
+                    print >> sys.stderr, "[Annotation GCM] Notification enqueued"
                 else:
-                    print >> sys.stderr, "[Annotation C2DM] Notification NOT enqueued"
+                    print >> sys.stderr, "[Annotation GCM] Notification NOT enqueued"
             except Exception, ex:
-                print >>sys.stderr, "[Annotation C2DM] failure enqueueing annotation: ", ex
+                print >>sys.stderr, "[Annotation GCM] failure enqueueing annotation: ", ex
             finally:
                 sock.close()
         

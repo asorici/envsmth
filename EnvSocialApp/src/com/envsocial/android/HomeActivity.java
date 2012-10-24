@@ -33,6 +33,7 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 	
 	private static final String TAG = "HomeActivity";
 	private static final String SIGN_OUT = "Sign out";
+	private static final String CHECK_OUT = "Check out";
 	
 	private Button mBtnCheckin;
 	
@@ -64,7 +65,7 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 		Location currentLocation = Preferences.getCheckedInLocation(this);
 		if (currentLocation != null) {
 			// perform cleanup on exit
-			currentLocation.doCleanup();
+			currentLocation.doCleanup(getApplicationContext());
 		}
 		
 		super.onDestroy();
@@ -80,16 +81,6 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 		this.findViewById(R.id.checked_in_location_name).invalidate();
 	}
 	
-	/*
-	@Override
-	public void onResume() {
-		super.onResume();
-		
-		// reset location if we have checked in at another activity in the meantime
-		displayCheckedInLocation();
-		this.findViewById(R.id.checked_in_location_name).invalidate();
-	}
-	*/
 	
 	private void displayCheckedInLocation() {
 		TextView v = (TextView)findViewById(R.id.checked_in_location_name);
@@ -142,8 +133,9 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 				    public void onClick(DialogInterface dialog, int which) {
 				    	dialog.cancel();
 				    	
-				    	// do current location cleanup before checking in somewhere else
-				    	currentLocation.doCleanup();
+				    	// do a local checkout before checking in somewhere else
+				    	// for now this will also refresh any feature data that was renewed server-side
+				    	Preferences.checkout(getApplicationContext());
 				    	
 				    	IntentIntegrator integrator = new IntentIntegrator(HomeActivity.this);
 						integrator.initiateScan();
@@ -199,6 +191,10 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 		
 		if (Preferences.isLoggedIn(this)) {
 			menu.add(SIGN_OUT);
+			menu.add(CHECK_OUT);
+		}
+		else {
+			menu.add(CHECK_OUT);
 		}
 		
     	return true;
@@ -210,6 +206,10 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 			new LogoutTask().execute();
 		}
 		
+		else if (item.getTitle().toString().compareTo(CHECK_OUT) == 0) {
+			new CheckoutTask().execute();
+		}
+		
 		else if (item.getTitle().toString().compareTo(getString(R.string.menu_search)) == 0) {
 			return onSearchRequested();
 		}
@@ -217,6 +217,7 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 		return true;
 	}
 
+	
 	private class LogoutTask extends AsyncTask<Void, Void, ResponseHolder> {
 		private ProgressDialog mLoadingDialog;
 		
@@ -228,7 +229,7 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 		
 		@Override
 		protected ResponseHolder doInBackground(Void...args) {
-			return ActionHandler.logout(HomeActivity.this);
+			return ActionHandler.logout(getApplicationContext());
 		}
 		
 		@Override
@@ -237,29 +238,74 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 			
 			if (!holder.hasError()) {
 				// also checkout before going back to the main activity
-				Preferences.checkout(HomeActivity.this);
+				Preferences.checkout(getApplicationContext());
 
 				startActivity(new Intent(HomeActivity.this, EnvSocialAppActivity.class));
 				finish();
 			}
 			else {
-				int msgId = R.string.msg_service_unavailable;
+				// TODO: 	for now log the communication error and checkout anyway
+				//			need to figure out a way to re-establish consistency 
 
 				try {
 					throw holder.getError();
 				} catch (EnvSocialComException e) {
 					Log.d(TAG, e.getMessage(), e);
-					msgId = R.string.msg_service_unavailable;
 				} catch (EnvSocialContentException e) {
 					Log.d(TAG, e.getMessage(), e);
-					msgId = R.string.msg_service_error;
 				} catch (Exception e) {
 					Log.d(TAG, e.toString(), e);
-					msgId = R.string.msg_service_error;
+				}
+				
+				// checkout anyway before going back to the main activity
+				Preferences.checkout(getApplicationContext());
+				
+				startActivity(new Intent(HomeActivity.this, EnvSocialAppActivity.class));
+				finish();
+			}
+		}
+	}
+	
+	
+	private class CheckoutTask extends AsyncTask<Void, Void, ResponseHolder> {
+		private ProgressDialog mLoadingDialog;
+		
+		@Override
+		protected void onPreExecute() {
+			mLoadingDialog = ProgressDialog.show(HomeActivity.this, 
+					"", "Checking out ...", true);
+		}
+		
+		@Override
+		protected ResponseHolder doInBackground(Void...args) {
+			return ActionHandler.checkout(getApplicationContext());
+		}
+		
+		@Override
+		protected void onPostExecute(ResponseHolder holder) {
+			mLoadingDialog.cancel();
+			
+			if (!holder.hasError()) {
+				startActivity(new Intent(HomeActivity.this, EnvSocialAppActivity.class));
+				finish();
+			}
+			else {
+				// TODO: 	for now log the communication error and checkout anyway
+				//			need to figure out a way to re-establish consistency 
+				
+				try {
+					throw holder.getError();
+				} catch (EnvSocialComException e) {
+					Log.d(TAG, e.getMessage(), e);
+				} catch (EnvSocialContentException e) {
+					Log.d(TAG, e.getMessage(), e);
+				} catch (Exception e) {
+					Log.d(TAG, e.toString(), e);
 				}
 
-				Toast toast = Toast.makeText(HomeActivity.this, msgId, Toast.LENGTH_LONG);
-				toast.show();
+				// checkout anyway before going back to the main activity
+				Preferences.checkout(getApplicationContext());
+				finish();
 			}
 		}
 	}

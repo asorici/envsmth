@@ -142,6 +142,5 @@ class GCMClientThread(threading.Thread):
             logger.error("[GCM EXCEPTION] GCM Server Unaivailable even after 10 retries " + 
                          "during request (" + str(notification) + "): " + str(e))
         except Exception, e:
-            print e
             logger.error("[GCM EXCEPTION] Error at GCM request (" + str(notification) + "): " + str(e))
         

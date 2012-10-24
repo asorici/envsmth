@@ -42,7 +42,7 @@ public class ProgramFeature extends Feature {
 	
 	@Override
 	public void init() throws EnvSocialContentException {
-		if (dbHelper == null && (hasLocalQuerySupport() || hasLocalDatabaseSupport())) {
+		if (dbHelper == null) {
 			dbHelper = new ProgramDbHelper(Envived.getContext(), this, version);
 		}
 		
@@ -51,13 +51,35 @@ public class ProgramFeature extends Feature {
 		}
 	}
 	
+	
 	@Override
-	public void cleanup() {
+	public void doUpdate() throws EnvSocialContentException {
+		if (dbHelper == null) {
+			dbHelper = new ProgramDbHelper(Envived.getContext(), this, version);
+			dbHelper.init();
+		}
+		else {
+			dbHelper.update();
+		}
+	}
+	
+	
+	@Override
+	public void doCleanup(Context context) {
 		if (dbHelper != null) {
 			dbHelper.close();
 			dbHelper = null;
 		}
 	}
+	
+	@Override
+	public void doClose(Context context) {
+		// first do cleanup
+		doCleanup(context);
+				
+		context.deleteDatabase(ProgramDbHelper.DATABASE_NAME);
+	}
+	
 	
 	/**
 	 * Gets the details of a single entry in the program. <br/>
@@ -77,7 +99,7 @@ public class ProgramFeature extends Feature {
 		String locationId = location.getId();
 		if ( location.isArea() ) {
 			// get the locationId from the URI of the parent environment
-			locationId = Url.resourceIdFromUri(location.getParent());
+			locationId = Url.resourceIdFromUri(location.getParentUri());
 		}
 		
 		Url url = new Url(Url.RESOURCE, Feature.TAG);
@@ -144,7 +166,7 @@ public class ProgramFeature extends Feature {
 	}
 
 	@Override
-	public Cursor localQuery(String query) {
+	public Cursor localSearchQuery(String query) {
 		if (dbHelper != null) {
 			return dbHelper.searchQuery(query);
 		}

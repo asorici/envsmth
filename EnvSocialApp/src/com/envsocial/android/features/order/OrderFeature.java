@@ -9,8 +9,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.envsocial.android.Envived;
 import com.envsocial.android.api.EnvSocialResource;
@@ -19,6 +21,7 @@ import com.envsocial.android.features.Feature;
 
 public class OrderFeature extends Feature {
 	private static final long serialVersionUID = 1L;
+	private static final String TAG = "OrderFeature";
 	
 	private List<Map<String,String>> mCategories;
 	private List<List<Map<String,String>>> mItems;
@@ -40,9 +43,12 @@ public class OrderFeature extends Feature {
 	public static final String ITEM_NAME = "name";
 	public static final String ITEM_DESCRIPTION = "description";
 	public static final String ITEM_PRICE = "price";
+	public static final String ITEM_USAGE_RANK = "usage_rank";
 	
 	public static final String NEW_ORDER_NOTIFICATION = "new_order";
 	public static final String RESOLVED_ORDER_NOTIFICATION = "resolved_order";
+	public static final String UPDATE_CONTENT_NOTIFICATION = "update_content";
+	public static final String UPDATE_STRUCTURE_NOTIFICATION = "update_structure";
 	
 	public OrderFeature(String category, int version, String resourceUri,
 			String environmentUri, String areaUri, String data) throws EnvSocialContentException {
@@ -56,7 +62,7 @@ public class OrderFeature extends Feature {
 			buildOrderMappings();
 		}	
 		
-		if (dbHelper == null && (hasLocalQuerySupport() || hasLocalDatabaseSupport())) {
+		if (dbHelper == null) {
 			dbHelper = new OrderDbHelper(Envived.getContext(), this, version);
 		}
 		
@@ -65,16 +71,43 @@ public class OrderFeature extends Feature {
 		}
 	}
 	
+	
 	@Override
-	public void cleanup() {
+	public void doUpdate() throws EnvSocialContentException {
+		// rebuild order mappings and update the dbHelper
+		buildOrderMappings();
+		
+		if (dbHelper == null) {
+			dbHelper = new OrderDbHelper(Envived.getContext(), this, version);
+			dbHelper.init();
+		}
+		else {
+			dbHelper.update();
+		}
+	}
+	
+	@Override
+	public void doCleanup(Context context) {
 		if (dbHelper != null) {
 			dbHelper.close();
 			dbHelper = null;
 		}
 	}
 	
+	@Override
+	public void doClose(Context context) {
+		// first do cleanup
+		doCleanup(context);
+		
+		// then remove the database file entirely
+		context.deleteDatabase(OrderDbHelper.DATABASE_NAME);
+	}
+
+	
 	private void buildOrderMappings() throws EnvSocialContentException {
 		// the JSON encoded data is in the data field
+		Log.d(TAG, "[DEBUG] >> Initializing order mappings.");
+		
 		try {
 			// Grab menu
 			JSONArray orderMenu = (JSONArray) new JSONObject(data).getJSONArray("order_menu");
@@ -112,6 +145,7 @@ public class OrderFeature extends Feature {
 					map.put(ITEM_NAME, item.getString(ITEM_NAME));
 					map.put(ITEM_DESCRIPTION, item.optString("description", "No description available"));
 					map.put(ITEM_PRICE, item.getString(ITEM_PRICE));
+					map.put(ITEM_USAGE_RANK, item.getString(ITEM_USAGE_RANK));
 					
 					// Add item map to category
 					catItems.add(map);
@@ -175,13 +209,29 @@ public class OrderFeature extends Feature {
 	}
 
 	@Override
-	public Cursor localQuery(String query) {
+	public Cursor localSearchQuery(String query) {
 		if (dbHelper != null) {
 			return dbHelper.searchQuery(query);
 		}
 		
 		return null;
 	}
-
 	
+	
+	public Cursor getOrderCategoryCursor(String type) {
+		if (dbHelper != null) {
+			return dbHelper.getCategoryCursor(type);
+		}
+		
+		return null;
+	}
+	
+	
+	public Cursor getOrderItemCursor(int categoryId) {
+		if (dbHelper != null) {
+			return dbHelper.getItemCursor(categoryId);
+		}
+		
+		return null;
+	}
 }

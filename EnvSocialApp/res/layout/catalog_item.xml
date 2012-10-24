@@ -14,9 +14,9 @@
         android:layout_alignParentRight="true"
         android:orientation="horizontal" >
         <ImageButton android:id="@+id/btn_less"
-            android:clickable="true"
             android:layout_width="45dip"
             android:layout_height="45dip"
+            android:clickable="true"
             android:src="@drawable/envived_sub_order"
             android:background="@drawable/order_button"/>
         <TextView android:id="@+id/quantity"
@@ -26,9 +26,9 @@
             android:text="0"
             android:gravity="center_vertical|center_horizontal" />
         <ImageButton android:id="@+id/btn_more"
-            android:clickable="true"
             android:layout_width="45dip"
             android:layout_height="45dip"
+            android:clickable="true"
             android:src="@drawable/envived_add_order"
             android:background="@drawable/order_button"/>
     </LinearLayout>
@@ -45,7 +45,6 @@
             android:layout_width="wrap_content"
             android:layout_height="45dip"
             android:ellipsize="end"
-            android:focusable="true"
             android:gravity="center_vertical|left"
             android:lines="2"
             android:text="@string/lbl_item"

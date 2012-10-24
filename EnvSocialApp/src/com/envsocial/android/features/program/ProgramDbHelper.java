@@ -24,25 +24,26 @@ public class ProgramDbHelper extends FeatureDbHelper {
 
 	private static final String TAG = "ProgramDbHelper";
 	
-	public static final String DB_NAME = "db_program";
-	public static final String ENTRY_TABLE = "entry";
-	public static final String COL_ENTRY_ID = "id";
-	public static final String COL_ENTRY_TITLE = "title";
-	public static final String COL_ENTRY_SESSIONID = "sessionId";
-	public static final String COL_ENTRY_SPEAKERS = "speakers";
-	public static final String COL_ENTRY_ABSTRACT = "abstract";
-	public static final String COL_ENTRY_START_TIME = "startTime";
-	public static final String COL_ENTRY_END_TIME = "endTime";
+	public static final String DATABASE_NAME = "db_program";
 	
-	public static final String SESSION_TABLE = "session";
-	public static final String COL_SESSION_ID = "id";
-	public static final String COL_SESSION_TITLE = "title";
-	public static final String COL_SESSION_TAG = "tag";
-	public static final String COL_SESSION_LOCATION = "location";
+	protected static final String ENTRY_TABLE = "entry";
+	protected static final String COL_ENTRY_ID = "id";
+	protected static final String COL_ENTRY_TITLE = "title";
+	protected static final String COL_ENTRY_SESSIONID = "sessionId";
+	protected static final String COL_ENTRY_SPEAKERS = "speakers";
+	protected static final String COL_ENTRY_ABSTRACT = "abstract";
+	protected static final String COL_ENTRY_START_TIME = "startTime";
+	protected static final String COL_ENTRY_END_TIME = "endTime";
+	
+	protected static final String SESSION_TABLE = "session";
+	protected static final String COL_SESSION_ID = "id";
+	protected static final String COL_SESSION_TITLE = "title";
+	protected static final String COL_SESSION_TAG = "tag";
+	protected static final String COL_SESSION_LOCATION = "location";
 	
 	
 	public ProgramDbHelper(Context context, ProgramFeature feature, int version) throws EnvSocialContentException {
-		super(context, DB_NAME, feature, version);
+		super(context, DATABASE_NAME, feature, version);
 		database = this.getWritableDatabase();
 		
 		//insertProgram();
@@ -51,7 +52,7 @@ public class ProgramDbHelper extends FeatureDbHelper {
 	
 	@Override
 	public void onDbCreate(SQLiteDatabase db) {
-		Log.d(TAG, "[DEBUG] >> ----------- Database " + DB_NAME + " JUST NOW created. ------------");
+		Log.d(TAG, "[DEBUG] >> ----------- Database " + DATABASE_NAME + " JUST NOW created. ------------");
 		db.execSQL("CREATE TABLE " + SESSION_TABLE + "(" + COL_SESSION_ID + " INTEGER PRIMARY KEY, " + 
 				COL_SESSION_TITLE + " TEXT, " + COL_SESSION_TAG + " TEXT, " + COL_SESSION_LOCATION + " TEXT);");
 		
@@ -85,18 +86,31 @@ public class ProgramDbHelper extends FeatureDbHelper {
 	
 	@Override
 	public void onOpen(SQLiteDatabase db) {
-		Log.d(TAG, "[DEBUG] >> ----------- Database " + DB_NAME + " already created. ------------");
+		Log.d(TAG, "[DEBUG] >> ----------- Database " + DATABASE_NAME + " already created. ------------");
 	}
 	
-	
+	@Override
 	public void init () throws EnvSocialContentException {
 		// do initial program insertion here
 		insertProgram();
 	}
 	
+	@Override
+	public void update () throws EnvSocialContentException {
+		// since the update message does not yet specify individual entries do delete and insert
+		// the update procedure is a simple DELETE TABLES followed by a new insertion of the program
+		cleanupTables();
+		
+		// do update program insertion here
+		insertProgram();
+	}
+	
+	
 	private void cleanupTables() {
 		database.delete(ENTRY_TABLE, null, null);
 		database.delete(SESSION_TABLE, null, null);
+		
+		dbStatus = TABLES_CREATED;
 	}
 	
 	private void insertProgram() throws EnvSocialContentException {

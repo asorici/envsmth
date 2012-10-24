@@ -62,12 +62,12 @@ public class NewOrderNotification extends EnvivedNotification {
 	public void sendNotification() {
 		// Create launcher intent
 		Intent launcher = new Intent(Intent.ACTION_MAIN);
-		launcher.setComponent(new ComponentName(mContext, 
+		launcher.setComponent(new ComponentName(mContext,
 				com.envsocial.android.EnvSocialAppActivity.class));
 		launcher.addCategory(Intent.CATEGORY_LAUNCHER);
 		launcher.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
 				| Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		
+
 		// Add extras
 		launcher.putExtra(GCMIntentService.NOTIFICATION, true);
 		launcher.putExtra(EnvivedNotificationContents.LOCATION_URI, mNotificationContents.getLocationUri());
@@ -75,7 +75,7 @@ public class NewOrderNotification extends EnvivedNotification {
 		launcher.putExtra(EnvivedNotificationContents.RESOURCE_URI, mNotificationContents.getResourceUri());
 		launcher.putExtra(EnvivedNotificationContents.PARAMS, mNotificationContents.getParams().toString());
 		
-		PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, launcher, 0);
+		PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, launcher, PendingIntent.FLAG_ONE_SHOT);
 		
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext);
 		builder.setContentIntent(pendingIntent)

@@ -1,5 +1,7 @@
 package com.envsocial.android.utils;
 
+import java.io.Serializable;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -7,13 +9,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-public class EnvivedNotificationContents {
+public class EnvivedNotificationContents implements Serializable {
+	private static final long serialVersionUID = 1L;
+
 	private static final String TAG = "EnvivedNotificationContents"; 
 	
 	public static final String FEATURE = "feature";
 	public static final String LOCATION_URI = "location_uri";
 	public static final String RESOURCE_URI = "resource_uri";
 	public static final String PARAMS = "params";
+	
+	public static final String INTENT_EXTRA_PARAMS = "com.envsocial.android.notification_params";
 	
 	private String mLocationUri;
 	private String mFeature;

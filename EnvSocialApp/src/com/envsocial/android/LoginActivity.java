@@ -26,6 +26,7 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.exceptions.EnvSocialComException;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
+import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
 
 public class LoginActivity extends SherlockFragmentActivity implements OnClickListener {
@@ -80,6 +81,12 @@ public class LoginActivity extends SherlockFragmentActivity implements OnClickLi
 			mLoadingDialog.cancel();
 			if (!holder.hasError()) {
 				if (holder.getCode() == HttpStatus.SC_OK) {
+					
+					// as a temporary measure to refresh all data force a checkout before
+					// logging in as a new user
+					// TODO : see how to improve this
+					Preferences.checkout(getApplicationContext());
+					
 					startActivity(new Intent(LoginActivity.this, HomeActivity.class));
 					setResult(RESULT_OK);
 					finish();

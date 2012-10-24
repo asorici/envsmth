@@ -20,26 +20,28 @@ public class OrderDbHelper extends FeatureDbHelper {
 	
 	private static final String TAG = "OrderDbHelper";
 	
-	private static final String DATABASE_NAME = "db_order";
+	public static final String DATABASE_NAME = "db_order";
 	
-	private static final String MENU_CATEGORY_TABLE = "category";
-	private static final String COL_CATEGORY_ID = "id";
-	private static final String COL_CATEGORY_NAME = "name";
-	private static final String COL_CATEGORY_TYPE = "type";
+	protected static final String MENU_CATEGORY_TABLE = "category";
+	protected static final String COL_CATEGORY_ID = BaseColumns._ID;
+	protected static final String COL_CATEGORY_NAME = "name";
+	protected static final String COL_CATEGORY_TYPE = "type";
 	
-	private static final String MENU_ITEM_TABLE = "item";
-	private static final String COL_ITEM_ID = "id";
-	private static final String COL_ITEM_CATEGORY_ID = "category_id";
-	private static final String COL_ITEM_NAME = "name";
-	private static final String COL_ITEM_DESCRIPTION = "description";
-	private static final String COL_ITEM_PRICE = "price";
+	protected static final String MENU_ITEM_TABLE = "item";
+	protected static final String COL_ITEM_ID = BaseColumns._ID;
+	protected static final String COL_ITEM_CATEGORY_ID = "category_id";
+	protected static final String COL_ITEM_NAME = "name";
+	protected static final String COL_ITEM_DESCRIPTION = "description";
+	protected static final String COL_ITEM_PRICE = "price";
+	protected static final String COL_ITEM_USAGE_RANK = "usage_rank";
 	
-	public static final String MENU_ORDER_TABLE_FTS = "item_category_fts";
-	public static final String COL_ORDER_FTS_ID = BaseColumns._ID;
-	public static final String COL_ORDER_FTS_ITEM = "item";
-	public static final String COL_ORDER_FTS_CATEGORY = "category";
-	public static final String COL_ORDER_FTS_PRICE = "price";
-	public static final String COL_ORDER_FTS_DESCRIPTION = "description";
+	protected static final String MENU_ORDER_TABLE_FTS = "item_category_fts";
+	protected static final String COL_ORDER_FTS_ID = BaseColumns._ID;
+	protected static final String COL_ORDER_FTS_ITEM = "item";
+	protected static final String COL_ORDER_FTS_CATEGORY = "category";
+	protected static final String COL_ORDER_FTS_PRICE = "price";
+	protected static final String COL_ORDER_FTS_DESCRIPTION = "description";
+	
 	private static String[] searchableColumns = {COL_ORDER_FTS_ID, COL_ORDER_FTS_ITEM, 
 												 COL_ORDER_FTS_CATEGORY, COL_ORDER_FTS_PRICE, 
 												 COL_ORDER_FTS_DESCRIPTION };
@@ -54,15 +56,18 @@ public class OrderDbHelper extends FeatureDbHelper {
 
 	@Override
 	public void onDbCreate(SQLiteDatabase db) {
+		Log.d(TAG, "[DEBUG] >> ----------- Database " + DATABASE_NAME + " is being created. ------------");
 		
 		// create menu category table
-		db.execSQL("CREATE TABLE " + MENU_CATEGORY_TABLE + "(" + COL_CATEGORY_ID + " INTEGER PRIMARY KEY, " + 
+		db.execSQL("CREATE TABLE " + MENU_CATEGORY_TABLE + "(" + 
+				COL_CATEGORY_ID + " INTEGER PRIMARY KEY, " + 
 				COL_CATEGORY_NAME + " TEXT, " + COL_CATEGORY_TYPE + " TEXT);");
 		
 		// create menu item table
-		db.execSQL("CREATE TABLE " + MENU_ITEM_TABLE + "(" + COL_ITEM_ID + " INTEGER PRIMARY KEY, " + 
-				//COL_ITEM_NAME + " TEXT, " + COL_ITEM_DESCRIPTION + " TEXT, " + COL_ITEM_PRICE + " TEXT, " +
+		db.execSQL("CREATE TABLE " + MENU_ITEM_TABLE + "(" + 
+				COL_ITEM_ID + " INTEGER PRIMARY KEY, " + 
 				COL_ITEM_NAME + " TEXT, " + COL_ITEM_DESCRIPTION + " TEXT, " + COL_ITEM_PRICE + " DOUBLE, " +
+				COL_ITEM_USAGE_RANK + " INTEGER DEFAULT 0, " +
 				COL_ITEM_CATEGORY_ID + " INTEGER NOT NULL, FOREIGN KEY (" + 
 				COL_ITEM_CATEGORY_ID + ") REFERENCES " + MENU_CATEGORY_TABLE + "(" + COL_CATEGORY_ID + "));");
 		
@@ -100,7 +105,7 @@ public class OrderDbHelper extends FeatureDbHelper {
 	
 	@Override
 	public void onOpen(SQLiteDatabase db) {
-		Log.d(TAG, "[DEBUG] >> ----------- Database " + DATABASE_NAME + " already created. ------------");
+		Log.d(TAG, "[DEBUG] >> ----------- Database " + DATABASE_NAME + " is being opened. ------------");
 	}
 	
 	@Override
@@ -108,7 +113,17 @@ public class OrderDbHelper extends FeatureDbHelper {
 		// calling insertMenu here
 		insertMenu();
 	}
-
+	
+	@Override
+	public void update() throws EnvSocialContentException {
+		// since the update message does not yet specify individual entries do delete and insert
+		// the update procedure is a simple DELETE TABLES followed by a new insertion of the program
+		cleanupTables();
+		
+		// do update menu insertion here
+		insertMenu();
+	}
+	
 	public void insertMenu() throws EnvSocialContentException {
 		if (dbStatus == TABLES_CREATED) {
 			Log.d(TAG, "[DEBUG] >> ----------- INSERTING MENU DATA ------------");
@@ -159,14 +174,16 @@ public class OrderDbHelper extends FeatureDbHelper {
 							String itemDescription = item.optString(OrderFeature.ITEM_DESCRIPTION, 
 									"No description available");
 							//String itemPrice =  item.getString(OrderFeature.ITEM_PRICE);
-							Double itemPrice = item.getDouble(OrderFeature.ITEM_PRICE);
-									
+							double itemPrice = item.getDouble(OrderFeature.ITEM_PRICE);
+							int itemUsageRank = item.getInt(OrderFeature.ITEM_USAGE_RANK);
+							
 							// insert in the item table
-							values.put(COL_ITEM_CATEGORY_ID, itemId);
+							values.put(COL_ITEM_ID, itemId);
 							values.put(COL_ITEM_CATEGORY_ID, itemCategoryId);
 							values.put(COL_ITEM_NAME, itemName);
 							values.put(COL_ITEM_DESCRIPTION, itemDescription);
 							values.put(COL_ITEM_PRICE, itemPrice);
+							values.put(COL_ITEM_USAGE_RANK, itemUsageRank);
 							
 							database.insert(MENU_ITEM_TABLE, COL_ITEM_ID, values);
 							values.clear();
@@ -229,6 +246,23 @@ public class OrderDbHelper extends FeatureDbHelper {
 		
 		return database.query(MENU_ORDER_TABLE_FTS, searchableColumns, 
 				selection, selectionArgs, null, null, orderBy);
+	}
+
+
+	public Cursor getCategoryCursor(String type) {
+		String orderBy = COL_CATEGORY_NAME;
+		String selection = COL_CATEGORY_TYPE + " = ?" ;
+		String[] selectionArgs = new String[] {type};
+		
+		return database.query(MENU_CATEGORY_TABLE, null, selection, selectionArgs, null, null, orderBy);
+	}
+
+	public Cursor getItemCursor(int categoryId) {
+		String orderBy = COL_ITEM_USAGE_RANK + " DESC" + ", " + COL_ITEM_NAME;
+		String selection = COL_ITEM_CATEGORY_ID + " = ?";
+		String[] selectionArgs = new String[] {"" + categoryId};
+		
+		return database.query(MENU_ITEM_TABLE, null, selection, selectionArgs, null, null, orderBy);
 	}
 
 }

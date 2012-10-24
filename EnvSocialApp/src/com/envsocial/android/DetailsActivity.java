@@ -7,7 +7,10 @@ import org.apache.http.HttpStatus;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
@@ -53,14 +56,25 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 	public static final int FEATURE_LOADER = 1;
 	
 	public static List<String> searchableFragmentTags;
+	 
 	static {
 		searchableFragmentTags = new ArrayList<String>();
 		searchableFragmentTags.add(Feature.ORDER);
 		searchableFragmentTags.add(Feature.PROGRAM);
 	}
 	
+	private static String mActiveFragmentTag;
+	private static boolean active;
+	
+	public static boolean isActive() {
+		return active;
+	}
+	
+	public static String getActiveFeatureTag() {
+		return mActiveFragmentTag;
+	}
+	
 	private Location mLocation;
-	private String mActiveFragmentTag;
 	
 	private ActionBar mActionBar;
 	private Tab mDefaultTab;
@@ -89,9 +103,14 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
         
         checkin(checkinUrl);
         
+        // register GCM status receiver
+        registerReceiver(mHandleGCMMessageReceiver,
+                new IntentFilter(GCMIntentService.ACTION_DISPLAY_GCM_MESSAGE));
+        
         // setup GCM notification registration
         checkGCMRegistration();
 	}
+	
 	
 	private void checkGCMRegistration() {
 		// look for the GCM registrationId stored in the GCMRegistrar
@@ -121,18 +140,68 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 	}
 	
 	
+	private final BroadcastReceiver mHandleGCMMessageReceiver =
+            new BroadcastReceiver() {
+        
+		@Override
+        public void onReceive(Context context, Intent intent) {
+            String newGCMMessage = intent.getExtras().getString(GCMIntentService.EXTRA_GCM_MESSAGE);
+            
+            Toast toast = Toast.makeText(DetailsActivity.this, 
+					newGCMMessage, Toast.LENGTH_LONG);
+			toast.show();
+        }
+    };
+	
+	
+	@Override
+	public void onPause() {
+		Log.d(TAG, " --- onPause called in DetailsActivity");
+		active = false;
+		super.onPause();
+	}
+	
+	
+	@Override
+	public void onStop() {
+		Log.d(TAG, " --- onStop called in DetailsActivity");
+		super.onStop();
+	}
+	
+	@Override
+	public void onResume() {
+		Log.d(TAG, " --- onResume called in DetailsActivity");
+		active = true;
+		super.onResume();
+	}
+	
+	
+	@Override
+	public void onStart() {
+		Log.d(TAG, " --- onStart called in DetailsActivity");
+		super.onStart();
+	}
+	
 	@Override
 	public void onDestroy() {
+		Log.d(TAG, " --- onDestroy called in DetailsActivity");
+		
 		// stop the GCM 3rd party server registration process if it is on the way
 		if (mGCMRegisterTask != null) {
 			mGCMRegisterTask.cancel(true);
 		}
+		
 		// unregister the GCM broadcast receiver
 		GCMRegistrar.onDestroy(getApplicationContext());
 		
+		// unregister the GCM status receiver
+		unregisterReceiver(mHandleGCMMessageReceiver);
+		
+		/*
 		if (mLocation != null) {
-			mLocation.doCleanup();
+			mLocation.doCleanup(getApplicationContext());
 		}
+		*/
 		
 		super.onDestroy();
 	}
@@ -222,6 +291,8 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
             	Log.d(TAG, "---- WE HAVE TO REGISTER WITH GCM.");
                 GCMRegistrar.register(context, GCMIntentService.SENDER_ID);
             }
+			
+			return true;
 		}
 		
 		else if (item.getTitle().toString().compareTo(UNREGISTER_GCM_ITEM) == 0) {
@@ -230,9 +301,11 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 			
 			// for now we are not interested that much in the response for unregistration from our 3rd party server
 			ActionHandler.unregisterWithServer(context);
+			
+			return true;
 		}
 		
-		return true;
+		return false;
 	}
 	
 	@Override
@@ -250,42 +323,11 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 	}
 	
 	
-	@Override
-	public void onStart() {
-		Log.i(TAG, "[INFO] -------- ON START CALLED --------");
-		super.onStart();
-	}
-	
-	@Override
-	public void onRestart() {
-		Log.i(TAG, "[INFO] -------- ON RESTART CALLED --------");
-		super.onRestart();
-	}
-	
-	@Override
-	public void onPause() {
-		Log.i(TAG, "[INFO] -------- ON PAUSE CALLED --------");
-		super.onPause();
-	}
-	
-	@Override
-	public void onStop() {
-		Log.i(TAG, "[INFO] -------- ON STOP CALLED --------");
-		
-		
-		super.onStop();
-	}
-	
-	@Override
-	public void onResume() {
-		Log.i(TAG, "[INFO] -------- ON RESUME CALLED --------");
-		super.onResume();
-	}
-	
 	private void checkin(String checkinUrl) {
 		// Perform check in
 		new CheckinTask(checkinUrl).execute();
 	}
+	
 	
 	private void addFeatureTabs() {
         // Add tabs based on features
@@ -315,6 +357,7 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 	        actionBar.addTab(mOrderTab);
 	        
 	        String loggedIn = Preferences.getLoggedInUserEmail(this);
+	        
 	        if (loggedIn != null && mLocation.isOwnerByEmail(loggedIn)) {
 	        	mOrderManagementTab = actionBar.newTab()
 				.setText(R.string.tab_order_manager)
@@ -385,6 +428,7 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 				ft.detach(mFragment);
 			}
 			
+			mActiveFragmentTag = null;
 			ft.commit();
 		}
 		
@@ -439,7 +483,6 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 					addFeatureTabs();
 					String feature = getIntent().getStringExtra(EnvivedNotificationContents.FEATURE);
 					if (feature != null) {
-						// TODO
 						mActionBar.selectTab(mOrderManagementTab);
 					}
 				}
@@ -479,10 +522,14 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 			}
 		}
 	}
-
+	
+	
+	// ================================ UNUSED LOADER IMPLEMENTATION ==================================
+	// ================================ WE KEEP IT FOR DEMO PURPOSES ==================================
+	
+	
 	@Override
 	public Loader<Location> onCreateLoader(int loaderId, Bundle args) {
-		// TODO Auto-generated method stub
 		String checkinUrl = args.getString("CHECKIN_URL");
 		return new LocationLoader(this, checkinUrl);
 	}
@@ -503,7 +550,6 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 				addFeatureTabs();
 				String feature = getIntent().getStringExtra(EnvivedNotificationContents.FEATURE);
 				if (feature != null) {
-					// TODO
 					mActionBar.selectTab(mOrderManagementTab);
 				}
 			}
@@ -548,6 +594,7 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 		// Clear the current location data
 		mLocation = null;
 	}
+	
 	
 	
 	/**

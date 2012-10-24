@@ -10,6 +10,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.Context;
 import android.database.sqlite.SQLiteException;
 import android.util.Log;
 
@@ -34,7 +35,9 @@ public class Location implements Serializable {
 	private String mName;
 	private Map<String, Feature> mFeatures;
 	private List<String> mTags;
-	private String mParent;
+	
+	private String mParentUri;
+	private String mParentName;
 	
 	private String mOwnerFirst;
 	private String mOwnerLast;
@@ -123,7 +126,12 @@ public class Location implements Serializable {
 			mTags.add(array.getString(i));
 		}
 		
-		mParent = locationData.getString("parent");
+		// Get parent data
+		JSONObject parentData = locationData.optJSONObject("parent");
+		if (parentData != null) {
+			mParentUri = parentData.optString("uri");
+			mParentName = parentData.optString("name");
+		}
 		
 		// Grab environment/area specific fields
 		if (isEnvironment()) {
@@ -166,15 +174,32 @@ public class Location implements Serializable {
 		}
 	}
 	
-	public void doCleanup() {
-		// close all local support databases for the current location
+	public void doCleanup(Context context) {
+		// call cleanup on all the features of this location doing things like
+		// closing all handlers to local support databases
 		for (String category : mFeatures.keySet()) {
 			Feature feat = mFeatures.get(category);
 			if (feat != null ) {
-				feat.cleanup();
+				feat.doCleanup(context);
 			}
 		}
 	}
+	
+	public void doClose(Context context) {
+		/* called only on checkout when we want to remove all data associated with this location
+		 TODO:	in the future we may want to CACHE the data for FAVORITE locations and implement
+		 		stronger consistency checks between server and client application
+		*/
+		
+		for (String category : mFeatures.keySet()) {
+			Feature feat = mFeatures.get(category);
+			if (feat != null ) {
+				feat.doClose(context);
+			}
+		}
+	}
+	
+	
 	
 	public String getId() {
 		return mId;
@@ -223,8 +248,12 @@ public class Location implements Serializable {
 		return mTags;
 	}
 	
-	public String getParent() {
-		return mParent;
+	public String getParentUri() {
+		return mParentUri;
+	}
+	
+	public String getParentName() {
+		return mParentName;
 	}
 	
 	public String getLayoutUrl() {

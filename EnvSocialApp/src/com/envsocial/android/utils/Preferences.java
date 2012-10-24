@@ -70,13 +70,14 @@ public final class Preferences {
 	}
 	
 	public static void checkout(Context context) {
+		Location currentLocation = getCheckedInLocation(context);
+		if (currentLocation != null) {
+			currentLocation.doClose(context);
+		}
+		
 		removeStringPreference(context, CHECKED_IN_LOCATION);
 		removeStringPreference(context, PEOPLE_IN_LOCATION);
 		removeStringPreference(context, USER_URI);
-	}
-	
-	public static void setPeopleInLocation(Context context, String peopleString) {
-		setStringPreference(context, PEOPLE_IN_LOCATION, peopleString);
 	}
 	
 	public static Location getCheckedInLocation(Context context) {
@@ -92,6 +93,16 @@ public final class Preferences {
 		}
 		
 		return null;
+	}
+	
+	public static void setFeatureContentTimestamp(Context context, String feature, String timestamp) {
+		String FEATURE_CONTENT_TIMESTAMP = "ENVIVED_" + feature.toUpperCase() + "_TIMESTAMP";
+		setStringPreference(context, FEATURE_CONTENT_TIMESTAMP, timestamp);
+	}
+	
+	
+	public static void setPeopleInLocation(Context context, String peopleString) {
+		setStringPreference(context, PEOPLE_IN_LOCATION, peopleString);
 	}
 	
 	public static List<User> getPeopleInLocation(Context context, Location location) {
