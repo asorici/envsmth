@@ -15,9 +15,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.AsyncTaskLoader;
-import android.support.v4.content.Loader;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -45,7 +42,7 @@ import com.envsocial.android.utils.ResponseHolder;
 import com.google.android.gcm.GCMRegistrar;
 
 
-public class DetailsActivity extends SherlockFragmentActivity implements LoaderManager.LoaderCallbacks<Location> {
+public class DetailsActivity extends SherlockFragmentActivity {
 	private static final String TAG = "DetailsActivity";
 	
 	public static final String ORDER_MANAGEMENT_FEATURE = "order_management";
@@ -217,6 +214,9 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
      	menu.add(REGISTER_GCM_ITEM);
      	menu.add(UNREGISTER_GCM_ITEM);
      	
+     	// add temporary test for feature update notification
+     	menu.add("Test Update Feature");
+     	
     	return true;
 	}
 	
@@ -301,6 +301,19 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 			
 			// for now we are not interested that much in the response for unregistration from our 3rd party server
 			ActionHandler.unregisterWithServer(context);
+			
+			return true;
+		}
+		
+		else if (item.getTitle().toString().compareTo("Test Update Feature") == 0) {
+			Intent updateService = new Intent(context, EnvivedFeatureUpdateService.class);
+			
+			String locationUri = mLocation.getUri();
+			EnvivedNotificationContents notificationContents = 
+					new EnvivedNotificationContents(locationUri, Feature.ORDER, null, null);
+			updateService.putExtra(EnvivedFeatureUpdateService.UPDATE_SERVICE_INPUT, notificationContents);
+			
+			context.startService(updateService);
 			
 			return true;
 		}
@@ -523,207 +536,4 @@ public class DetailsActivity extends SherlockFragmentActivity implements LoaderM
 		}
 	}
 	
-	
-	// ================================ UNUSED LOADER IMPLEMENTATION ==================================
-	// ================================ WE KEEP IT FOR DEMO PURPOSES ==================================
-	
-	
-	@Override
-	public Loader<Location> onCreateLoader(int loaderId, Bundle args) {
-		String checkinUrl = args.getString("CHECKIN_URL");
-		return new LocationLoader(this, checkinUrl);
-	}
-
-	@Override
-	public void onLoadFinished(Loader<Location> loader, Location location) {
-		LocationLoader locLoader = (LocationLoader)loader;
-		ResponseHolder holder = locLoader.getHolder();
-		
-		if (!holder.hasError()) {
-			if (holder.getCode() == HttpStatus.SC_OK) {
-				mLocation = location;
-
-				// TODO: fix padding issue in action bar style xml
-				mActionBar.setTitle("     " + mLocation.getName());
-
-				// We have location by now, so add tabs
-				addFeatureTabs();
-				String feature = getIntent().getStringExtra(EnvivedNotificationContents.FEATURE);
-				if (feature != null) {
-					mActionBar.selectTab(mOrderManagementTab);
-				}
-			}
-			else if (holder.getCode() == HttpStatus.SC_INTERNAL_SERVER_ERROR) {
-				setResult(RESULT_CANCELED);
-				Toast toast = Toast.makeText(getApplicationContext(), R.string.msg_bad_checkin_response, Toast.LENGTH_LONG);
-				toast.show();
-				finish();
-			}
-			else {
-				setResult(RESULT_CANCELED);
-				Toast toast = Toast.makeText(getApplicationContext(), R.string.msg_malformed_checkin_url, Toast.LENGTH_LONG);
-				toast.show();
-				finish();
-			}
-		}
-		else {
-			int msgId = R.string.msg_service_unavailable;
-			
-			try {
-				throw holder.getError();
-			} catch (EnvSocialComException e) {
-				Log.d(TAG, e.getMessage(), e);
-				msgId = R.string.msg_service_unavailable;
-			} catch (EnvSocialContentException e) {
-				Log.d(TAG, e.getMessage(), e);
-				msgId = R.string.msg_bad_checkin_response;
-			} catch (Exception e) {
-				Log.d(TAG, e.toString(), e);
-				msgId = R.string.msg_service_error;
-			}
-
-			setResult(RESULT_CANCELED);
-			Toast toast = Toast.makeText(getApplicationContext(), msgId, Toast.LENGTH_LONG);
-			toast.show();
-			finish();
-		}
-	}
-
-	@Override
-	public void onLoaderReset(Loader<Location> loader) {
-		// Clear the current location data
-		mLocation = null;
-	}
-	
-	
-	
-	/**
-     * A custom Loader that loads all of the installed applications.
-     */
-    public static class LocationLoader extends AsyncTaskLoader<Location> {
-        private Location mCurrentLocation;
-        private ResponseHolder holder;
-    	private String checkinUrl;
-        
-        public LocationLoader(Context context, String checkinUrl) {
-        	super(context);
-        	this.checkinUrl = checkinUrl;
-        }
-
-        /**
-         * This is where the bulk of our work is done.  This function is
-         * called in a background thread and should generate a new set of
-         * data to be published by the loader.
-         */
-        @Override public Location loadInBackground() {
-            final Context context = getContext();
-
-            holder = ActionHandler.checkin(context, checkinUrl);
-            mCurrentLocation = null;
-            if (!holder.hasError() && holder.getCode() == HttpStatus.SC_OK) {
-            	mCurrentLocation = (Location)holder.getTag(); 
-            }
-            
-            return mCurrentLocation;
-            
-        }
-
-        
-        
-        /**
-         * Called when there is new data to deliver to the client.  The
-         * super class will take care of delivering it; the implementation
-         * here just adds a little more logic.
-         */
-        @Override public void deliverResult(Location location) {
-            if (isReset()) {
-                // An async query came in while the loader is stopped.  We
-                // don't need the result.
-                if (mCurrentLocation != null) {
-                    onReleaseResources(mCurrentLocation);
-                }
-            }
-            Location oldLocation = location;
-            mCurrentLocation = location;
-
-            if (isStarted()) {
-                // If the Loader is currently started, we can immediately
-                // deliver its results.
-                super.deliverResult(location);
-            }
-
-            // At this point we can release the resources associated with
-            // 'oldApps' if needed; now that the new result is delivered we
-            // know that it is no longer in use.
-            if (oldLocation != null) {
-                onReleaseResources(oldLocation);
-            }
-        }
-
-        /**
-         * Handles a request to start the Loader.
-         */
-        @Override protected void onStartLoading() {
-            if (mCurrentLocation != null) {
-                // If we currently have a result available, deliver it
-                // immediately.
-                deliverResult(mCurrentLocation);
-            }
-
-            if (takeContentChanged() || mCurrentLocation == null ) {
-                // If the data has changed since the last time it was loaded
-                // or is not currently available, start a load.
-                forceLoad();
-            }
-        }
-
-        /**
-         * Handles a request to stop the Loader.
-         */
-        @Override protected void onStopLoading() {
-            // Attempt to cancel the current load task if possible.
-            cancelLoad();
-        }
-
-        /**
-         * Handles a request to cancel a load.
-         */
-        @Override public void onCanceled(Location location) {
-            super.onCanceled(location);
-
-            // At this point we can release the resources associated with 'location'
-            // if needed.
-            onReleaseResources(location);
-        }
-
-        /**
-         * Handles a request to completely reset the Loader.
-         */
-        @Override protected void onReset() {
-            super.onReset();
-
-            // Ensure the loader is stopped
-            onStopLoading();
-
-            // At this point we can release the resources associated with 'mCurrentLocation'
-            // if needed.
-            if (mCurrentLocation != null) {
-                onReleaseResources(mCurrentLocation);
-                mCurrentLocation = null;
-            }
-        }
-
-        /**
-         * Helper function to take care of releasing resources associated
-         * with an actively loaded data set.
-         */
-        protected void onReleaseResources(Location location) {
-            // For the location info there is nothing to do.  For something
-            // like a Cursor, we would close it here.
-        }
-
-		public ResponseHolder getHolder() {
-			return holder;
-		}
-    }
 }

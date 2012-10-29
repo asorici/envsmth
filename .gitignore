@@ -11,3 +11,11 @@ c2dm_requests.log
 .metadata/
 libs/
 .classpath
+settings.py
+urls.py
+order_item_rank_refresh_cron.py
+envsocial.sql
+program-v1-custom.json
+program-v1-custom.xml
+program_parser_v1.py
+

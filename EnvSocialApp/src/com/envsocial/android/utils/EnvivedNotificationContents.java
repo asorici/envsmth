@@ -26,7 +26,7 @@ public class EnvivedNotificationContents implements Serializable {
 	private String mResourceUri;
 	private JSONObject mParams;
 	
-	private EnvivedNotificationContents(String locationUri, String feature, String resourceUri, JSONObject params) {
+	public EnvivedNotificationContents(String locationUri, String feature, String resourceUri, JSONObject params) {
 		mLocationUri = locationUri;
 		mFeature = feature;
 		mResourceUri = resourceUri;

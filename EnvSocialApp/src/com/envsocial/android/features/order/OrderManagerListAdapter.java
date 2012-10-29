@@ -1,6 +1,7 @@
 package com.envsocial.android.features.order;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +17,7 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.text.Html;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -30,19 +32,21 @@ import com.envsocial.android.utils.Utils;
 
 public class OrderManagerListAdapter extends SimpleExpandableListAdapter implements IFeatureAdapter {
 	private static final String TAG = "OrderManagerListAdapter";
+	
 	private Context mContext;
 	
-	private List<List<Map<String,String>>> mChildData;
+	private SparseArray<List<Map<String,String>>> mChildData;
 	private String[] mChildFrom;
 	private int[] mChildTo;
 	
-	private Map<String, ChildViewHolder> mChildViewHolderMap;
+	//private Map<String, ChildViewHolder> mChildViewHolderMap;
+	private Map<String, String> mTimestampGapMapper;
 	private Timer mTimestampGapTimer;
 	
 	public OrderManagerListAdapter(Context context,
 			List<? extends Map<String, String>> groupData, int groupLayout,
 			String[] groupFrom, int[] groupTo,
-			List<List<Map<String, String>>> childData,
+			SparseArray<List<Map<String, String>>> childData,
 			int childLayout, String[] childFrom, int[] childTo) {
 		super(context, groupData, groupLayout, groupFrom, groupTo, null,
 				childLayout, null, null);
@@ -52,7 +56,8 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter impleme
 		mChildFrom = childFrom;
 		mChildTo = childTo;
 		
-		mChildViewHolderMap = new HashMap<String, OrderManagerListAdapter.ChildViewHolder>();
+		//mChildViewHolderMap = new HashMap<String, OrderManagerListAdapter.ChildViewHolder>();
+		mTimestampGapMapper = new HashMap<String,String>();
 		
 		monitorTimegaps();
 	}
@@ -67,30 +72,83 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter impleme
 				handler.post(new Runnable() {
 					@Override
 					public void run() {
-						if (mChildViewHolderMap != null) {
-							synchronized(mChildViewHolderMap) {
-								Log.d(TAG, "processing for " + mChildViewHolderMap.size() + " items");
-								for (ChildViewHolder holder : mChildViewHolderMap.values()) {
-									if (holder.orderTimestamp != null) {
-										Calendar now = Calendar.getInstance(TimeZone.getTimeZone("Europe/Bucharest"));
+						if (mTimestampGapMapper != null) {
+							synchronized(mTimestampGapMapper) {
+								int nrLocations = mChildData.size(); 
+								for (int i = 0; i < nrLocations; i++) {
+									List<Map<String, String>> locationOrders = mChildData.get(i);
+									
+									int nrLocationOrders = locationOrders.size(); 
+									for (int j = 0; j < nrLocationOrders; j++) {
+										Map<String, String> orderData = locationOrders.get(j);
+										String resourceUri = orderData.get(OrderManagerFragment.RESOURCE_URI);
 										
-										String prettyTimeDiff = getPrettyTimeDiffInMinutes(holder.orderTimestamp, now);
-										holder.orderTimegapView.setText(prettyTimeDiff);
+										//Log.d(TAG, "Resetting timegaps for item: (" + i + ", " + j + ")");
+										
+										try {
+											Calendar orderCal = Utils.stringToCalendar(
+													orderData.get(OrderManagerFragment.ORDER_TIMESTAMP), null);
+											Calendar now = Calendar.getInstance(
+													TimeZone.getTimeZone("Europe/Bucharest"));
+											
+											String prettyTimeDiff = getPrettyTimeDiffInMinutes(orderCal, now);
+											mTimestampGapMapper.put(resourceUri, prettyTimeDiff);
+										} catch (ParseException e) {
+											mTimestampGapMapper.put(resourceUri, "N.A.");
+										}
 									}
 								}
 							}
+							
+							notifyDataSetChanged();
 						}
 					}
 				});
 			}
 		};
 		
-		
-		mTimestampGapTimer.schedule(updateTimegapTask, 10000, 5000);
+		mTimestampGapTimer.schedule(updateTimegapTask, 10000, 60000);
 	}
 	
-
-	public void setChildData(List<List<Map<String,String>>> mOrderLocations) {
+	public void addOrderData(int groupIndex, Map<String, String> orderData, boolean reverseOrder) {
+		String resourceUri = orderData.get(OrderManagerFragment.RESOURCE_URI);
+		
+		List<Map<String, String>> locationOrders = mChildData.get(groupIndex); 
+		if (locationOrders == null) {
+			locationOrders = new ArrayList<Map<String,String>>();
+			locationOrders.add(orderData);
+			
+			mChildData.put(groupIndex, locationOrders);
+		}
+		else {
+			if (reverseOrder) {
+				mChildData.get(groupIndex).add(0, orderData);
+			}
+			else {
+				mChildData.get(groupIndex).add(orderData);
+			}
+		}
+		
+		
+		Calendar orderCal;
+		try {
+			orderCal = Utils.stringToCalendar(orderData.get(OrderManagerFragment.ORDER_TIMESTAMP), null);
+			Calendar now = Calendar.getInstance(TimeZone.getTimeZone("Europe/Bucharest"));
+			
+			String prettyTimeDiff = getPrettyTimeDiffInMinutes(orderCal, now);
+			synchronized(mTimestampGapMapper) {
+				mTimestampGapMapper.put(resourceUri, prettyTimeDiff);
+			}
+		} catch (ParseException e) {
+			orderCal = null;
+			
+			synchronized(mTimestampGapMapper) {
+				mTimestampGapMapper.put(resourceUri, "N.A.");
+			}
+		}
+	}
+	
+	public void setChildData(SparseArray<List<Map<String,String>>> mOrderLocations) {
 		mChildData = mOrderLocations;
 	}
 	
@@ -108,9 +166,9 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter impleme
 		List<Map<String,String>> orders = mChildData.get(groupPosition);
 		String orderAnnotationUri = orders.get(childPosition).get(OrderManagerFragment.RESOURCE_URI);
 		
-		// first remove from child view holder map
-		synchronized(mChildViewHolderMap) {
-			mChildViewHolderMap.remove(orderAnnotationUri);
+		// first remove from timegap mapper
+		synchronized(mTimestampGapMapper) {
+			mTimestampGapMapper.remove(orderAnnotationUri);
 		}
 		
 		// then remove from list
@@ -137,7 +195,7 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter impleme
 			
 			convertView.setTag(holder);
 			
-			Log.d(TAG, "----------- calling get Child view");
+			//Log.d(TAG, "----------- calling get Child view");
 			
 		} else {
 			holder = (ChildViewHolder) convertView.getTag();
@@ -151,36 +209,24 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter impleme
 	private void bindChildData(ChildViewHolder holder, 
 			int groupPosition, int childPosition, String[] from, int[] to) {
 		
+		//Log.d(TAG, "----------- calling bind child data " );
+		
 		Map<String,String> childData = getChild(groupPosition, childPosition);
 		
 		holder.groupPosition = groupPosition;
 		holder.childPosition = childPosition;
 		holder.uri = childData.get(OrderManagerFragment.RESOURCE_URI);
 		
-		// this should not fail
-		try {
-			holder.orderTimestamp = Utils.stringToCalendar(childData.get(OrderManagerFragment.ORDER_TIMESTAMP), null);
-			//holder.orderTimestamp.setTimeZone(TimeZone.getTimeZone("Europe/Bucharest"));
-		} catch (ParseException e) {
-			holder.orderTimestamp = null;
-		}
 		
 		String orderDetails = childData.get(OrderManagerFragment.ORDER_DETAILS);
 		holder.orderDetailsView.setText(Html.fromHtml(orderDetails));
 		
-		if (holder.orderTimestamp != null) {
-			Calendar now = Calendar.getInstance(TimeZone.getTimeZone("Europe/Bucharest"));
-			
-			String prettyTimeDiff = getPrettyTimeDiffInMinutes(holder.orderTimestamp, now);
-			holder.orderTimegapView.setText(prettyTimeDiff);
+		String orderTimegap = mTimestampGapMapper.get(holder.uri);
+		if (orderTimegap != null) {
+			holder.orderTimegapView.setText(orderTimegap);
 		}
 		else {
 			holder.orderTimegapView.setText("n.a.");
-		}
-		
-		synchronized(mChildViewHolderMap) {
-			Log.d(TAG, "----------- calling append to map");
-			mChildViewHolderMap.put(childData.get(OrderManagerFragment.RESOURCE_URI), holder);
 		}
 	}
 	
@@ -189,7 +235,6 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter impleme
 		int groupPosition;
 		int childPosition;
 		
-		Calendar orderTimestamp;
 		String uri;
 		
 		TextView orderDetailsView;
@@ -276,10 +321,10 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter impleme
 		mTimestampGapTimer.cancel();
 		
 		// clear the view holder map
-		synchronized(mChildViewHolderMap) {
-			mChildViewHolderMap.clear();
+		synchronized(mTimestampGapMapper) {
+			mTimestampGapMapper.clear();
 		}
 		
-		mChildViewHolderMap = null;
+		mTimestampGapMapper = null;
 	}
 }

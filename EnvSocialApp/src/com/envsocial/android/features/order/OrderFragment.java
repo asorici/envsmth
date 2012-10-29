@@ -77,9 +77,9 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 		mUpdateReceiver = new OrderFeatureUpdateReceiver();
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(EnvivedFeatureUpdateService.ACTION_UPDATE_FEATURE);
-		getActivity().registerReceiver(mUpdateReceiver, filter, 
-						EnvivedFeatureUpdateService.UPDATE_PERMISSION, null);
-		
+		//getActivity().registerReceiver(mUpdateReceiver, filter, 
+		//				EnvivedFeatureUpdateService.UPDATE_PERMISSION, null);
+		getActivity().registerReceiver(mUpdateReceiver, filter);
 	}
 	
 	
@@ -230,72 +230,82 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 		return mOrderFeature;
 	}
 	
+	void setOrderFeature(OrderFeature feature) {
+		mOrderFeature = feature;
+	}
 	
 	private class OrderFeatureUpdateReceiver extends BroadcastReceiver {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			// get the intent extras
-			Bundle extras = intent.getExtras();
+			final Bundle extras = intent.getExtras();
 			
 			// get the feature category for which an update was performed
 			String featureCategory = extras.getString("feature_category");
 			
+			Log.d(TAG, "Received update order notification with category: " + featureCategory);
+			
 			if (featureCategory.equals(Feature.ORDER)) {
-				// get the actual updated feature contents and re-initialize internal structures
-				try {
-					mOrderFeature = (OrderFeature)extras.getSerializable("feature_content");
-					mOrderFeature.doUpdate();
+				// check if the fragment is currently active
+				if (active) {
+					AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+					LayoutInflater inflater = getActivity().getLayoutInflater();
+
+					TextView titleDialogView = (TextView) inflater.inflate(
+							R.layout.catalog_update_dialog_title, null, false);
+					titleDialogView.setText("Allow menu content update?");
+
+					String dialogMessage = "An update for the menu in "
+							+ mLocation.getName()
+							+ " "
+							+ "has been issued. Press YES if you want to do the update. "
+							+ "If you want to keep your current activity, choose NO. "
+							+ "You can later update the menu by checking out and then checking in again.";
+
+					TextView bodyDialogView = (TextView) inflater.inflate(
+							R.layout.catalog_update_dialog_body, null, false);
+					bodyDialogView.setText(dialogMessage);
+
+					builder.setCustomTitle(titleDialogView);
+					builder.setView(bodyDialogView);
+
+					builder.setPositiveButton("Yes",
+							new Dialog.OnClickListener() {
+								@Override
+								public void onClick(DialogInterface dialog,
+										int which) {
+									dialog.cancel();
+									
+									OrderFeature updatedOrderFeature = (OrderFeature) extras
+											.getSerializable("feature_content");
+									
+									// notify the adapter to do the update
+									mCatalogPagerAdapter.updateFeature(updatedOrderFeature);
+								}
+							});
+
+					builder.setNegativeButton("No",
+							new Dialog.OnClickListener() {
+								@Override
+								public void onClick(DialogInterface dialog,
+										int which) {
+									dialog.cancel();
+								}
+
+							});
+
+					builder.show();
+
+				} else {
+					OrderFeature updatedOrderFeature = (OrderFeature) extras
+							.getSerializable("feature_content");
 					
-					// check if the fragment is currently active
-					if (active) {
-						AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-						LayoutInflater inflater = getActivity().getLayoutInflater();
-						
-						TextView titleDialogView = (TextView)inflater.inflate(R.layout.catalog_update_dialog_title, null, false);
-						titleDialogView.setText("Allow menu content update?");
-						
-						String dialogMessage = "An update for the menu in " + mLocation.getName() + " " + 
-								"has been issued. Press YES if you want to do the update. " +
-								"If you want to keep your current activity, choose NO. " +
-								"You can later update the menu by checking out and then checking in again.";
-						
-						TextView bodyDialogView = (TextView)inflater.inflate(R.layout.catalog_update_dialog_body, null, false);
-						bodyDialogView.setText(dialogMessage);
-						
-						builder.setCustomTitle(titleDialogView);
-						builder.setView(bodyDialogView);
-						
-						builder.setPositiveButton("Yes", new Dialog.OnClickListener() {
-						    @Override
-						    public void onClick(DialogInterface dialog, int which) { 
-						    	dialog.cancel();
-						    	
-						    	// notify the adapter to do the update
-								mCatalogPagerAdapter.updateFeature();
-						    }
-						});
-
-						builder.setNegativeButton("No", new Dialog.OnClickListener() {
-						    @Override
-						    public void onClick(DialogInterface dialog, int which) {
-						    	dialog.cancel();
-						    }
-
-						});
-
-						builder.show();
-						
-					}
-					else {
-						// notify the adapter directly
-						mCatalogPagerAdapter.updateFeature();
-					}
-				} catch (EnvSocialContentException ex) {
-					Log.d(TAG, "[DEBUG] >> OrderFeature update failed. Content could not be parsed.", ex);
+					// notify the adapter directly
+					mCatalogPagerAdapter.updateFeature(updatedOrderFeature);
 				}
 				
-				abortBroadcast();
+				//abortBroadcast();
 			}
 		}
 		
