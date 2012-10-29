@@ -7,7 +7,7 @@ from coresql.utils.geo import Point2D
 
 ## must setup environment before core.* related imports
 sys.path.extend(['./', '../'])
-os.environ["DJANGO_SETTINGS_MODULE"] = "envsocial.settings"
+os.environ["DJANGO_SETTINGS_MODULE"] = "envived.settings"
 
 from coresql.models import *
 from django.contrib.auth.models import User

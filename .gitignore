@@ -12,3 +12,6 @@ c2dm_requests.log
 libs/
 .classpath
 settings.py
+urls.py
+envsocial.sql
+order_item_rank_refresh_cron.py
