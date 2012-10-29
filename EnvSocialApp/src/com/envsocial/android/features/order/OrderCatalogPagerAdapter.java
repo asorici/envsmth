@@ -10,16 +10,17 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
-import android.widget.ExpandableListView.OnChildClickListener;
 
 import com.envsocial.android.Envived;
 import com.envsocial.android.R;
+import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.IFeatureAdapter;
 import com.envsocial.android.utils.UIUtils;
 import com.viewpagerindicator.TitlePageIndicator;
@@ -51,7 +52,6 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
 	
 	public OrderCatalogPagerAdapter(OrderFragment parentFragment) {
 		mParentFragment = parentFragment;
-		//mCatalogListAdapterMap = new SparseArray<OrderCatalogListAdapter>();
 		mCatalogListAdapterMap = new SparseArray<OrderCatalogCursorAdapter>();
 		
 		mCatalogListStateMap = new SparseArray<Bundle>();
@@ -70,7 +70,6 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
         View view = inflater.inflate(R.layout.catalog_page, null);
         
         OrderFeature orderFeat = mParentFragment.getOrderFeature(); 
-        //OrderCatalogListAdapter	adapter = mCatalogListAdapterMap.get(position);
         OrderCatalogCursorAdapter	adapter = mCatalogListAdapterMap.get(position);
         
         if (adapter == null) {
@@ -100,7 +99,6 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
         // create the expandable list view
         ExpandableListView listView = (ExpandableListView) view.findViewById(R.id.catalog_page);
         
-        
         Context appContext = Envived.getContext();
         DisplayMetrics metrics = appContext.getResources().getDisplayMetrics();
         
@@ -109,7 +107,6 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
         
         // Set list adapter
      	listView.setAdapter(adapter);
-        //listView.setOnChildClickListener((OnChildClickListener)adapter);
      	
         // restore list state if any was saved
         Bundle listSavedData = mCatalogListStateMap.get(position);
@@ -192,7 +189,6 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
 		
 		// add the selections from each page to make a single order
 		for (int page = 0; page < pageCt; page++) {
-			//OrderCatalogListAdapter catalogAdapter = mCatalogListAdapterMap.get(page);
 			OrderCatalogCursorAdapter catalogAdapter = mCatalogListAdapterMap.get(page);
 			if (catalogAdapter != null) {
 				orderList.addAll(catalogAdapter.getOrderSelections());
@@ -207,7 +203,6 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
 	public void clearOrderSelections() {
 		int pageCt = getCount();
 		for (int page = 0; page < pageCt; page++) {
-			//OrderCatalogListAdapter catalogAdapter = mCatalogListAdapterMap.get(page);
 			OrderCatalogCursorAdapter catalogAdapter = mCatalogListAdapterMap.get(page);
 			if (catalogAdapter != null) {
 				catalogAdapter.clearOrderSelections();
@@ -219,7 +214,6 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
 	public void doCleanup() {
 		int pageCt = getCount();
 		for (int page = 0; page < pageCt; page++) {
-			//OrderCatalogListAdapter catalogAdapter = mCatalogListAdapterMap.get(page);
 			OrderCatalogCursorAdapter catalogAdapter = mCatalogListAdapterMap.get(page);
 			if (catalogAdapter != null) {
 				catalogAdapter.doCleanup();
@@ -228,21 +222,29 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
 	}
 	
 	
-	public void updateFeature() {
-		OrderFeature updatedFeature = mParentFragment.getOrderFeature();
+	public void updateFeature(OrderFeature updatedOrderFeature) {
+		// first close all cursors
+		doCleanup();
+		
+		// then see if the new feature can be initialized - db stuff
+		try {
+			updatedOrderFeature.doUpdate();
+			mParentFragment.setOrderFeature(updatedOrderFeature);
+		} catch (EnvSocialContentException ex) {
+			Log.d(TAG, "[DEBUG] >> OrderFeature update failed. Content could not be parsed.", ex);
+		}
+		
+		// then get the currently set order feature and update the adapters with the right cursors
+		OrderFeature currentOrderFeature = mParentFragment.getOrderFeature();
+		
 		
 		int pageCt = getCount();
 		for (int page = 0; page < pageCt; page++) {
-			//OrderCatalogListAdapter catalogAdapter = mCatalogListAdapterMap.get(page);
 			OrderCatalogCursorAdapter catalogAdapter = mCatalogListAdapterMap.get(page);
 			String type = mCatalogTitleMap.get(page);
 			
 			if (catalogAdapter != null) {
-				// TODO: will get refactored to use a Cursor - for now update the groupings
-				//catalogAdapter.updateFeature(updatedFeature.getOrderCategories(type), 
-				//							updatedFeature.getOrderItems(type));
-				
-				catalogAdapter.updateFeature(updatedFeature.getOrderCategoryCursor(type));
+				catalogAdapter.updateFeature(currentOrderFeature.getOrderCategoryCursor(type));
 			}
 		}
 	}

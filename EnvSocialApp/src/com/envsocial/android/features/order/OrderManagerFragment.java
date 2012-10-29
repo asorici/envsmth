@@ -3,7 +3,6 @@ package com.envsocial.android.features.order;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +17,7 @@ import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -58,7 +58,7 @@ public class OrderManagerFragment extends SherlockFragment {
 	private ProgressDialog mOrderRetrievalDialog;
 	
 	private List<Map<String,String>> mOrderLocations;
-	private List<List<Map<String,String>>> mOrders;
+	private SparseArray<List<Map<String,String>>> mOrders;
 	private Map<String,Integer> mIndex;
 	
 	
@@ -69,7 +69,7 @@ public class OrderManagerFragment extends SherlockFragment {
 	    
 	    mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
 	    mOrderLocations = new ArrayList<Map<String,String>>();
-		mOrders = new ArrayList<List<Map<String,String>>>();
+		mOrders = new SparseArray<List<Map<String,String>>>();
 		mIndex = new HashMap<String,Integer>();
 		
 		// Create custom expandable list adapter
@@ -236,7 +236,8 @@ public class OrderManagerFragment extends SherlockFragment {
 		Integer index = mIndex.get(locationName);
 		if (index == null) {
 			// Received order from a new location
-			mIndex.put(locationName, mOrderLocations.size());
+			int newLocationIndex = mOrderLocations.size();
+			mIndex.put(locationName, newLocationIndex);
 			
 			// Add location
 			Map<String,String> locationMap = new HashMap<String,String>();
@@ -244,12 +245,15 @@ public class OrderManagerFragment extends SherlockFragment {
 			mOrderLocations.add(locationMap);
 			
 			// Add order
-			List<Map<String,String>> orderList = new LinkedList<Map<String,String>>();
-			orderList.add(order);
+			//List<Map<String,String>> orderList = new LinkedList<Map<String,String>>();
+			//orderList.add(order);
 			
-			mOrders.add(orderList);
+			//mOrders.add(orderList);
+			mAdapter.addOrderData(newLocationIndex, order, reverseOrder);
 		} else {
 			// Else we just add the order
+			mAdapter.addOrderData(index, order, reverseOrder);
+			/*
 			List<Map<String,String>> orderList = mOrders.get(index);
 			
 			if (!reverseOrder) {
@@ -258,6 +262,7 @@ public class OrderManagerFragment extends SherlockFragment {
 			else {
 				orderList.add(0, order);
 			}
+			*/
 		}
 	}
 	

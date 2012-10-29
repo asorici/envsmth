@@ -79,11 +79,9 @@ public class OrderFeature extends Feature {
 		
 		if (dbHelper == null) {
 			dbHelper = new OrderDbHelper(Envived.getContext(), this, version);
-			dbHelper.init();
 		}
-		else {
-			dbHelper.update();
-		}
+		
+		dbHelper.update();
 	}
 	
 	@Override

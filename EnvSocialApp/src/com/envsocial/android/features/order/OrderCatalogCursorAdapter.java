@@ -10,7 +10,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -29,9 +28,8 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 	
 	private OrderFragment mParentFragment;
 	private SparseArray<Map<String, Object>> mOrderSelections;
+	private SparseArray<View> mOrderSelectionQuantityViews;
 	private Context mContext;
-	
-	private Map<Integer, ChildViewHolder> mChildViewHolderMap;
 	
 	public OrderCatalogCursorAdapter(OrderFragment parentFragment, Context context, Cursor cursor,
 			int groupLayout, int childLayout) {
@@ -39,9 +37,9 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 		
 		mParentFragment = parentFragment;
 		mOrderSelections = new SparseArray<Map<String,Object>>();
-		mContext = context;
+		mOrderSelectionQuantityViews = new SparseArray<View>();
 		
-		mChildViewHolderMap = new HashMap<Integer, OrderCatalogCursorAdapter.ChildViewHolder>();
+		mContext = context;
 	}	
 	
 	
@@ -181,7 +179,7 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 		holder.priceView.setText(new DecimalFormat("#.##").format(itemPrice) + " RON");
 		holder.quantityView.setText("" + quantityCt);
 		
-		mChildViewHolderMap.put(itemId, holder);
+		//mChildViewHolderMap.put(itemId, holder);
 	}
 	
 	
@@ -245,6 +243,8 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 			int quantity = (Integer)itemMapping.get("quantity");
 			quantity += qDelta;
 			
+			mOrderSelectionQuantityViews.put(itemId, holder.quantityView);
+			
 			if (quantity > 0) {
 				itemMapping.put("quantity", quantity);
 				
@@ -253,6 +253,7 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 			}
 			else {
 				mOrderSelections.remove(itemId);
+				mOrderSelectionQuantityViews.remove(itemId);
 				
 				// set quantity view with 0
 				holder.quantityView.setText("0");
@@ -273,6 +274,7 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 			holder.quantityView.setText("" + qDelta);
 			
 			mOrderSelections.put(itemId, itemMapping);
+			mOrderSelectionQuantityViews.put(itemId, holder.quantityView);
 		}
 	}
 
@@ -332,6 +334,15 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 	// =============================== Selection, Update and Cleanup =============================== //
 	
 	public void updateFeature(Cursor groupCursor) {
+		//re-initialize orderSelections
+		if (mOrderSelections == null) {
+			mOrderSelections = new SparseArray<Map<String,Object>>();
+		}
+		
+		if (mOrderSelectionQuantityViews == null) {
+			mOrderSelectionQuantityViews = new SparseArray<View>();
+		}
+		
 		// this is where we need to update the feature
 		clearOrderSelections();
 		
@@ -355,21 +366,21 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 	
 	@Override
 	public void clearOrderSelections() {
-		for (int itemId : mChildViewHolderMap.keySet()) {
-			Log.d(TAG, "Mapping of id " + itemId + " -> " + mChildViewHolderMap.get(itemId).itemName);
-		}
-		
-		// first reset all quantity views in selection to 0
-		for (int i = 0; i < mOrderSelections.size(); i++) {
-			int itemId = mOrderSelections.keyAt(i);
-			Log.d(TAG,  "CLEARING SELECTION FOR item: " + itemId + "-> " 
-					+ mChildViewHolderMap.get(itemId).itemName);
+		for (int i = 0; i < mOrderSelectionQuantityViews.size(); i++) {
+			int itemId = mOrderSelectionQuantityViews.keyAt(i);
+			//Log.d(TAG,  "CLEARING SELECTION FOR item: " + itemId + "-> " 
+			//		+ mChildViewHolderMap.get(itemId).itemName);
 			
-			mChildViewHolderMap.get(itemId).quantityView.setText("0");
+			//mChildViewHolderMap.get(itemId).quantityView.setText("0");
+			TextView quantityView = (TextView)mOrderSelectionQuantityViews.get(itemId);
+			if (quantityView != null) {
+				quantityView.setText("0");
+			}
 		}
 		
 		// the clear all order selections
 		mOrderSelections.clear();
+		mOrderSelectionQuantityViews.clear();
 	}
 
 
@@ -377,7 +388,10 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 	public void doCleanup() {
 		// cleanup all mappings
 		mOrderSelections.clear();
+		mOrderSelectionQuantityViews.clear();
+		
 		mOrderSelections = null;
+		mOrderSelectionQuantityViews = null;
 		
 		// we have to close all cursors here
 		// the following will close the group cursor and all child cursors		

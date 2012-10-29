@@ -3,6 +3,7 @@ package com.envsocial.android;
 import android.app.IntentService;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.envsocial.android.api.Location;
 import com.envsocial.android.features.Feature;
@@ -10,6 +11,8 @@ import com.envsocial.android.utils.EnvivedNotificationContents;
 import com.envsocial.android.utils.Preferences;
 
 public class EnvivedFeatureUpdateService extends IntentService {
+	private static final String TAG = "EnvivedFeatureUpdateService";
+	
 	public static String UPDATE_SERVICE_NAME = "EnvivedFeatureUpdateService";
 	public static String UPDATE_SERVICE_INPUT = "com.envsocial.android.Input";
 	public static String ACTION_UPDATE_FEATURE = "com.envsocial.android.intent.UPDATE_FEATURE";
@@ -38,13 +41,19 @@ public class EnvivedFeatureUpdateService extends IntentService {
 			if (updatedFeature != null) {
 				// we have successfully obtained the new feature contents
 				// use an intent to signal to active listeners that they may refresh their feature contents
+				
 				Intent updateIntent = new Intent(ACTION_UPDATE_FEATURE);
 				Bundle extras = new Bundle();
 				extras.putString("feature_category", featureCategory);
-				extras.putSerializable("feature_object", updatedFeature);
+				extras.putSerializable("feature_content", updatedFeature);
 				
 				updateIntent.putExtras(extras);
-				sendOrderedBroadcast(updateIntent, UPDATE_PERMISSION);
+				sendBroadcast(updateIntent);
+				//sendOrderedBroadcast(updateIntent, UPDATE_PERMISSION);
+				//sendBroadcast(updateIntent, UPDATE_PERMISSION);
+			}
+			else {
+				Log.d(TAG, "Received NO feature update");
 			}
 		}
 	}

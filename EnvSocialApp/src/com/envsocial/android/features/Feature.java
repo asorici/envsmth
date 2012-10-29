@@ -24,7 +24,7 @@ import com.envsocial.android.features.program.ProgramFeature;
 import com.envsocial.android.utils.ResponseHolder;
 
 public abstract class Feature implements Serializable {
-	private static final long serialVersionUID = -4979711312694147738L;
+	private static final long serialVersionUID = 1L;
 	
 	public static final String DESCRIPTION 	= 	"description";
 	public static final String ORDER 		= 	"order";
@@ -87,6 +87,13 @@ public abstract class Feature implements Serializable {
 		return data;
 	}
 	
+	@Override
+	public String toString() {
+		String info = "Feature (" + category + ", " + resourceUri + ")\n";
+		info += "Feature Data: " + data;
+		info += "\n";
+		return info;
+	}
 	
 	public static Feature getFromServer(Context context, Location location, String category) {
 		AppClient client = new AppClient(context);
@@ -95,7 +102,7 @@ public abstract class Feature implements Serializable {
 		Url url = new Url(Url.RESOURCE, Feature.TAG);
 		url.setParameters(
 			new String[] { type, "category" }, 
-			new String[] { "" + location.getId(), Feature.PROGRAM }
+			new String[] { "" + location.getId(), category }
 		);
 		
 		try {
@@ -107,7 +114,7 @@ public abstract class Feature implements Serializable {
 				JSONObject featuresJSON = holder.getJsonContent();
 				JSONArray featureList = featuresJSON.optJSONArray("objects");
 				
-				if (featureList != null) {
+				if (featureList != null && featureList.length() != 0) {
 					// there will be only one item in the list, so get it
 					JSONObject featureData = featureList.getJSONObject(0);
 					
