@@ -9,7 +9,7 @@ from tastypie import fields, http
 from tastypie.api import Api
 from tastypie.authentication import Authentication
 from tastypie.exceptions import ImmediateHttpResponse, NotFound, HydrationError
-from tastypie.resources import ModelResource
+from tastypie.resources import ModelResource, Resource
 #from coresql.forms import AnnotationForm
 #from tastypie.validation import FormValidation
 
@@ -831,7 +831,7 @@ class AnnotationResource(ModelResource):
                 print >>sys.stderr, "[Annotation GCM] failure enqueueing annotation: ", ex
             finally:
                 sock.close()
-        
+   
 
 class HistoryResource(ModelResource):
     environment = fields.ForeignKey(EnvironmentResource, 'environment')
@@ -858,6 +858,41 @@ class HistoryResource(ModelResource):
             raise ImmediateHttpResponse(response=http.HttpMethodNotAllowed())
     
 
+
+class EnvrionmentContextResource(ModelResource):
+    PEOPLE_COUNT = "peoplecount"
+    response = fields.DictField()
+    
+    class Meta:
+        queryset = Environment.objects.all()
+        resource_name = 'environmentcontext'
+        detail_allowed_methods = ['get']
+        list_allowed_methods = []
+        fields = ['']
+    
+    
+    def get_detail(self, request, **kwargs):
+        ## override the list retrieval part to verify additionally that an ``user`` filter exists
+        ## otherwise reject the call with a HttpMethodNotAllowed
+        if 'request' in request.GET:
+            return super(EnvrionmentContextResource, self).get_detail(request, **kwargs)
+        else:
+            raise ImmediateHttpResponse(response=http.HttpBadRequest())
+        
+    
+    def dehydrate_response(self, bundle):
+        ## see what the context request is
+        context_request = bundle.request.GET['request']
+        
+        if context_request == EnvrionmentContextResource.PEOPLE_COUNT:
+            environment = bundle.obj
+            environment_people_count = UserContext.objects.filter(currentEnvironment = environment).count()
+            
+            return environment_people_count
+        else:
+            raise ImmediateHttpResponse(response=http.HttpNotImplemented())
+    
+
 #############################################################################################################
 #############################################################################################################
 
@@ -866,7 +901,6 @@ class ClientApi(Api):
     def __init__(self, *args, **kwargs):
         super(ClientApi, self).__init__(*args, **kwargs)
 
-    
     @property
     def urls(self):
         """

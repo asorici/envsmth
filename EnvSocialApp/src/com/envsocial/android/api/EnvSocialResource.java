@@ -3,7 +3,7 @@ package com.envsocial.android.api;
 public enum EnvSocialResource {
 	USER("user"), ENVIRONMENT("environment"), AREA("area"), FEATURE("feature"), 
 	ANNOTATION("annotation"), ANNOUNCEMENT("announcement"), 
-	HISTORY("history"), PRIVACY("privacy"),
+	HISTORY("history"), PRIVACY("privacy"), ENVIRONMENTCONTEXT("environmentcontext"),
 	REGISTER("register"), LOGIN("login"), LOGOUT("logout"), 
 	CHECKIN("checkin"), CHECKOUT("checkout"), 
 	GCM("cloud_messaging");

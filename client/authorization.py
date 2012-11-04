@@ -145,7 +145,7 @@ class UserAuthorization(Authorization):
             return True
         
         return False
-    
+
 
 class FeatureAuthorization(Authorization):
     def is_authorized(self, request, object=None):

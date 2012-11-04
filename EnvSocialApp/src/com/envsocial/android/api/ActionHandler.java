@@ -152,7 +152,7 @@ public class ActionHandler {
 		}
 		
 		// Sign url for client requests
-		url = signUrl(url);
+		//url = Url.signUrl(url);
 		HttpResponse response = null;
 		try {
 			response = client.makeGetRequest(url);
@@ -208,12 +208,6 @@ public class ActionHandler {
 		}
 		
 		return holder;
-	}
-	
-	
-	private static String signUrl(String url) {
-		//TODO: proper url signing
-		return Url.appendParameter(url, "clientrequest", "true");
 	}
 
 	public static ResponseHolder register(Context context, String email, String password, 

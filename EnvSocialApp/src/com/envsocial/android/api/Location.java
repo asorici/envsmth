@@ -52,7 +52,12 @@ public class Location implements Serializable {
 	private String mAreaType;
 	private int mLevel;
 	
+	/** Location context specific fields */
+	private LocationContextManager mContextManager;
 	
+	
+	
+
 	private static Location mFullInstance = null;
 	private static String prevLocationString = null;
 	
@@ -146,6 +151,9 @@ public class Location implements Serializable {
 			mAreaType = locationData.getString("areaType");
 			mLevel = locationData.getInt("level");
 		}
+		
+		// lastly initialize the context manager
+		mContextManager = new LocationContextManager(this);
 	}
 	
 	
@@ -302,5 +310,10 @@ public class Location implements Serializable {
 		info += "jsonString::" + mJSONString;
 		
 		return info;
+	}
+	
+	/** Location context specific methods */
+	public LocationContextManager getContextManager() {
+		return mContextManager;
 	}
 }
