@@ -1,8 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content" >
-	<TextView android:id="@+id/details"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+	
+    <ImageView android:id="@+id/description_image"
+        android:contentDescription="Location Logo Image"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="10dip"
+        android:layout_marginLeft="10dip"
+        android:layout_marginBottom="20dip"
+        android:scaleType="centerInside"
+        android:layout_gravity="top"
+        />
+    
+    <TextView 
 	    android:layout_width="fill_parent"
-	    android:layout_height="wrap_content" />
+	    android:layout_height="wrap_content"
+	    android:layout_marginLeft="10dip" 
+	    android:layout_marginRight="10dip"
+	    android:layout_marginBottom="5dip"
+	    android:textColor="@color/black"
+	    android:textStyle="bold|italic"
+	    android:gravity="fill_horizontal"
+	    android:textSize="16dip"
+	    android:text="About us:"/>
+	<TextView android:id="@+id/description_details"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_marginLeft="10dip" 
+	    android:layout_marginRight="10dip"
+	    android:layout_marginBottom="20dip"
+	    android:background="@drawable/feature_description_details"
+	    android:textColor="@color/black"
+	    android:gravity="fill_horizontal"/>
+	
+	<LinearLayout 
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_marginLeft="10dip" 
+	    android:layout_marginRight="10dip"
+	    android:layout_marginBottom="20dip"
+	    android:orientation="horizontal" 
+	    >
+	    <ImageView 
+	        android:contentDescription="user group icon"
+	        android:layout_width="65dip"
+	        android:layout_height="65dip"
+	        android:layout_gravity="left"
+	        android:paddingRight="5dip"
+	        android:src="@drawable/user_group"
+	        android:scaleType="centerInside"/>
+	    <TextView android:id="@+id/description_people_count" 
+	        android:paddingLeft="5dip"
+	        android:layout_width="fill_parent"
+	        android:layout_height="65dip"
+	        android:layout_gravity="fill_horizontal|fill_vertical"
+	        android:gravity="fill_horizontal|center_vertical"/>	
+	</LinearLayout>
+	
+	<TextView
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_marginLeft="10dip" 
+	    android:layout_marginRight="10dip"
+	    android:layout_marginBottom="5dip"
+	    android:textColor="@color/black"
+	    android:textStyle="bold|italic"
+	    android:gravity="fill_horizontal"
+	    android:textSize="16dip"
+	    android:text="Newest information"/>
+	<TextView android:id="@+id/description_new_info"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_marginLeft="10dip" 
+	    android:layout_marginRight="10dip"
+	   	android:layout_marginBottom="20dip"
+	    android:background="@drawable/feature_description_details"
+	    android:textColor="@color/black"
+	    android:gravity="fill_horizontal"/>
 </LinearLayout>
+</ScrollView>

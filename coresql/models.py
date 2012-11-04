@@ -379,19 +379,35 @@ class Feature(models.Model):
     
     def get_feature_data(self, filters):
         return self.to_serializable()['data']
+    
 
 ####################################### Default Feature Class #############################################
 class DescriptionFeature(Feature):
     description = models.TextField(null = True, blank = True)
+    newest_info = models.TextField(null = True, blank = True)
+    img_url = models.URLField(null = True, blank = True, max_length = 256)
     
     def to_serializable(self):
         data = super(DescriptionFeature, self).to_serializable()
-        data.update( {'data' : self.description} )
+        data_dict = {}
+        
+        if self.description:
+            data_dict['description'] = self.description
+            
+        if self.newest_info:
+            data_dict['newest_info'] = self.newest_info
+        
+        if self.img_url:
+            data_dict['img_url'] = self.img_url
+        
+        data.update( {'data' : data_dict} )
         
         return data
     
+    
     def get_feature_data(self, filters):
         return self.description
+
 
 ###################################### Program Feature Classes ############################################
 class ProgramFeature(Feature):

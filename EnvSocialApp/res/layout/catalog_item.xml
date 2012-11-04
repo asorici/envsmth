@@ -48,7 +48,8 @@
             android:gravity="center_vertical|left"
             android:lines="2"
             android:text="@string/lbl_item"
-            android:textStyle="bold" />
+            android:textStyle="bold" 
+            android:background="@drawable/order_item_description"/>
 
         <TextView
             android:id="@+id/orderItemPrice"

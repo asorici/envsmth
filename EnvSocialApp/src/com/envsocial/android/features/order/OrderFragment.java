@@ -145,6 +145,7 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 		orderTab.clear();
 		orderTab = null;
 		
+		mOrderFeature.doCleanup(getActivity().getApplicationContext());
 		mCatalogPagerAdapter.doCleanup();
 		getActivity().unregisterReceiver(mUpdateReceiver);
 	}

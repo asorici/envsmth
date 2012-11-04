@@ -91,6 +91,8 @@
     
     
     <!-- Message -->
+    <string name="no_network_connection_toast">No network connection.</string>
+    
     <string name="msg_internal_error">Oops. Internal Error.</string>
     <string name="msg_malformed_checkin_url">The scanned QR Code is not an Envived QR code.</string>
     <string name="msg_bad_checkin_response">Service checkin problem or wrong URI. Please try again later.</string>

@@ -106,7 +106,6 @@ public class OrderDbHelper extends FeatureDbHelper {
 	@Override
 	public void onOpen(SQLiteDatabase db) {
 		Log.d(TAG, "[DEBUG] >> ----------- Database " + DATABASE_NAME + " is being opened. ------------");
-		dbStatus = TABLES_CREATED;
 	}
 	
 	@Override

@@ -15,6 +15,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -39,6 +40,8 @@ import com.envsocial.android.utils.EnvivedNotificationContents;
 import com.envsocial.android.utils.NotificationRegistrationDialog;
 import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
+import com.envsocial.android.utils.imagemanager.ImageCache;
+import com.envsocial.android.utils.imagemanager.ImageFetcher;
 import com.google.android.gcm.GCMRegistrar;
 
 
@@ -81,6 +84,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	private Tab mPeopleTab;
 	
 	private AsyncTask<Void, Void, ResponseHolder> mGCMRegisterTask;
+	private ImageFetcher mImageFetcher;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -92,20 +96,40 @@ public class DetailsActivity extends SherlockFragmentActivity {
         mActionBar = getSupportActionBar();
         mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         
-        String checkinUrl = getIntent().getStringExtra(ActionHandler.CHECKIN);
+        // --------------------------- image cache initialization -------------------------- //
+	    // Fetch screen height and width, to use as our max size when loading images as this
+        // activity runs full screen
+        final DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        final int height = displayMetrics.heightPixels;
+        final int width = displayMetrics.widthPixels;
+        final int longest = (height > width ? height : width);
         
-        //Bundle loaderBundle = new Bundle();
-        //loaderBundle.putString("CHECKIN_URL", checkinUrl);
-        //getSupportLoaderManager().initLoader(0, loaderBundle, this);
+        ImageCache.ImageCacheParams cacheParams =
+                new ImageCache.ImageCacheParams(this, ImageCache.IMAGE_CACHE_DIR);
+        cacheParams.setMemCacheSizePercent(this, 0.125f); // Set memory cache to 25% of mem class
         
-        checkin(checkinUrl);
+        // The ImageFetcher takes care of loading images into ImageViews asynchronously
+        mImageFetcher = new ImageFetcher(this, longest);
+        mImageFetcher.addImageCache(getSupportFragmentManager(), cacheParams);
+        mImageFetcher.setImageFadeIn(false);
         
+        // -------------------------- gcm notification registration ------------------------- //
         // register GCM status receiver
         registerReceiver(mHandleGCMMessageReceiver,
                 new IntentFilter(GCMIntentService.ACTION_DISPLAY_GCM_MESSAGE));
         
         // setup GCM notification registration
         checkGCMRegistration();
+        
+        // ------------------------------------- checkin ------------------------------------ //
+        String checkinUrl = getIntent().getStringExtra(ActionHandler.CHECKIN);
+        checkin(checkinUrl);
+        
+        //Bundle loaderBundle = new Bundle();
+        //loaderBundle.putString("CHECKIN_URL", checkinUrl);
+        //getSupportLoaderManager().initLoader(0, loaderBundle, this);
+        
 	}
 	
 	
@@ -153,9 +177,13 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	
 	@Override
 	public void onPause() {
+		super.onPause();
+		
 		Log.d(TAG, " --- onPause called in DetailsActivity");
 		active = false;
-		super.onPause();
+		
+		mImageFetcher.setExitTasksEarly(true);
+        mImageFetcher.flushCache();
 	}
 	
 	
@@ -167,9 +195,11 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	
 	@Override
 	public void onResume() {
+		super.onResume();
+		
 		Log.d(TAG, " --- onResume called in DetailsActivity");
 		active = true;
-		super.onResume();
+		mImageFetcher.setExitTasksEarly(false);
 	}
 	
 	
@@ -181,6 +211,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	
 	@Override
 	public void onDestroy() {
+		super.onDestroy();
 		Log.d(TAG, " --- onDestroy called in DetailsActivity");
 		
 		// stop the GCM 3rd party server registration process if it is on the way
@@ -200,7 +231,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 		}
 		*/
 		
-		super.onDestroy();
+		mImageFetcher.closeCache();
 	}
 	
 	@Override
@@ -334,6 +365,13 @@ public class DetailsActivity extends SherlockFragmentActivity {
 		
 		return false;
 	}
+	
+	/**
+     * Called by the ENVIVED Feature fragments to load images via the one ImageFetcher
+     */
+	public ImageFetcher getImageFetcher() {
+        return mImageFetcher;
+    }
 	
 	
 	private void checkin(String checkinUrl) {

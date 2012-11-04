@@ -5,8 +5,8 @@ public class Url {
 	public static final String HTTP = "http://";
 	public static final String HTTPS = "https://";
 	//public static final String HOSTNAME = "192.168.1.6:8000";
-	//public static final String HOSTNAME = "192.168.100.101:8000";
-	public static final String HOSTNAME = "192.168.1.105:8000";
+	//public static final String HOSTNAME = "192.168.100.102:8000";
+	public static final String HOSTNAME = "192.168.1.106:8000";
 	//public static final String HOSTNAME = "envived.com:8800";
 	//public static final String HOSTNAME = "192.168.1.105:8800";
 	//public static final String HOSTNAME = "141.85.227.108";
@@ -86,10 +86,13 @@ public class Url {
 	}
 	
 	private void appendParams(StringBuilder url) {
+		url.append("?");
+		url.append("clientrequest=true");
+		
 		if (mParams == null || mValues == null) {
 			return;
 		}
-		url.append("?");
+		
 		int len = mParams.length;
 		int i;
 		for (i = 0; i < len-1; ++ i) {
@@ -111,8 +114,19 @@ public class Url {
 		return HTTP + HOSTNAME + RESOURCE_RELATIVE_URL + resource + "/";
 	}
 	
+	static String signUrl(String url) {
+		//TODO: proper url signing
+		return Url.appendParameter(url, "clientrequest", "true");
+	}
+	
 	public static String appendParameter(String uri, String param, String value) {
-		return uri + "&" + param + "=" + value;
+		// TODO : consider general case where param might be the first to be added
+		if (uri.contains("?")) {
+			return uri + "&" + param + "=" + value;
+		}
+		else {
+			return uri + "?" + param + "=" + value;
+		}
 	}
 	
 	public static String resourceIdFromUri(String uri) {
