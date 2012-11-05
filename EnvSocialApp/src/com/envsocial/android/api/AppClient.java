@@ -16,6 +16,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.envsocial.android.utils.Preferences;
 

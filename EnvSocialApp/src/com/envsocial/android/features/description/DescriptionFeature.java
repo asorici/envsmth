@@ -33,6 +33,8 @@ public class DescriptionFeature extends Feature {
 
 	@Override
 	public void init() throws EnvSocialContentException {
+		super.init();
+		
 		try {
 			JSONObject descriptionData = new JSONObject(data);
 			mDescriptionText = descriptionData.optString(DESCRIPTION_TEXT, NO_DESCRIPTION);

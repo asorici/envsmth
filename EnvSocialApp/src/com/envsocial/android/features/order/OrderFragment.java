@@ -77,9 +77,9 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 		mUpdateReceiver = new OrderFeatureUpdateReceiver();
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(EnvivedFeatureUpdateService.ACTION_UPDATE_FEATURE);
-		//getActivity().registerReceiver(mUpdateReceiver, filter, 
-		//				EnvivedFeatureUpdateService.UPDATE_PERMISSION, null);
-		getActivity().registerReceiver(mUpdateReceiver, filter);
+		getActivity().registerReceiver(mUpdateReceiver, filter, 
+						EnvivedFeatureUpdateService.UPDATE_PERMISSION, null);
+		//getActivity().registerReceiver(mUpdateReceiver, filter);
 	}
 	
 	
@@ -132,8 +132,16 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 	
 	@Override
 	public void onStart() {
-		Log.d(TAG, " --- onStart called in OrderFragment");
 		super.onStart();
+		Log.d(TAG, " --- onStart called in OrderFragment");
+		if (!mOrderFeature.isInitialized()) {
+			try {
+				mOrderFeature.init();
+			} catch (EnvSocialContentException e) {
+				Log.d(TAG, "[ERROR] >> Could not initialize order feature. ", e);
+			}
+		}
+		
 	}
 	
 	@Override

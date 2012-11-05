@@ -58,9 +58,12 @@ public class OrderFeature extends Feature {
 
 	@Override
 	public void init() throws EnvSocialContentException {
+		super.init();
+		/*
 		if (mCategories == null || mItems == null) {
 			buildOrderMappings();
 		}	
+		*/
 		
 		if (dbHelper == null) {
 			dbHelper = new OrderDbHelper(Envived.getContext(), this, version);
@@ -74,6 +77,8 @@ public class OrderFeature extends Feature {
 	
 	@Override
 	public void doUpdate() throws EnvSocialContentException {
+		super.doUpdate();
+		
 		// rebuild order mappings and update the dbHelper
 		buildOrderMappings();
 		
@@ -86,6 +91,8 @@ public class OrderFeature extends Feature {
 	
 	@Override
 	public void doCleanup(Context context) {
+		super.doCleanup(context);
+		
 		if (dbHelper != null) {
 			dbHelper.close();
 			dbHelper = null;
@@ -94,6 +101,8 @@ public class OrderFeature extends Feature {
 	
 	@Override
 	public void doClose(Context context) {
+		super.doClose(context);
+		
 		// first do cleanup
 		doCleanup(context);
 		

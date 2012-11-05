@@ -439,4 +439,8 @@ public abstract class ImageWorker {
     public void closeCache() {
         new CacheAsyncTask().execute(MESSAGE_CLOSE);
     }
+    
+    public boolean cashOpen() {
+    	return mImageCache != null;
+    }
 }

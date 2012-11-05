@@ -41,6 +41,8 @@ public abstract class Feature implements Serializable {
 	protected String areaUri;
 	protected String data;
 	
+	private boolean initialized = false;
+	
 	protected Feature(String category, int version, String resourceUri, 
 			String environmentUri, String areaUri, String data) {
 		this.category = category;
@@ -52,18 +54,22 @@ public abstract class Feature implements Serializable {
 	}
 	
 	public void init() throws EnvSocialContentException {
+		initialized = true;
 	}
 	
 	
 	public void doUpdate() throws EnvSocialContentException {
+		initialized = true;
 	}
 	
 	
 	public void doCleanup(Context context) {
+		initialized = false;
 	}
 
-	
+
 	public void doClose(Context context) {
+		initialized = false;
 	}
 	
 	
@@ -85,6 +91,10 @@ public abstract class Feature implements Serializable {
 
 	public String getSerializedData() {
 		return data;
+	}
+	
+	public boolean isInitialized() {
+		return initialized;
 	}
 	
 	@Override
@@ -132,6 +142,9 @@ public abstract class Feature implements Serializable {
 					
 					return getInstance(remoteCategory, remoteVersion, resourceUri, environmentUri, areaUri, data);
 				}
+			}
+			else {
+				Log.d(TAG, holder.getResponseBody(), holder.getError());
 			}
 		} catch (IOException e) {
 			Log.d(TAG, e.toString());

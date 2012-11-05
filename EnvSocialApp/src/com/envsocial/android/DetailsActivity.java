@@ -97,22 +97,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
         mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         
         // --------------------------- image cache initialization -------------------------- //
-	    // Fetch screen height and width, to use as our max size when loading images as this
-        // activity runs full screen
-        final DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        final int height = displayMetrics.heightPixels;
-        final int width = displayMetrics.widthPixels;
-        final int longest = (height > width ? height : width);
-        
-        ImageCache.ImageCacheParams cacheParams =
-                new ImageCache.ImageCacheParams(this, ImageCache.IMAGE_CACHE_DIR);
-        cacheParams.setMemCacheSizePercent(this, 0.125f); // Set memory cache to 25% of mem class
-        
-        // The ImageFetcher takes care of loading images into ImageViews asynchronously
-        mImageFetcher = new ImageFetcher(this, longest);
-        mImageFetcher.addImageCache(getSupportFragmentManager(), cacheParams);
-        mImageFetcher.setImageFadeIn(false);
+        initImageFetcher();
         
         // -------------------------- gcm notification registration ------------------------- //
         // register GCM status receiver
@@ -133,6 +118,27 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	}
 	
 	
+	private void initImageFetcher() {
+		// Fetch screen height and width, to use as our max size when loading images as this
+        // activity runs full screen
+		
+		final DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        final int height = displayMetrics.heightPixels;
+        final int width = displayMetrics.widthPixels;
+        final int longest = (height > width ? height : width);
+        
+        ImageCache.ImageCacheParams cacheParams =
+                new ImageCache.ImageCacheParams(this, ImageCache.IMAGE_CACHE_DIR);
+        cacheParams.setMemCacheSizePercent(this, 0.125f); // Set memory cache to 25% of mem class
+        
+        // The ImageFetcher takes care of loading images into ImageViews asynchronously
+        mImageFetcher = new ImageFetcher(this, longest);
+        mImageFetcher.addImageCache(getSupportFragmentManager(), cacheParams);
+        mImageFetcher.setLoadingImage(R.drawable.user_group);
+        mImageFetcher.setImageFadeIn(false);
+	}
+
 	private void checkGCMRegistration() {
 		// look for the GCM registrationId stored in the GCMRegistrar
 		// if not found, pop-up a dialog to invite the user to register in order to receive notifications
@@ -207,6 +213,12 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	public void onStart() {
 		Log.d(TAG, " --- onStart called in DetailsActivity");
 		super.onStart();
+		
+		// check if due to delayed onDestroy (can happen from Notification relaunch) 
+		// the image fetcher has closed the cache after it was opened again
+		if (mImageFetcher == null || !mImageFetcher.cashOpen()) {
+			initImageFetcher();
+		}
 	}
 	
 	@Override

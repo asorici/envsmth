@@ -95,12 +95,14 @@ public class Annotation {
 	
 	
 	private String toJSON() throws JSONException {
-		//JSONStringer jsonData = new JSONStringer().object();
-		
-		String type = (mLocation.isEnvironment()) ? Location.ENVIRONMENT : Location.AREA;
-		Url url = new Url(Url.RESOURCE, type, false, Url.HTTP);
+		/*
+		String locationType = (mLocation.isEnvironment()) ? Location.ENVIRONMENT : Location.AREA;
+		Url url = new Url(Url.RESOURCE, locationType, false, Url.HTTP);
 		url.setItemId(mLocation.getId());
-		String urlString = url.toString();
+		String locationUri = url.toString();
+		*/
+		String locationType = (mLocation.isEnvironment()) ? Location.ENVIRONMENT : Location.AREA;
+		String locationUri = mLocation.getUri();
 		
 		Object data = null;
 		try {
@@ -110,7 +112,7 @@ public class Annotation {
 		}
 		
 		JSONObject jsonData = new JSONObject();
-		jsonData.put(type, urlString);
+		jsonData.put(locationType, locationUri);
 		jsonData.put("category", mCategory);
 		jsonData.put("data", data);
 		

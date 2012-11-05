@@ -1,6 +1,7 @@
 package com.envsocial.android.api;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import org.apache.http.HttpResponse;
 
@@ -12,12 +13,13 @@ import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
 
 
-public class LocationContextManager {
+public class LocationContextManager implements Serializable {
+	private static final long serialVersionUID = 1L;
+	
 	private static final String TAG = "LocationContextManager";
 	private static final String USER_COUNT_REQUEST = "peoplecount";
 	
 	public static final String CONTEXT_RESOURCE = "environmentcontext";
-	
 	
 	private Location mLocation;
 	private String mResourceUri;
