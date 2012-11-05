@@ -111,6 +111,7 @@ public class OrderDbHelper extends FeatureDbHelper {
 	@Override
 	public void init() throws EnvSocialContentException {
 		// calling insertMenu here
+		Log.d(TAG, "[DEBUG] >> ----------- Init " + DATABASE_NAME + ". ------------");
 		insertMenu();
 	}
 	

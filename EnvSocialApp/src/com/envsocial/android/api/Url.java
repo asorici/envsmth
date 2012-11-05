@@ -6,16 +6,16 @@ public class Url {
 	public static final String HTTPS = "https://";
 	//public static final String HOSTNAME = "192.168.1.6:8000";
 	//public static final String HOSTNAME = "192.168.100.102:8000";
-	public static final String HOSTNAME = "192.168.1.106:8000";
-	//public static final String HOSTNAME = "envived.com:8800";
+	//public static final String HOSTNAME = "192.168.1.106:8000";
+	public static final String HOSTNAME = "envived.com:8800";
 	//public static final String HOSTNAME = "192.168.1.105:8800";
 	//public static final String HOSTNAME = "141.85.227.108";
 	//public static final String HOSTNAME = "192.168.8.55:8000";
 	//public static final String HOSTNAME = "172.16.2.181:8000";
 	//public static final String HOSTNAME = "192.168.43.70:8000";
 	
-	private static final String BASE_URL = "/envsocial/client/v1/";
-	//private static final String BASE_URL = "/envived/envsocial/client/v1/";
+	//private static final String BASE_URL = "/envsocial/client/v1/";
+	private static final String BASE_URL = "/envived/envsocial/client/v1/";
 	private static final String ACTION_RELATIVE_URL = BASE_URL + "actions/";
 	private static final String RESOURCE_RELATIVE_URL = BASE_URL + "resources/";
 	
@@ -87,18 +87,25 @@ public class Url {
 	
 	private void appendParams(StringBuilder url) {
 		url.append("?");
-		url.append("clientrequest=true");
 		
 		if (mParams == null || mValues == null) {
 			return;
 		}
 		
 		int len = mParams.length;
+		/*
 		int i;
 		for (i = 0; i < len-1; ++ i) {
 			url.append(mParams[i] + "=" + mValues[i] + "&");
 		}
 		url.append(mParams[i] + "=" + mValues[i]);
+		*/
+		
+		int i;
+		for (i = 0; i < len; ++ i) {
+			url.append("&" + mParams[i] + "=" + mValues[i]);
+		}
+		
 	}
 	
 	

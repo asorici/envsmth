@@ -48,9 +48,9 @@ public class EnvivedFeatureUpdateService extends IntentService {
 				extras.putSerializable("feature_content", updatedFeature);
 				
 				updateIntent.putExtras(extras);
-				sendBroadcast(updateIntent);
-				//sendOrderedBroadcast(updateIntent, UPDATE_PERMISSION);
+				//sendBroadcast(updateIntent);
 				//sendBroadcast(updateIntent, UPDATE_PERMISSION);
+				sendOrderedBroadcast(updateIntent, UPDATE_PERMISSION);
 			}
 			else {
 				Log.d(TAG, "Received NO feature update");

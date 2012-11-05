@@ -39,8 +39,6 @@ public class DescriptionFragment extends SherlockFragment {
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 	    mData = (Location) getArguments().get(ActionHandler.CHECKIN);
-	    
-	    
 	}
 	
 	@Override
@@ -57,7 +55,6 @@ public class DescriptionFragment extends SherlockFragment {
 		descriptionDetails.setText(descriptionFeature.getDescriptionText());
 		mDescriptionPeopleCount.setText(descriptionFeature.getPeopleCountText());
 		descriptionNewInfo.setText(descriptionFeature.getNewestInfoText());
-		mLogoImageView.setImageDrawable(getResources().getDrawable(R.drawable.user_group));
 		
 	    return v;
 	}

@@ -152,7 +152,7 @@ public class ActionHandler {
 		}
 		
 		// Sign url for client requests
-		//url = Url.signUrl(url);
+		url = Url.signUrl(url);
 		HttpResponse response = null;
 		try {
 			response = client.makeGetRequest(url);

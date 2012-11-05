@@ -42,6 +42,8 @@ public class ProgramFeature extends Feature {
 	
 	@Override
 	public void init() throws EnvSocialContentException {
+		super.init();
+		
 		if (dbHelper == null) {
 			dbHelper = new ProgramDbHelper(Envived.getContext(), this, version);
 		}
@@ -54,18 +56,20 @@ public class ProgramFeature extends Feature {
 	
 	@Override
 	public void doUpdate() throws EnvSocialContentException {
+		super.doUpdate();
+		
 		if (dbHelper == null) {
 			dbHelper = new ProgramDbHelper(Envived.getContext(), this, version);
-			dbHelper.init();
 		}
-		else {
-			dbHelper.update();
-		}
+		
+		dbHelper.update();
 	}
 	
 	
 	@Override
 	public void doCleanup(Context context) {
+		super.doCleanup(context);
+		
 		if (dbHelper != null) {
 			dbHelper.close();
 			dbHelper = null;
@@ -74,6 +78,8 @@ public class ProgramFeature extends Feature {
 	
 	@Override
 	public void doClose(Context context) {
+		super.doClose(context);
+		
 		// first do cleanup
 		doCleanup(context);
 				
