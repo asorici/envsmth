@@ -7,15 +7,15 @@ static/
 .settings/
 .gitignore
 EnvSocialApp/bin/
+EnvSocialApp/project.properties
 c2dm_requests.log
 .metadata/
 libs/
 .classpath
 settings.py
 urls.py
-order_item_rank_refresh_cron.py
 envsocial.sql
+order_item_rank_refresh_cron.py
 program-v1-custom.json
 program-v1-custom.xml
 program_parser_v1.py
-EnvSocialApp/project.properties
