@@ -2,8 +2,8 @@ from django.conf import settings
 
 class QRCodeManager(object):
     #HOST = "192.168.1.6:8000"
-    #HOST = "192.168.100.101:8000"
-    HOST = "192.168.1.105:8000"
+    #HOST = "192.168.100.102:8000"
+    HOST = "192.168.1.106:8000"
     #HOST = "192.168.1.105:8800"
     #HOST = "141.85.227.108:80"
     #HOST = "192.168.8.55:8000"
