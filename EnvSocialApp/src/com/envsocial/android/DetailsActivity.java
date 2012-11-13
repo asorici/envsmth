@@ -111,10 +111,6 @@ public class DetailsActivity extends SherlockFragmentActivity {
         String checkinUrl = getIntent().getStringExtra(ActionHandler.CHECKIN);
         checkin(checkinUrl);
         
-        //Bundle loaderBundle = new Bundle();
-        //loaderBundle.putString("CHECKIN_URL", checkinUrl);
-        //getSupportLoaderManager().initLoader(0, loaderBundle, this);
-        
 	}
 	
 	
@@ -130,7 +126,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
         
         ImageCache.ImageCacheParams cacheParams =
                 new ImageCache.ImageCacheParams(this, ImageCache.IMAGE_CACHE_DIR);
-        cacheParams.setMemCacheSizePercent(this, 0.125f); // Set memory cache to 25% of mem class
+        cacheParams.setMemCacheSizePercent(this, 0.0675f); // Set memory cache to 1/16 of mem class
         
         // The ImageFetcher takes care of loading images into ImageViews asynchronously
         mImageFetcher = new ImageFetcher(this, longest);
