@@ -193,6 +193,25 @@ class Annotation(models.Model):
         return None
     
     @classmethod
+    def is_annotation_for(cls, category, annotation_data):
+        """
+        - category provides type of annotation
+        - currently unused, but left for future purposes, annotation_data can also discriminate
+          between annotation classes
+        """
+        return False
+    
+    
+    @classmethod
+    def validate_data(cls, category, annotation_data):
+        """
+        Provide additional validation of the `data' field from an annotation according to the specific
+        subclass. Returns a list of error messages which is empty by default.
+        """
+        return []
+    
+    
+    @classmethod
     def get_extra_filters(cls, filters):
         return {}
         
@@ -215,7 +234,7 @@ class DescriptionAnnotation(Annotation):
         return { 'text' : self.text }
     
     @classmethod
-    def is_annotation_for(cls, category):
+    def is_annotation_for(cls, category, annotation_data):
         return category == Annotation.DESCRIPTION
     
     
@@ -246,7 +265,7 @@ class ProgramAnnotation(Annotation):
         return { 'text' : self.text }
     
     @classmethod
-    def is_annotation_for(cls, category):
+    def is_annotation_for(cls, category, annotation_data):
         return category == Annotation.PROGRAM
     
     @classmethod
@@ -271,23 +290,43 @@ class OrderAnnotation(Annotation):
     
     def __init__(self, *args, **kwargs):
         data = kwargs.pop('data', None)
-        
         super(OrderAnnotation, self).__init__(*args, **kwargs)
         
+        """
         if not data is None:
             if 'order' in data:
                 self.order = data
             else:
                 raise AnnotationException("OrderAnnotation missing order data")
+        """
+        if not data is None:
+            self.order = data
+            
             
     def get_annotation_data(self):
         return self.order.to_serializable()
         
     
     @classmethod
-    def is_annotation_for(cls, category):
+    def is_annotation_for(cls, category, annotation_data):
         return category == Annotation.ORDER
-
+    
+    
+    @classmethod
+    def validate_data(cls, category, annotation_data):
+        if not isinstance(annotation_data, dict):
+            return ["Annotation data is required to be a dictionary."]
+        else:
+            req_type = annotation_data.get('order_request_type')
+            
+            if req_type is None:
+                return ["No order_request_type specified in annotation data."]
+            elif not req_type in [OrderFeature.CALL_WAITER, OrderFeature.CALL_CHECK, OrderFeature.NEW_ORDER]:
+                return ["Unknown value `" + str(req_type) + "' for order request type."]
+            
+        return [] 
+    
+    
     @staticmethod
     def post_save_action(sender, instance, created, **kwargs):
         import sys
@@ -524,8 +563,12 @@ class PeopleFeature(Feature):
 
 ####################################### Order Feature Classes #############################################
 class OrderFeature(Feature):
+    NEW_REQUEST         = "new_request"
+    
     NEW_ORDER           = "new_order"
     RESOLVED_ORDER      = "resolved_order"
+    CALL_WAITER         = "call_waiter"
+    CALL_CHECK          = "call_check"
     UPDATE_CONTENT      = "update_content"
     UPDATE_STRUCTURE    = "update_structure"
     

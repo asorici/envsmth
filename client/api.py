@@ -9,7 +9,7 @@ from tastypie import fields, http
 from tastypie.api import Api
 from tastypie.authentication import Authentication
 from tastypie.exceptions import ImmediateHttpResponse, NotFound, HydrationError
-from tastypie.resources import ModelResource, Resource
+from tastypie.resources import ModelResource
 #from coresql.forms import AnnotationForm
 #from tastypie.validation import FormValidation
 
@@ -307,7 +307,7 @@ class AreaResource(ModelResource):
             feat_dict = env_feat.to_serializable()
             if feat_dict:
                 ## attach resource_uri and area_uri
-                feat_dict['resource_uri'] = FeatureResource().get_resource_uri(feature)
+                feat_dict['resource_uri'] = FeatureResource().get_resource_uri(env_feat)
                 feat_dict['area'] = self.get_resource_uri(bundle)
                 feat_dict['environment'] = None
                 feature_list.append(feat_dict)
@@ -633,7 +633,6 @@ class AnnotationResource(ModelResource):
         """
         if not bundle.data['data']:
             del bundle.data['data']
-            
         
         
         return bundle
@@ -667,14 +666,13 @@ class AnnotationResource(ModelResource):
         
         
         for _, cls in Annotation.get_subclasses():
-            if cls.is_annotation_for(category):
+            if cls.is_annotation_for(category, data):
                 try:
                     bundle.obj = cls(user = user, environment = environment, 
                                      area = area, category = category, data = data)
                     instantiated = True
                     break
                 except Exception, ex:
-                    #print ex
                     pass
         
         if not instantiated:
@@ -683,34 +681,43 @@ class AnnotationResource(ModelResource):
         
         return bundle
         
+        
     
     def obj_create(self, bundle, request=None, **kwargs):
+        """
+        we use the obj_create method here so that the annotation mechanism may act as a temporary 
+        (an Envived messaging mechanism should be built) message relay mechanism: 
+        depending on the is_message flag contained within the annotation data, the annotation is
+        either stored for persistancy or it is just forwarded as a GCM message to the appropriate receiver
+        """
+        
+        """TODO: the things below have to be refactored, big time"""
+        
         ## because of the AnnotationAuthorization class, request.user will have a profile
         user_profile = request.user.get_profile()
         updated_bundle = super(AnnotationResource, self).obj_create(bundle, request, user=user_profile)
         
         ## make notification for 'order' type annotations
-        if updated_bundle.data['category'] == 'order':
+        if bundle.data['category'] == 'order':
             from coresql.models import OrderFeature
             
             owner_profile = None
             if not bundle.obj.environment is None:
                 owner_profile = bundle.obj.environment.owner
-                    
+                            
             if not bundle.obj.area is None:
                 owner_profile = bundle.obj.area.environment.owner
-                    
+                            
             registration_id = None
             if owner_profile:
                 registration_id = owner_profile.c2dm_id
             
-            collapse_key = "annotation_" + Annotation.ORDER 
-            
+            collapse_key = "feature_annotation"
             self._make_c2dm_notification(registration_id, collapse_key, updated_bundle, 
-                                         params = {'type' : OrderFeature.NEW_ORDER})
-        
+                params = {'type' : OrderFeature.NEW_REQUEST})
+            
         return updated_bundle
-        
+    
     
     def obj_update(self, bundle, request=None, **kwargs):
         """
