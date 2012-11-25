@@ -550,7 +550,7 @@ class AnnotationResource(ModelResource):
         ## we now that there has to be a category in filters because of the validation
         category = filters['category']
         for _, cls in Annotation.get_subclasses():
-            if cls.is_annotation_for(category):
+            if cls.is_annotation_for(category, None):
                 categ_specific_filters = cls.get_extra_filters(filters)
                 orm_filters.update(categ_specific_filters)
                 break
@@ -672,7 +672,7 @@ class AnnotationResource(ModelResource):
                                      area = area, category = category, data = data)
                     instantiated = True
                     break
-                except Exception, ex:
+                except:
                     pass
         
         if not instantiated:
