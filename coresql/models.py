@@ -564,9 +564,9 @@ class PeopleFeature(Feature):
 ####################################### Order Feature Classes #############################################
 class OrderFeature(Feature):
     NEW_REQUEST         = "new_request"
+    RESOLVED_REQUEST    = "resolved_request"
     
     NEW_ORDER           = "new_order"
-    RESOLVED_ORDER      = "resolved_order"
     CALL_WAITER         = "call_waiter"
     CALL_CHECK          = "call_check"
     UPDATE_CONTENT      = "update_content"

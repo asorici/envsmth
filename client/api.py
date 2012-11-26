@@ -779,7 +779,7 @@ class AnnotationResource(ModelResource):
             
             bundle = AnnotationResource().build_bundle(obj = annObj)
             
-            params = {'type' : OrderFeature.RESOLVED_ORDER,
+            params = {'type' : OrderFeature.RESOLVED_REQUEST,
                       'order': annObj.get_annotation_data()}
             self._make_c2dm_notification(registration_id, None, bundle, params = params)
         
