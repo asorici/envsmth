@@ -3,6 +3,7 @@
 
     <string name="hello">Hello World, EnvSocialAppActivity!</string>
     <string name="app_name">Envived</string>
+    <string name="facebook_app_id">114985135329363</string>
     
     <!-- Search labels -->
     <!-- The label for use as a searchable item -->
@@ -72,6 +73,8 @@
     <string name="lbl_item">Item</string>
     <string name="lbl_no_orders">No orders.</string>
     <string name="lbl_order_details">Order details.</string>
+    <string name="lbl_order_request">Order request.</string>
+    <string name="lbl_order_message_details">Message details.</string>
     <string name="lbl_location_name">AREA_NAME</string>
     <string name="lbl_abstract">Abstract:</string>
     <string name="lbl_post_comment">Post a comment:</string>
@@ -113,8 +116,8 @@
     
     
     <!-- Feature OK Messages -->
-    <string name="msg_send_order_ok">Order sent.</string>
-    
+    <string name="msg_send_order_ok">Request sent.</string>
+    <string name="msg_share_order_fb">Message posted to your wall.</string>
     
     <!-- Feature Error Messages -->
     <string name="msg_send_order_err">Service error sending order.</string>
@@ -141,11 +144,24 @@
     
     <string name="msg_get_entry_details_err">Service error retrieving program entry detail.</string>
     
+    <string name="msg_share_order_fb_err">Unable to post message to wall. Please try again later.</string>
     
     <!-- Feature Notifications -->
-    <string name="incoming_order">New order</string>
-	<string name="resolved_order">Order on the way</string>
+    <string name="incoming_order_request">New order request</string>
+	<string name="resolved_order_request">We\'re on our way!</string>
 	<string name="update_order_feature">Menu Update!</string>
+	
+	<!-- Feature Labels -->
+	<string name="order_tab_title">Order Summary</string>
+	<string name="order_mgr_filter_value">Showing: %1$s</string>
+	<string name="order_mgr_filter_prompt">Filter requests by:</string>
+	<string-array name="order_mgr_filter_array">
+        <item>All Requests</item>
+        <item>Order Requests</item>
+        <item>Check Requests</item>
+        <item>Waiter Requests</item>
+    </string-array>
+	
 	
 	<!-- GCM Notifications -->
 	<string name="gcm_registered">Successfully registered for ENVIVED notifications.</string>

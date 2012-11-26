@@ -1,6 +1,7 @@
 package com.envsocial.android.features.order;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +18,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
+import android.widget.ExpandableListView.OnGroupCollapseListener;
+import android.widget.ExpandableListView.OnGroupExpandListener;
 
 import com.envsocial.android.Envived;
 import com.envsocial.android.R;
@@ -32,6 +35,8 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
 	private static final String LIST_EXPANDED_GROUPS_KEY = "listExpandedGroups";
 	private static final String LIST_POSITION_KEY = "listPosition";
 	private static final String ITEM_POSITION_KEY = "itemPosition";
+	private static final String LIST_DATA_KEY = "listData";
+	private static final String PAGER_STATE_KEY = "pagerState";
 	
 	private static SparseArray<String> mCatalogTitleMap;
 	static {
@@ -45,17 +50,21 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
 	private TitlePageIndicator mTitlePageIndicator;
 	
 	
-	//private SparseArray<OrderCatalogListAdapter> mCatalogListAdapterMap;
 	private SparseArray<OrderCatalogCursorAdapter> mCatalogListAdapterMap;
-	private SparseArray<Bundle> mCatalogListStateMap;
+	private HashMap<Integer, Bundle> mCatalogListStateMap;
 	
 	
 	public OrderCatalogPagerAdapter(OrderFragment parentFragment) {
 		mParentFragment = parentFragment;
 		mCatalogListAdapterMap = new SparseArray<OrderCatalogCursorAdapter>();
-		
-		mCatalogListStateMap = new SparseArray<Bundle>();
+		mCatalogListStateMap = new HashMap<Integer, Bundle>();
 	}
+	
+	
+	public OrderFragment getParentFragment() {
+		return mParentFragment;
+	}
+	
 	
 	@Override
 	public int getCount() {
@@ -69,31 +78,36 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
         		.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view = inflater.inflate(R.layout.catalog_page, null);
         
-        OrderFeature orderFeat = mParentFragment.getOrderFeature(); 
-        OrderCatalogCursorAdapter	adapter = mCatalogListAdapterMap.get(position);
         
+        OrderFeature orderFeat = mParentFragment.getOrderFeature(); 
+        
+        /*
+        OrderCatalogCursorAdapter adapter = mCatalogListAdapterMap.get(position);
         if (adapter == null) {
-        	String type = mCatalogTitleMap.get(position);
+        	//String type = mCatalogTitleMap.get(position);
+        	String type = mCatalogTitleMap.get(0);
         	
 	        // Create custom expandable list adapter
-	        /*
-        	adapter = new OrderCatalogListAdapter(mParentFragment,
-	        			orderFeat.getOrderCategories(type),
-	     				R.layout.catalog_group,
-	     				new String[] { OrderFeature.CATEGORY_NAME },
-	     				new int[] { R.id.orderGroup },
-	     				orderFeat.getOrderItems(type),
-	     				R.layout.catalog_item,
-	     				new String[] { OrderFeature.ITEM_NAME },
-	     				new int[] { R.id.orderItem }
-	     	);
-     		*/
-        	
         	adapter = new OrderCatalogCursorAdapter(mParentFragment, 
         			mParentFragment.getActivity(), orderFeat.getOrderCategoryCursor(type), 
         			R.layout.catalog_group, R.layout.catalog_item);
         	
 	        mCatalogListAdapterMap.put(position, adapter);
+        }
+        */
+        
+        String type = mCatalogTitleMap.get(position);
+        OrderCatalogCursorAdapter adapter = new OrderCatalogCursorAdapter(this, position, 
+        		orderFeat.getOrderCategoryCursor(type), 
+    			R.layout.catalog_group, R.layout.catalog_item);
+        mCatalogListAdapterMap.put(position, adapter);
+        
+        
+        // restore list data if any was saved
+        Bundle listSavedData = mCatalogListStateMap.get(position);
+        if (listSavedData != null) {
+        	Bundle listDataBundle = listSavedData.getBundle(LIST_DATA_KEY);
+        	adapter.restoreState(listDataBundle);
         }
         
         // create the expandable list view
@@ -107,11 +121,30 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
         
         // Set list adapter
      	listView.setAdapter(adapter);
+        
+     	// set listeners
+     	final int pagePosition = position;
+     	final ExpandableListView fListView = listView;
+     	
+     	listView.setOnGroupExpandListener(new OnGroupExpandListener() {			
+			@Override
+			public void onGroupExpand(int groupPosition) {
+				Bundle listSavedData = saveListState(fListView);
+				mCatalogListStateMap.put(pagePosition, listSavedData);
+			}
+		});
+     	
+     	listView.setOnGroupCollapseListener(new OnGroupCollapseListener() {
+			@Override
+			public void onGroupCollapse(int groupPosition) {
+				Bundle listSavedData = saveListState(fListView);
+				mCatalogListStateMap.put(pagePosition, listSavedData);
+			}
+		});
+     	
      	
         // restore list state if any was saved
-        Bundle listSavedData = mCatalogListStateMap.get(position);
         if (listSavedData != null) {
-        	
         	ArrayList<Long> expandedListState = (ArrayList<Long>)listSavedData.getSerializable(LIST_EXPANDED_GROUPS_KEY);
         	int listPosition = listSavedData.getInt(ITEM_POSITION_KEY);
         	int listItemPosition = listSavedData.getInt(ITEM_POSITION_KEY);
@@ -120,14 +153,12 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
         		restoreExpandedState(expandedListState, listView);
         	}
         	listView.setSelectionFromTop(listPosition, listItemPosition);
-        	
-        	// at the end clear current state
-        	mCatalogListStateMap.remove(position);
         }
         
         
      	// add the whole page view to the collection
         ((ViewPager) collection).addView(view, 0);
+     	//((ViewPager) collection).addView(view);
 
         return view;
     }
@@ -140,22 +171,7 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
 		
 		// get the list view
 		ExpandableListView listView = (ExpandableListView) ((View)view).findViewById(R.id.catalog_page);
-		Bundle listSavedData = new Bundle();
-		
-		//Log.d(TAG, "--- Trying to SAVE state for position: " + position);
-		
-		// save list state
-		ArrayList<Long> expandedListState = getExpandedIds(listView);
-		listSavedData.putSerializable(LIST_EXPANDED_GROUPS_KEY, expandedListState);
-		
-		// save position of first visible item
-		int listPosition = listView.getFirstVisiblePosition();
-		listSavedData.putInt(LIST_POSITION_KEY, listPosition);
-		
-		// Save scroll position of item
-	    View itemView = listView.getChildAt(0);
-	    int listItemPosition = itemView == null ? 0 : itemView.getTop();
-	    listSavedData.putInt(ITEM_POSITION_KEY, listItemPosition);
+		Bundle listSavedData = saveListState(listView);
 		
 	    // store saved list state in the map
 	    mCatalogListStateMap.put(position, listSavedData);
@@ -167,7 +183,8 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
 	
 	@Override
     public boolean isViewFromObject(View view, Object obj) {
-        return view == ((View) obj);
+        boolean result = view == ((View) obj);
+		return result;
     }
 
 	@Override
@@ -181,14 +198,34 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
 	}
 	
 	
+	
+	// ========================= Order Feature Selection State Management ========================= //
+	
+	public Bundle onSaveInstanceState() {
+		Bundle pagerStateBundle = new Bundle();
+		pagerStateBundle.putSerializable(PAGER_STATE_KEY, mCatalogListStateMap);
+		
+		return pagerStateBundle;
+	}
+	
+	
+	public void onRestoreInstanceState(Bundle pagerStateBundle) {
+		HashMap<Integer, Bundle> catalogListStateMap = 
+				(HashMap<Integer, Bundle>)pagerStateBundle.getSerializable(PAGER_STATE_KEY);
+		if (catalogListStateMap != null) {
+			mCatalogListStateMap = catalogListStateMap;
+		}
+	}
+	
+	
 	@Override
 	public List<Map<String, Object>> getOrderSelections() {
 		int pageCt = getCount();
-		List<Map<String, Object>> orderList = 
-				new ArrayList<Map<String,Object>>();
+		List<Map<String, Object>> orderList = new ArrayList<Map<String,Object>>();
 		
 		// add the selections from each page to make a single order
 		for (int page = 0; page < pageCt; page++) {
+			
 			OrderCatalogCursorAdapter catalogAdapter = mCatalogListAdapterMap.get(page);
 			if (catalogAdapter != null) {
 				orderList.addAll(catalogAdapter.getOrderSelections());
@@ -209,6 +246,7 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
 			}
 		}
 	}
+	
 	
 	@Override
 	public void doCleanup() {
@@ -268,9 +306,43 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
 
 	@Override
 	public void onClick(View v) {
-		// TODO Auto-generated method stub
 		
 	}
+	
+	
+	private Bundle saveListState(ExpandableListView listView) {
+		Bundle listSavedData = new Bundle();
+		
+		// ---- save list data ----
+		OrderCatalogCursorAdapter adapter = (OrderCatalogCursorAdapter)listView.getExpandableListAdapter();
+		Bundle listDataBundle = adapter.onSaveInstanceState();
+		
+		listSavedData.putBundle(LIST_DATA_KEY, listDataBundle);
+		
+		// ---- save list state ----
+		ArrayList<Long> expandedListState = getExpandedIds(listView);
+		listSavedData.putSerializable(LIST_EXPANDED_GROUPS_KEY, expandedListState);
+		
+		// save position of first visible item
+		int listPosition = listView.getFirstVisiblePosition();
+		listSavedData.putInt(LIST_POSITION_KEY, listPosition);
+		
+		// Save scroll position of item
+	    View itemView = listView.getChildAt(0);
+	    int listItemPosition = itemView == null ? 0 : itemView.getTop();
+	    listSavedData.putInt(ITEM_POSITION_KEY, listItemPosition);
+	    
+	    return listSavedData;
+	}
+	
+	
+	protected void saveListData(int pagePosition, Bundle listDataBundle) {
+		Bundle listSavedData = mCatalogListStateMap.get(pagePosition);
+		if (listSavedData != null) {
+			listSavedData.putBundle(LIST_DATA_KEY, listDataBundle);
+		}
+	}
+	
 	
 	private ArrayList<Long> getExpandedIds(ExpandableListView list) {
         ExpandableListAdapter adapter = list.getExpandableListAdapter();

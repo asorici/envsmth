@@ -8,9 +8,9 @@ import android.util.Log;
 
 import com.envsocial.android.EnvivedFeatureUpdateService;
 import com.envsocial.android.features.Feature;
-import com.envsocial.android.features.order.NewOrderNotification;
+import com.envsocial.android.features.order.NewOrderRequestNotification;
 import com.envsocial.android.features.order.OrderFeature;
-import com.envsocial.android.features.order.ResolvedOrderNotification;
+import com.envsocial.android.features.order.ResolvedOrderRequestNotification;
 
 /**
  * Acts like a factory class dispatching Envived GCM Notification messages
@@ -34,14 +34,14 @@ public class EnvivedNotificationDispatcher extends EnvivedReceiver {
 			
 			// order notifications MUST have a type parameter 
 			if (paramsJSON.optString("type", null) != null 
-				&& paramsJSON.optString("type").compareTo(OrderFeature.NEW_ORDER_NOTIFICATION) == 0) {
-				new NewOrderNotification(context, intent, notificationContents).sendNotification();
+				&& paramsJSON.optString("type").compareTo(OrderFeature.NEW_REQUEST_NOTIFICATION) == 0) {
+				new NewOrderRequestNotification(context, intent, notificationContents).sendNotification();
 				
 				return true;
 			}
 			else if (paramsJSON.optString("type", null) != null 
-				&& paramsJSON.optString("type").compareTo(OrderFeature.RESOLVED_ORDER_NOTIFICATION) == 0) {
-				new ResolvedOrderNotification(context, intent, notificationContents).sendNotification();
+				&& paramsJSON.optString("type").compareTo(OrderFeature.RESOLVED_REQUEST_NOTIFICATION) == 0) {
+				new ResolvedOrderRequestNotification(context, intent, notificationContents).sendNotification();
 				
 				return true;
 			}

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical">
+    
+    <TextView 
+        android:id="@+id/order_mgr_request_filter"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" 
+        android:layout_gravity="top|center_horizontal"
+        android:gravity="center_vertical|center_horizontal" 
+        android:textStyle="bold|italic"
+        android:textSize="20dip"
+        android:paddingLeft="10dip"
+        android:paddingRight="10dip"
+        android:background="@color/divider_gray"
+        />
+    
+    <ImageView 
+			android:src="@android:drawable/divider_horizontal_dark"
+			android:layout_width="fill_parent" android:layout_height="wrap_content"
+			android:scaleType="fitXY" android:paddingLeft="2dip"
+			android:paddingRight="2dip" android:paddingBottom="2dip"
+			android:paddingTop="2dip" />
+    
+	<ExpandableListView xmlns:android="http://schemas.android.com/apk/res/android" 
+	    android:id="@+id/order_list"
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent" 
+	    android:groupIndicator="@drawable/group_indicator"
+    />    
+</LinearLayout>

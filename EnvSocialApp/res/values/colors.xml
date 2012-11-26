@@ -6,4 +6,7 @@
         <color name="black">#000000</color>
         <color name="white">#ffffff</color>
         <color name="divider_gray">#b2b2b2</color>
+        <color name="facebook_blue">#3b5998</color>
+        <color name="facebook_light_blue">#8b9dc3</color>
+        <color name="facebook_light_light_blue">#f7f7f7</color>
     </resources>

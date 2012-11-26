@@ -1,6 +1,7 @@
 package com.envsocial.android.features.order;
 
 import java.io.Serializable;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -24,7 +26,7 @@ import com.actionbarsherlock.app.SherlockDialogFragment;
 import com.envsocial.android.R;
 
 public class OrderDialogFragment extends SherlockDialogFragment implements OnClickListener {
-	
+	private static final String TAG = "OrderDialogFragment";
 	private final String SUMMARY_TITLE = "Order Summary";
 	
 	private Button mBtnOrder;
@@ -74,7 +76,7 @@ public class OrderDialogFragment extends SherlockDialogFragment implements OnCli
 		list.setAdapter(adapter);
 		
 		mTotalOrderPrice = (TextView) footer.findViewById(R.id.order_dialog_total_price);
-		mTotalOrderPrice.setText("" + totalPrice + " RON");
+		mTotalOrderPrice.setText("" + new DecimalFormat("#.##").format(totalPrice) + " RON");
 		
 		mBtnOrder = (Button) footer.findViewById(R.id.btn_order);
 		mBtnOrder.setOnClickListener(this);
@@ -143,6 +145,8 @@ public class OrderDialogFragment extends SherlockDialogFragment implements OnCli
 	public String getOrderJSONString() {
 		try {
 			JSONObject allOrderJSON = new JSONObject();
+			
+			// put the order text under a tag
 			JSONArray orderListJSON = new JSONArray();
 			for (Map<String,String> group : mOrderSummary) {
 				JSONObject orderJSON = new JSONObject();
@@ -165,9 +169,12 @@ public class OrderDialogFragment extends SherlockDialogFragment implements OnCli
 			}
 			allOrderJSON.put("item_id_list", itemIdListJSON);
 			
+			// put the order_request_type
+			allOrderJSON.put(OrderFeature.REQUEST_TYPE, OrderFeature.NEW_ORDER_NOTIFICATION);
+			
 			return allOrderJSON.toString();
 		} catch (JSONException e) {
-			e.printStackTrace();
+			Log.d(TAG, "Error building new order json: ", e);
 		}
 		
 		return null;
@@ -184,7 +191,7 @@ public class OrderDialogFragment extends SherlockDialogFragment implements OnCli
 	
 	public void onClick(View v) {
 		if (v == mBtnOrder) {
-			((ISendOrder) getTargetFragment()).sendOrder(this);
+			((ISendOrderRequest) getTargetFragment()).sendOrder(this);
 		} else if (v == mBtnCancel) {
 			dismiss();
 		}

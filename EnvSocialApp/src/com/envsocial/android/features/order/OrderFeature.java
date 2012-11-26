@@ -45,8 +45,13 @@ public class OrderFeature extends Feature {
 	public static final String ITEM_PRICE = "price";
 	public static final String ITEM_USAGE_RANK = "usage_rank";
 	
+	public static final String REQUEST_TYPE = "order_request_type";
+	public static final String NEW_REQUEST_NOTIFICATION = "new_request";
+	public static final String RESOLVED_REQUEST_NOTIFICATION = "resolved_request";
+	
 	public static final String NEW_ORDER_NOTIFICATION = "new_order";
-	public static final String RESOLVED_ORDER_NOTIFICATION = "resolved_order";
+	public static final String CALL_WAITER_NOTIFICATION = "call_waiter";
+	public static final String CALL_CHECK_NOTIFICATION = "call_check";
 	public static final String UPDATE_CONTENT_NOTIFICATION = "update_content";
 	public static final String UPDATE_STRUCTURE_NOTIFICATION = "update_structure";
 	
@@ -80,7 +85,7 @@ public class OrderFeature extends Feature {
 		super.doUpdate();
 		
 		// rebuild order mappings and update the dbHelper
-		buildOrderMappings();
+		// buildOrderMappings();
 		
 		if (dbHelper == null) {
 			dbHelper = new OrderDbHelper(Envived.getContext(), this, version);

@@ -1,0 +1,174 @@
+package com.envsocial.android.features.order;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.envsocial.android.R;
+
+public class OrderTabListAdapter extends BaseAdapter {
+	private List<Map<String, Object>> mOrderSelections;
+	private List<Map<String,String>> mOrderSummary;
+	private double mTotalTabPrice;
+	
+	private OrderTabDialogFragment mParentFragment;
+	
+	
+	public OrderTabListAdapter(OrderTabDialogFragment parentFragment, List<Map<String, Object>> orderSelections) {
+		mParentFragment = parentFragment;
+		
+		mOrderSelections = orderSelections;
+		mOrderSummary = new ArrayList<Map<String,String>>();
+		mTotalTabPrice = getOrderSummary();
+	}
+	
+	@Override
+	public int getCount() {
+		return mOrderSummary.size();
+	}
+
+	@Override
+	public Map<String, String> getItem(int position) {
+		return mOrderSummary.get(position);
+	}
+
+	@Override
+	public long getItemId(int position) {
+		return position;
+	}
+
+	@Override
+	public View getView(int position, View convertView, ViewGroup parent) {
+		
+		ViewHolder holder;
+		if (convertView == null) {
+			LayoutInflater inflater = (LayoutInflater)mParentFragment.getActivity().
+        			getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        	convertView = inflater.inflate(R.layout.order_tab_dialog_row, null);
+        	
+        	holder = new ViewHolder();
+			holder.categoryView = (TextView) convertView.findViewById(R.id.category);
+			holder.itemsView = (TextView) convertView.findViewById(R.id.items);
+			holder.fbShareButton = (ImageView)convertView.findViewById(R.id.order_share_fb);
+			holder.fbShareButton.setOnClickListener(new OrderShareClickListener(holder));
+			
+			convertView.setTag(holder);
+		}
+		else {
+			holder = (ViewHolder) convertView.getTag();
+		}
+		
+		bindViewData(holder, position);
+		
+        return convertView;
+	}
+	
+	private void bindViewData(ViewHolder holder, int position) {
+		Map<String, String> orderData = getItem(position);
+        
+		holder.position = position;
+		
+        // Setting all values of the row view
+        holder.categoryView.setText(orderData.get("category"));
+        holder.itemsView.setText(orderData.get("items"));
+	}
+
+	static class ViewHolder {
+		int position;
+		
+		TextView categoryView;
+		TextView itemsView;
+		ImageView fbShareButton;
+	}
+	
+	
+	double getTotalTabPrice() {
+		return mTotalTabPrice;
+	}
+	
+	private double getOrderSummary() {
+		double totalPrice = 0;
+		Map<String, List<Map<String, Object>>> summaryCategoryGrouping = 
+				new HashMap<String, List<Map<String, Object>>>();
+		
+		int orderLen = mOrderSelections.size();
+		for (int idx = 0; idx < orderLen; idx++ ) {
+			// the keys have no importance; we just want access to the elements
+			Map<String, Object> selection = mOrderSelections.get(idx);
+			String category = (String)selection.get(OrderFeature.CATEGORY);
+			
+			totalPrice += 
+					(Integer) selection.get("quantity") * (Double) selection.get(OrderFeature.ITEM_PRICE);
+			
+			if (summaryCategoryGrouping.containsKey(category)) {
+				summaryCategoryGrouping.get(category).add(selection);
+			}
+			else {
+				List<Map<String, Object>> categorySelectedItemList = new ArrayList<Map<String,Object>>();
+				categorySelectedItemList.add(selection);
+				
+				summaryCategoryGrouping.put(category, categorySelectedItemList);
+			}
+		}
+		
+		StringBuilder categorySummary = new StringBuilder();
+		
+		for (String category : summaryCategoryGrouping.keySet()) {
+			List<Map<String, Object>> categorySelectedItemList = summaryCategoryGrouping.get(category);
+			
+			for (Map<String, Object> itemData : categorySelectedItemList) {
+				categorySummary.append(buildSummaryRow(itemData));
+			}
+			
+			Map<String,String> catWrapper = new HashMap<String,String>();
+			catWrapper.put("category", category);
+			catWrapper.put("items", categorySummary.toString());
+			mOrderSummary.add(catWrapper);
+			
+			categorySummary.delete(0, categorySummary.length());
+		}
+		
+		return totalPrice;
+	}
+	
+	
+	private String buildSummaryRow(Map<String, Object> itemData) {
+		String itemName = (String) itemData.get(OrderFeature.ITEM);
+		double price = (Double) itemData.get(OrderFeature.ITEM_PRICE);
+		int quantity = (Integer) itemData.get("quantity");
+		
+		return quantity + " x " + itemName + " (" + price + " RON)" + "\n";
+	}
+	
+	
+	private class OrderShareClickListener implements OnClickListener {
+		private ViewHolder mViewHolder;
+		
+		OrderShareClickListener(ViewHolder holder) {
+			mViewHolder = holder;
+		}
+		
+		@Override
+		public void onClick(View v) {
+			if (v.getId() == R.id.order_share_fb) {
+				HashMap<String, String> order = (HashMap<String, String>)getItem(mViewHolder.position);
+				// set the order to be published
+				mParentFragment.setPublishOrder(order);
+				
+				// publish it on wall
+				mParentFragment.publishOrderOnFB();
+			}
+		}
+	}
+	
+}

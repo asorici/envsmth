@@ -41,7 +41,6 @@ public class Annotation {
 	private Calendar mTimestamp;
 	
 	public Annotation(Location location, String category, Calendar timestamp, String annotation) {
-		
 		mLocation = location;
 		mCategory = category;
 		mTimestamp = timestamp;
@@ -60,6 +59,7 @@ public class Annotation {
 		mUri = uri;
 		mUserUri = userUri;
 	}
+	
 	
 	public ResponseHolder post(Context context) {
 		AppClient client = new AppClient(context);

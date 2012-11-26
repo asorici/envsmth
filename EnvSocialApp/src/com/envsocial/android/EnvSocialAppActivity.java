@@ -1,10 +1,13 @@
 package com.envsocial.android;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -13,10 +16,16 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 
+import com.envsocial.android.api.ActionHandler;
+import com.envsocial.android.api.exceptions.EnvSocialComException;
+import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.utils.Preferences;
+import com.envsocial.android.utils.ResponseHolder;
 import com.envsocial.android.widget.Tour;
+import com.google.android.gcm.GCMRegistrar;
 
 public class EnvSocialAppActivity extends Activity implements OnClickListener {
+	private static final String TAG = "EnvSocialAppActivity";
 	
 	private Button mBtnAnonymous;
 	private Button mBtnRegister;
@@ -65,6 +74,20 @@ public class EnvSocialAppActivity extends Activity implements OnClickListener {
     	Window window = getWindow();
     	window.setFormat(PixelFormat.RGBA_8888);
     }
+    
+    
+    @Override
+    public void onStart() {
+    	super.onStart();
+    	
+    	if (Preferences.isCheckedIn(getApplicationContext())) {
+    		// the flow is such that this method should be called when ending the
+    		// HomeActivity as an anonymous user without checking out. Since we don't
+    		// like that we're going to perform checkout here.
+    		new CheckoutTask().execute();
+    	}
+    }
+    
     
     public void onClick(View v) {
     	if (v == mBtnAnonymous) {
@@ -123,4 +146,51 @@ public class EnvSocialAppActivity extends Activity implements OnClickListener {
 			return imgView;
 		}
     }
+    
+    
+    private class CheckoutTask extends AsyncTask<Void, Void, ResponseHolder> {
+		private ProgressDialog mLoadingDialog;
+		
+		@Override
+		protected void onPreExecute() {
+			mLoadingDialog = ProgressDialog.show(EnvSocialAppActivity.this, 
+					"", "Checking out ...", true);
+		}
+		
+		@Override
+		protected ResponseHolder doInBackground(Void...args) {
+			Context context = getApplicationContext();
+			
+			ResponseHolder response = ActionHandler.checkout(context);
+			if (!response.hasError() && !Preferences.isLoggedIn(context)) {
+				// unregister from our server notifications
+				GCMRegistrar.setRegisteredOnServer(context, false);
+			}
+			
+			return response;
+		}
+		
+		@Override
+		protected void onPostExecute(ResponseHolder holder) {
+			mLoadingDialog.cancel();
+			
+			if (holder.hasError()) {
+				// TODO: 	for now log the communication error and checkout anyway
+				//			need to figure out a way to re-establish consistency 
+				
+				try {
+					throw holder.getError();
+				} catch (EnvSocialComException e) {
+					Log.d(TAG, e.getMessage(), e);
+				} catch (EnvSocialContentException e) {
+					Log.d(TAG, e.getMessage(), e);
+				} catch (Exception e) {
+					Log.d(TAG, e.toString(), e);
+				}
+
+				// checkout anyway before going back to the main activity
+				Preferences.checkout(getApplicationContext());
+			}
+		}
+	}
 }

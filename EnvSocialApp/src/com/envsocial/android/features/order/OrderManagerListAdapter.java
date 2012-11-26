@@ -3,6 +3,7 @@ package com.envsocial.android.features.order;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,51 +17,92 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.text.Html;
-import android.util.Log;
-import android.util.SparseArray;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.BaseExpandableListAdapter;
 import android.widget.Button;
-import android.widget.SimpleExpandableListAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.envsocial.android.R;
 import com.envsocial.android.api.Annotation;
+import com.envsocial.android.api.Url;
 import com.envsocial.android.features.IFeatureAdapter;
 import com.envsocial.android.utils.Utils;
+import com.envsocial.android.utils.SortedList;
 
-public class OrderManagerListAdapter extends SimpleExpandableListAdapter implements IFeatureAdapter {
+public class OrderManagerListAdapter extends BaseExpandableListAdapter implements IFeatureAdapter {
 	private static final String TAG = "OrderManagerListAdapter";
 	
 	private Context mContext;
 	
-	private SparseArray<List<Map<String,String>>> mChildData;
-	private String[] mChildFrom;
-	private int[] mChildTo;
+	private Map<String, List<Map<String, String>>> mOrderRequestMap;
+	private List<Map<String, String>> mOrderLocations;
+	private List<Map<String, String>> mFilteredOrderLocations;
+	
+	private Map<String, Integer> mOrderRequestTypeImageMap;
+	private Map<String, List<Map<String, String>>> mFilteredOrderRequestMap;
+	private String mRequestFilter;
 	
 	//private Map<String, ChildViewHolder> mChildViewHolderMap;
 	private Map<String, String> mTimestampGapMapper;
 	private Timer mTimestampGapTimer;
 	
-	public OrderManagerListAdapter(Context context,
-			List<? extends Map<String, String>> groupData, int groupLayout,
-			String[] groupFrom, int[] groupTo,
-			SparseArray<List<Map<String, String>>> childData,
-			int childLayout, String[] childFrom, int[] childTo) {
-		super(context, groupData, groupLayout, groupFrom, groupTo, null,
-				childLayout, null, null);
-		
+	public OrderManagerListAdapter(Context context) {
 		mContext = context;
-		mChildData = childData;
-		mChildFrom = childFrom;
-		mChildTo = childTo;
+		mOrderRequestMap = new HashMap<String, List<Map<String,String>>>();
+		mOrderLocations = new SortedList<Map<String,String>>(new LocationDataComparator());
 		
 		//mChildViewHolderMap = new HashMap<String, OrderManagerListAdapter.ChildViewHolder>();
 		mTimestampGapMapper = new HashMap<String,String>();
+		mOrderRequestTypeImageMap = new HashMap<String, Integer>();
+		mOrderRequestTypeImageMap.put(OrderFeature.NEW_ORDER_NOTIFICATION, R.drawable.order_request_new_order);
+		mOrderRequestTypeImageMap.put(OrderFeature.CALL_CHECK_NOTIFICATION, R.drawable.order_request_call_check);
+		mOrderRequestTypeImageMap.put(OrderFeature.CALL_WAITER_NOTIFICATION, R.drawable.order_request_call_waiter);
+		
+		// default filter is "all"
+		filterOrderRequestMap("all");
 		
 		monitorTimegaps();
 	}
+	
+	protected void filterOrderRequestMap(String requestFilter) {
+		mRequestFilter = requestFilter;
+		mFilteredOrderRequestMap = new HashMap<String, List<Map<String,String>>>();
+		mFilteredOrderLocations = new SortedList<Map<String,String>>(new LocationDataComparator());
+		
+		if (!mRequestFilter.equals("all")) {
+			int numLocations = mOrderLocations.size();
+			for (int i = 0; i < numLocations; i++) {
+				Map<String, String> locationData = mOrderLocations.get(i);
+				String locationName = locationData.get("location_name");
+				
+				List<Map<String, String>> locationOrderRequests = mOrderRequestMap.get(locationName);
+				List<Map<String, String>> filteredOrderRequests = new ArrayList<Map<String,String>>();
+				
+				int numRequests = locationOrderRequests.size();
+				for (int r = 0; r < numRequests; r++) {
+					Map<String, String> orderRequestData = locationOrderRequests.get(r);
+					String orderRequestType = orderRequestData.get(OrderManagerFragment.ORDER_REQUEST_TYPE); 
+					if (orderRequestType.equalsIgnoreCase(requestFilter)) {
+						filteredOrderRequests.add(orderRequestData);
+					}
+				}
+				
+				if (!filteredOrderRequests.isEmpty()) {
+					mFilteredOrderLocations.add(locationData);
+					mFilteredOrderRequestMap.put(locationName, filteredOrderRequests);
+				}
+			}
+		}
+		else {
+			mFilteredOrderLocations.addAll(mOrderLocations);
+			mFilteredOrderRequestMap.putAll(mOrderRequestMap);
+		}
+	}
+
 	
 	private void monitorTimegaps() {
 		mTimestampGapTimer = new Timer();
@@ -74,20 +116,18 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter impleme
 					public void run() {
 						if (mTimestampGapMapper != null) {
 							synchronized(mTimestampGapMapper) {
-								int nrLocations = mChildData.size(); 
-								for (int i = 0; i < nrLocations; i++) {
-									List<Map<String, String>> locationOrders = mChildData.get(i);
+								for (String locationName : mOrderRequestMap.keySet()) {
+									List<Map<String, String>> locationOrderRequests = 
+											mOrderRequestMap.get(locationName);
 									
-									int nrLocationOrders = locationOrders.size(); 
+									int nrLocationOrders = locationOrderRequests.size(); 
 									for (int j = 0; j < nrLocationOrders; j++) {
-										Map<String, String> orderData = locationOrders.get(j);
+										Map<String, String> orderData = locationOrderRequests.get(j);
 										String resourceUri = orderData.get(OrderManagerFragment.RESOURCE_URI);
-										
-										//Log.d(TAG, "Resetting timegaps for item: (" + i + ", " + j + ")");
 										
 										try {
 											Calendar orderCal = Utils.stringToCalendar(
-													orderData.get(OrderManagerFragment.ORDER_TIMESTAMP), null);
+													orderData.get(OrderManagerFragment.ORDER_REQUEST_TIMESTAMP), null);
 											Calendar now = Calendar.getInstance(
 													TimeZone.getTimeZone("Europe/Bucharest"));
 											
@@ -110,29 +150,64 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter impleme
 		mTimestampGapTimer.schedule(updateTimegapTask, 10000, 60000);
 	}
 	
-	public void addOrderData(int groupIndex, Map<String, String> orderData, boolean reverseOrder) {
-		String resourceUri = orderData.get(OrderManagerFragment.RESOURCE_URI);
+	public void addOrderRequestData(Map<String, String> locationData, Map<String, String> orderRequestData, boolean reverseOrder) {
+		String resourceUri = orderRequestData.get(OrderManagerFragment.RESOURCE_URI);
+		String orderRequestType = orderRequestData.get(OrderManagerFragment.ORDER_REQUEST_TYPE);
+		String locationName = locationData.get("location_name");
 		
-		List<Map<String, String>> locationOrders = mChildData.get(groupIndex); 
-		if (locationOrders == null) {
-			locationOrders = new ArrayList<Map<String,String>>();
-			locationOrders.add(orderData);
+		// --------------- do unfiltered check first ---------------
+		if (mOrderLocations.contains(locationData)) {
+			List<Map<String, String>> locationOrderRequests = mOrderRequestMap.get(locationName);
 			
-			mChildData.put(groupIndex, locationOrders);
-		}
-		else {
 			if (reverseOrder) {
-				mChildData.get(groupIndex).add(0, orderData);
+				locationOrderRequests.add(0, orderRequestData);
 			}
 			else {
-				mChildData.get(groupIndex).add(orderData);
+				locationOrderRequests.add(orderRequestData);
+			}
+		}
+		else {
+			mOrderLocations.add(locationData);
+			
+			List<Map<String, String>> locationOrderRequest = new ArrayList<Map<String, String>>();
+			locationOrderRequest.add(orderRequestData);
+			mOrderRequestMap.put(locationName, locationOrderRequest);
+		}
+		
+		// --------------- do filtered check next ---------------
+		if (mRequestFilter.equals("all")) {
+			mFilteredOrderLocations.clear();
+			mFilteredOrderLocations.addAll(mOrderLocations);
+			
+			mFilteredOrderRequestMap.clear();
+			mFilteredOrderRequestMap.putAll(mOrderRequestMap);
+		}
+		else if (mRequestFilter.equals(orderRequestType)) {
+			if (mFilteredOrderLocations.contains(locationData)) {
+				List<Map<String, String>> filteredlocationOrderRequests = 
+						mFilteredOrderRequestMap.get(locationName);
+				
+				if (reverseOrder) {
+					filteredlocationOrderRequests.add(0, orderRequestData);
+				}
+				else {
+					filteredlocationOrderRequests.add(orderRequestData);
+				}
+			}
+			else {
+				mFilteredOrderLocations.add(locationData);
+				
+				List<Map<String, String>> filteredLocationOrderRequests = new ArrayList<Map<String, String>>();
+				filteredLocationOrderRequests.add(orderRequestData);
+				mFilteredOrderRequestMap.put(locationName, filteredLocationOrderRequests);
 			}
 		}
 		
 		
+		// --------------- then add to timestamp gap mapper ---------------
 		Calendar orderCal;
 		try {
-			orderCal = Utils.stringToCalendar(orderData.get(OrderManagerFragment.ORDER_TIMESTAMP), null);
+			orderCal = Utils.stringToCalendar(orderRequestData.get(OrderManagerFragment.ORDER_REQUEST_TIMESTAMP), null);
 			Calendar now = Calendar.getInstance(TimeZone.getTimeZone("Europe/Bucharest"));
 			
 			String prettyTimeDiff = getPrettyTimeDiffInMinutes(orderCal, now);
@@ -148,34 +223,113 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter impleme
 		}
 	}
 	
-	public void setChildData(SparseArray<List<Map<String,String>>> mOrderLocations) {
-		mChildData = mOrderLocations;
-	}
 	
-	@Override
-	public Map<String,String> getChild(int groupPosition, int childPosition) {
-		return mChildData.get(groupPosition).get(childPosition);
-	}
-	
-	@Override
-	public int getChildrenCount(int groupPosition) {
-		return mChildData.get(groupPosition).size();
-	}
-	
-	public void removeItem(int groupPosition, int childPosition) {
-		List<Map<String,String>> orders = mChildData.get(groupPosition);
-		String orderAnnotationUri = orders.get(childPosition).get(OrderManagerFragment.RESOURCE_URI);
+	public void removeOrderRequestData(int groupPosition, int childPosition) {
+		Map<String, String> filteredLocationData = mFilteredOrderLocations.get(groupPosition);
+		String locationName = filteredLocationData.get("location_name");
 		
-		// first remove from timegap mapper
+		// remove from filtered map
+		List<Map<String, String>> locationOrderRequests = mFilteredOrderRequestMap.get(locationName); 
+		Map<String, String> orderRequestData = locationOrderRequests.remove(childPosition);
+		
+		// remove from unfiltered map as well - remove by object reference this time
+		List<Map<String, String>> unfilteredLocationOrderRequests = mOrderRequestMap.get(locationName); 
+		unfilteredLocationOrderRequests.remove(orderRequestData);
+		
+		// also remove the group if all orders are removed
+		if (locationOrderRequests.isEmpty()) {
+			mFilteredOrderRequestMap.remove(locationName);
+			Map<String, String> locationData = mFilteredOrderLocations.remove(groupPosition);
+		
+			if (unfilteredLocationOrderRequests.isEmpty()) {
+				mOrderRequestMap.remove(locationName);
+				mOrderLocations.remove(locationData);
+			}
+		}
+		
+		
+		// remove from timegap mapper as well
+		String orderAnnotationUri = orderRequestData.get(OrderManagerFragment.RESOURCE_URI);
 		synchronized(mTimestampGapMapper) {
 			mTimestampGapMapper.remove(orderAnnotationUri);
 		}
 		
-		// then remove from list
-		orders.remove(childPosition);
-		
-		// TODO also remove the group if all orders are removed
 		notifyDataSetChanged();
+	}
+
+	
+	@Override
+	public Map<String, String> getGroup(int groupPosition) {
+		return mFilteredOrderLocations.get(groupPosition);
+	}
+
+	@Override
+	public int getGroupCount() {
+		return mFilteredOrderLocations.size();
+	}
+
+	@Override
+	public long getGroupId(int groupPosition) {
+		Map<String, String> locationData = mFilteredOrderLocations.get(groupPosition);
+		String locationUri = locationData.get("location_uri");
+		
+		return Long.parseLong(Url.resourceIdFromUri(locationUri));
+	}
+
+	@Override
+	public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
+		if (convertView == null) {
+			LayoutInflater inflater = 
+					(LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			convertView = inflater.inflate(R.layout.order_mgr_group, parent, false);
+		}
+		
+		TextView locationNameTextView = (TextView)convertView.findViewById(R.id.order_group);
+		Map<String, String> locationData = getGroup(groupPosition);
+		locationNameTextView.setText(locationData.get("location_name"));
+		
+		return convertView;
+	}
+	
+	
+	@Override
+	public Map<String, String> getChild(int groupPosition, int childPosition) {
+		Map<String, String> locationData = mFilteredOrderLocations.get(groupPosition);
+		String locationName = locationData.get("location_name");
+		
+		return mFilteredOrderRequestMap.get(locationName).get(childPosition);
+	}
+	
+	@Override
+	public int getChildrenCount(int groupPosition) {
+		Map<String, String> locationData = mFilteredOrderLocations.get(groupPosition);
+		String locationName = locationData.get("location_name");
+		
+		return mFilteredOrderRequestMap.get(locationName).size();
+	}
+	
+	
+	@Override
+	public long getChildId(int groupPosition, int childPosition) {
+		Map<String, String> locationData = mFilteredOrderLocations.get(groupPosition);
+		String locationName = locationData.get("location_name");
+		Map<String, String> orderRequestData = mFilteredOrderRequestMap.get(locationName).get(childPosition);
+		
+		String resourceUri = orderRequestData.get(OrderManagerFragment.RESOURCE_URI);
+		
+		return Long.parseLong(Url.resourceIdFromUri(resourceUri));
+	}
+
+	
+	
+	@Override
+	public boolean hasStableIds() {
+		return true;
+	}
+
+	@Override
+	public boolean isChildSelectable(int groupPosition, int childPosition) {
+		return false;
 	}
 	
 	@Override
@@ -185,31 +339,29 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter impleme
 		ChildViewHolder holder;
 		
 		if (convertView == null) {
-			convertView = newChildView(isLastChild, parent);
+			LayoutInflater inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			convertView = inflater.inflate(R.layout.order_mgr_item, parent, false);
 			
 			holder = new ChildViewHolder();
 			holder.orderDetailsView = (TextView) convertView.findViewById(R.id.order_details);
 			holder.orderTimegapView = (TextView) convertView.findViewById(R.id.order_timegap);
+			holder.orderRequestTypeImageView = 
+					(ImageView) convertView.findViewById(R.id.order_request_type_image);
+			
 			holder.btnResolve = (Button) convertView.findViewById(R.id.btn_resolve);
 			holder.btnResolve.setOnClickListener(new OrderClickListener(holder));
 			
 			convertView.setTag(holder);
-			
-			//Log.d(TAG, "----------- calling get Child view");
-			
 		} else {
 			holder = (ChildViewHolder) convertView.getTag();
 		}
 		
-		bindChildData(holder, groupPosition, childPosition, mChildFrom, mChildTo);
+		bindChildData(holder, groupPosition, childPosition);
 		
 		return convertView;
 	}
 	
-	private void bindChildData(ChildViewHolder holder, 
-			int groupPosition, int childPosition, String[] from, int[] to) {
-		
-		//Log.d(TAG, "----------- calling bind child data " );
+	private void bindChildData(ChildViewHolder holder, int groupPosition, int childPosition) {
 		
 		Map<String,String> childData = getChild(groupPosition, childPosition);
 		
@@ -217,8 +369,11 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter impleme
 		holder.childPosition = childPosition;
 		holder.uri = childData.get(OrderManagerFragment.RESOURCE_URI);
 		
+		String orderRequestType = childData.get(OrderManagerFragment.ORDER_REQUEST_TYPE);
+		holder.orderRequestTypeImageView.setImageDrawable(
+				mContext.getResources().getDrawable(mOrderRequestTypeImageMap.get(orderRequestType)));
 		
-		String orderDetails = childData.get(OrderManagerFragment.ORDER_DETAILS);
+		String orderDetails = childData.get(OrderManagerFragment.ORDER_REQUEST_DETAILS);
 		holder.orderDetailsView.setText(Html.fromHtml(orderDetails));
 		
 		String orderTimegap = mTimestampGapMapper.get(holder.uri);
@@ -239,6 +394,7 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter impleme
 		
 		TextView orderDetailsView;
 		TextView orderTimegapView;
+		ImageView orderRequestTypeImageView;
 		Button btnResolve;
 	}
 	
@@ -309,7 +465,7 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter impleme
 		@Override
 		protected void onPostExecute(Integer statusCode) {
 			if (statusCode == HttpStatus.SC_NO_CONTENT) {
-				removeItem(mHolder.groupPosition, mHolder.childPosition);
+				removeOrderRequestData(mHolder.groupPosition, mHolder.childPosition);
 			}
 		}
 		
@@ -326,5 +482,23 @@ public class OrderManagerListAdapter extends SimpleExpandableListAdapter impleme
 		}
 		
 		mTimestampGapMapper = null;
+	}
+	
+	
+	private class LocationDataComparator implements Comparator<Map<String, String>> {
+
+		@Override
+		public int compare(Map<String, String> data1, Map<String, String> data2) {
+			String locationName1 = data1.get("location_name");
+			String locationUri1 = data1.get("location_uri");
+			
+			String locationName2 = data2.get("location_name");
+			String locationUri2 = data2.get("location_uri");
+			
+			if (locationUri1.compareTo(locationUri2) == 0) {
+				return 0;
+			}
+			else return locationName1.compareToIgnoreCase(locationName2);
+		}
 	}
 }

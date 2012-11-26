@@ -89,7 +89,7 @@
         <activity android:name=".features.program.EntryDetailsActivity" />
         
         <activity
-            android:name=".features.order.ResolvedOrderDialogActivity"
+            android:name=".features.order.ResolvedOrderRequestDialogActivity"
             android:theme="@android:style/Theme.Dialog" />
         
         <receiver android:name="com.google.android.gcm.GCMBroadcastReceiver"
@@ -114,6 +114,10 @@
                 <category android:name="com.envsocial.android" />
             </intent-filter>
         </receiver>
+        
+        <meta-data android:value="@string/facebook_app_id" android:name="com.facebook.sdk.ApplicationId"/>
+        
+        <activity android:name="com.facebook.LoginActivity" android:label="@string/app_name"></activity>
     </application>
 
 </manifest>

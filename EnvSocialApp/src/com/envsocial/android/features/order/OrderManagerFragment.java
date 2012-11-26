@@ -1,6 +1,5 @@
 package com.envsocial.android.features.order;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -10,18 +9,22 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ExpandableListView;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragment;
@@ -44,22 +47,23 @@ public class OrderManagerFragment extends SherlockFragment {
 	
 	protected static final String RESOURCE_URI = "resource_uri";
 	protected static final String LOCATION_NAME = "location_name";
-	protected static final String ORDER_DETAILS = "order_details";
-	protected static final String ORDER_TIMESTAMP = "timestamp";
+	protected static final String ORDER_REQUEST_DETAILS = "order_details";
+	protected static final String ORDER_REQUEST_TIMESTAMP = "timestamp";
+	protected static final String ORDER_REQUEST_TYPE = OrderFeature.REQUEST_TYPE;
 	
-	private static final String REFRESH_ORDERS_MENU_ITEM = "Refresh Orders";
+	private static final String REFRESH_ORDER_REQUESTS_MENU_ITEM = "Refresh";
+	private static final String FILTER_ORDER_REQUESTS_MENU_ITEM = "Filter";
 	
 	private Location mLocation;
-	private Calendar lastRefreshTimestamp;
+	private Calendar mLastRefreshTimestamp;
 
 	private ExpandableListView mList;
+	private TextView mOrderRequestFilterValue;
 	private OrderManagerListAdapter mAdapter;
+	
 	private NewOrderReceiver mOrderReceiver;
 	private ProgressDialog mOrderRetrievalDialog;
-	
-	private List<Map<String,String>> mOrderLocations;
-	private SparseArray<List<Map<String,String>>> mOrders;
-	private Map<String,Integer> mIndex;
+	private Map<String, String> mRequestFilterMap;
 	
 	
 	@Override
@@ -68,22 +72,19 @@ public class OrderManagerFragment extends SherlockFragment {
 	    setHasOptionsMenu(true);
 	    
 	    mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
-	    mOrderLocations = new ArrayList<Map<String,String>>();
-		mOrders = new SparseArray<List<Map<String,String>>>();
-		mIndex = new HashMap<String,Integer>();
 		
+
+		// setup request filter options
+		mRequestFilterMap = new HashMap<String, String>();
+		mRequestFilterMap.put("All Requests", "all");
+		mRequestFilterMap.put("Order Requests", OrderFeature.NEW_ORDER_NOTIFICATION);
+		mRequestFilterMap.put("Check Requests", OrderFeature.CALL_CHECK_NOTIFICATION);
+		mRequestFilterMap.put("Waiter Requests", OrderFeature.CALL_WAITER_NOTIFICATION);
+	    
 		// Create custom expandable list adapter
-		mAdapter = new OrderManagerListAdapter(getActivity(), 
-				mOrderLocations,
-				R.layout.order_group, 
-				new String[] { LOCATION_NAME },
-				new int[] { R.id.order_group }, 
-				mOrders, R.layout.order_item,
-				new String[] { ORDER_DETAILS, ORDER_TIMESTAMP },
-				new int[] { R.id.order_details }
-		);
+		mAdapter = new OrderManagerListAdapter(getActivity());
 		
-		getOrders(null, false);
+		getRequests(null, false);
 	}
 	
 	
@@ -112,7 +113,7 @@ public class OrderManagerFragment extends SherlockFragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 							Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.order, container, false);
+		return inflater.inflate(R.layout.order_mgr, container, false);
 	}
 	
 	@Override
@@ -140,11 +141,16 @@ public class OrderManagerFragment extends SherlockFragment {
         mList.setIndicatorBounds(width - UIUtils.getDipsFromPixel(28, appContext), width - UIUtils.getDipsFromPixel(10, appContext));
 		mList.setAdapter(mAdapter);
 		
-		int len = mAdapter.getGroupCount();
-		for (int i = 0; i < len; ++ i) {
-			mList.expandGroup(i);
-		}
+		LayoutInflater inflater = (LayoutInflater)getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		mList.setEmptyView(inflater.inflate(R.layout.order_mgr_empty, mList, false));
+		
+		// set filter value view
+		mOrderRequestFilterValue = (TextView) view.findViewById(R.id.order_mgr_request_filter);
+		Resources res = getActivity().getResources();
+		String filterValue = String.format(res.getString(R.string.order_mgr_filter_value), "All Requests");
+		mOrderRequestFilterValue.setText(filterValue);
 	}
+	
 	
 	@Override
 	public void onDestroyView() {
@@ -152,10 +158,12 @@ public class OrderManagerFragment extends SherlockFragment {
 		mList = null;
 	}
 	
+	
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater menuInflater) {
 		// add the register/unregister for notifications menu options
-     	menu.add(REFRESH_ORDERS_MENU_ITEM);
+     	menu.add(REFRESH_ORDER_REQUESTS_MENU_ITEM);
+     	menu.add(FILTER_ORDER_REQUESTS_MENU_ITEM);
 		
 		super.onCreateOptionsMenu(menu, menuInflater);
 	}
@@ -163,10 +171,53 @@ public class OrderManagerFragment extends SherlockFragment {
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		if (item.getTitle().toString().compareTo(REFRESH_ORDERS_MENU_ITEM) == 0) {
+		if (item.getTitle().toString().compareTo(REFRESH_ORDER_REQUESTS_MENU_ITEM) == 0) {
 			
 			// get all orders since the last one handled
-			getOrders(lastRefreshTimestamp, false);
+			getRequests(mLastRefreshTimestamp, false);
+			return true;
+		}
+		else if (item.getTitle().toString().compareTo(FILTER_ORDER_REQUESTS_MENU_ITEM) == 0) {
+			
+			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+			LayoutInflater inflater = 
+					(LayoutInflater)getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			View layout = inflater.inflate(R.layout.order_mgr_filter_dialog, null);
+			final Spinner filterSpinner = (Spinner) layout.findViewById(R.id.order_mgr_filter_spinner);
+			
+			alertDialogBuilder
+				.setTitle("Filter requests by:")
+				.setCancelable(true)
+				.setView(layout);
+			
+			alertDialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.cancel();
+				}
+			});
+			
+			alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					String filterSelection = String.valueOf(filterSpinner.getSelectedItem());
+					
+					Resources res = getActivity().getResources();
+					String filterValue = 
+							String.format(res.getString(R.string.order_mgr_filter_value), filterSelection);
+					mOrderRequestFilterValue.setText(filterValue);
+					
+					mAdapter.filterOrderRequestMap(mRequestFilterMap.get(filterSelection));
+					mAdapter.notifyDataSetChanged();
+				}
+			});
+			
+			// create alert dialog
+			AlertDialog alertDialog = alertDialogBuilder.create();
+
+			// show it
+			alertDialog.show();
+			
 			return true;
 		}
 		
@@ -174,96 +225,80 @@ public class OrderManagerFragment extends SherlockFragment {
 	}
 	
 	
-	private void getOrders(Calendar timestamp, boolean reverseOrder) {
+	private void getRequests(Calendar timestamp, boolean reverseOrder) {
 		RetrieveOrdersTask task = new RetrieveOrdersTask(reverseOrder);
 		task.execute(timestamp);
 	}
 	
 	
-	private void parseOrders(List<Annotation> list, boolean reverseOrder) throws JSONException {
+	private void parseRequests(List<Annotation> list, boolean reverseOrder) throws JSONException {
 		for (Annotation annotation : list) {
 			if (annotation.getCategory().compareTo(Feature.ORDER) != 0) {
 				continue;
 			}
 			
+			// get location name and uri - construct location data map
+			String locationName = annotation.getLocation().getName();
+			String locationUri = annotation.getLocation().getUri();
+			Map<String, String> locationData = new HashMap<String, String>();
+			locationData.put("location_name", locationName);
+			locationData.put("location_uri", locationUri);
+			
+			
 			// Get order
 			String orderString = annotation.getData();
-			String orderDataString = new JSONObject(orderString).getString("order");
-			JSONArray orderData = new JSONArray(orderDataString);
+			JSONObject orderDataObject = new JSONObject(orderString);
 			
-			int orderLen = orderData.length();
-			String entry = "";
-			for (int j = 0; j < orderLen; ++ j) {
-				String category = orderData.getJSONObject(j).getString("category");
-				String order = orderData.getJSONObject(j).getString("items");
-				entry += "<b>" + category + ":</b><br />";
-				entry += order.replace("\n", "<br />");
-				entry += "<br />";
+			String orderRequestType = 
+					orderDataObject.optString(OrderFeature.REQUEST_TYPE, OrderFeature.NEW_ORDER_NOTIFICATION);
+			String entry = getResources().getString(R.string.lbl_order_request);
+			
+			if (orderRequestType.compareTo(OrderFeature.NEW_ORDER_NOTIFICATION) == 0) {
+				String orderDataString = orderDataObject.getString("order");
+				JSONArray orderData = new JSONArray(orderDataString);
+				
+				int orderLen = orderData.length();
+				entry = "";
+				for (int j = 0; j < orderLen; ++ j) {
+					String category = orderData.getJSONObject(j).getString("category");
+					String order = orderData.getJSONObject(j).getString("items");
+					entry += "<b>" + category + ":</b><br />";
+					entry += order.replace("\n", "<br />");
+					entry += "<br />";
+				}
+			}
+			else if (orderRequestType.compareTo(OrderFeature.CALL_CHECK_NOTIFICATION) == 0) {
+				entry = "<b>" + "CHECK" + "</b>" + " requested at " + "<b>" + locationName + "</b>";
+			}
+			else if (orderRequestType.compareTo(OrderFeature.CALL_WAITER_NOTIFICATION) == 0) {
+				entry = "<b>" + "WAITER" + "</b>" + " requested at " + "<b>" + locationName + "</b>";
 			}
 			
 			// check timestamp
-			if (lastRefreshTimestamp == null) {
-				lastRefreshTimestamp = annotation.getTimestamp();
+			if (mLastRefreshTimestamp == null) {
+				mLastRefreshTimestamp = annotation.getTimestamp();
 			}
 			else {
-				if (lastRefreshTimestamp.before(annotation.getTimestamp())) {
-					lastRefreshTimestamp = annotation.getTimestamp();
+				if (mLastRefreshTimestamp.before(annotation.getTimestamp())) {
+					mLastRefreshTimestamp = annotation.getTimestamp();
 				}
 			}
 			
-			// Register order
-			String locationName = annotation.getLocation().getName();
-			Map<String, String> orderMap = new HashMap<String, String>();
-			orderMap.put(RESOURCE_URI, annotation.getUri());
-			orderMap.put(LOCATION_NAME, locationName);
-			orderMap.put(ORDER_DETAILS, entry);
-			orderMap.put(ORDER_TIMESTAMP, Utils.calendarToString(annotation.getTimestamp(), "yyyy-MM-dd'T'HH:mm:ssZ"));
-			addOrder(locationName, orderMap, reverseOrder);
+			// Register order request
+			Map<String, String> orderRequestMap = new HashMap<String, String>();
+			orderRequestMap.put(RESOURCE_URI, annotation.getUri());
+			orderRequestMap.put(LOCATION_NAME, locationName);
+			orderRequestMap.put(ORDER_REQUEST_TYPE, orderRequestType);
+			orderRequestMap.put(ORDER_REQUEST_DETAILS, entry);
+			orderRequestMap.put(ORDER_REQUEST_TIMESTAMP, Utils.calendarToString(annotation.getTimestamp(), "yyyy-MM-dd'T'HH:mm:ssZ"));
+			addOrder(locationData, orderRequestMap, reverseOrder);
 		}
 	}
 	
 	
-	private void loadAllOrders() {
-		mOrderLocations.clear();
-		mOrders.clear();
-		mIndex.clear();
-		
-		getOrders(null, false);
-	}
-	
-	
-	private void addOrder(String locationName, Map<String, String> order, boolean reverseOrder) {
-		Integer index = mIndex.get(locationName);
-		if (index == null) {
-			// Received order from a new location
-			int newLocationIndex = mOrderLocations.size();
-			mIndex.put(locationName, newLocationIndex);
-			
-			// Add location
-			Map<String,String> locationMap = new HashMap<String,String>();
-			locationMap.put(LOCATION_NAME, locationName);
-			mOrderLocations.add(locationMap);
-			
-			// Add order
-			//List<Map<String,String>> orderList = new LinkedList<Map<String,String>>();
-			//orderList.add(order);
-			
-			//mOrders.add(orderList);
-			mAdapter.addOrderData(newLocationIndex, order, reverseOrder);
-		} else {
-			// Else we just add the order
-			mAdapter.addOrderData(index, order, reverseOrder);
-			/*
-			List<Map<String,String>> orderList = mOrders.get(index);
-			
-			if (!reverseOrder) {
-				orderList.add(order);
-			}
-			else {
-				orderList.add(0, order);
-			}
-			*/
-		}
+	private void addOrder(Map<String, String> locationData, Map<String, String> order, boolean reverseOrder) {
+		// add to adapter
+		mAdapter.addOrderRequestData(locationData, order, reverseOrder);
 	}
 	
 		
@@ -277,10 +312,9 @@ public class OrderManagerFragment extends SherlockFragment {
 			
 			if (notificationContents.getFeature().equals(Feature.ORDER) 
 				&& paramsJSON.optString("type", null) != null 
-				&& paramsJSON.optString("type").equalsIgnoreCase(OrderFeature.NEW_ORDER_NOTIFICATION)) {
-					
-				//loadAllOrders();
-				getOrders(lastRefreshTimestamp, false);
+				&& paramsJSON.optString("type").equalsIgnoreCase(OrderFeature.NEW_REQUEST_NOTIFICATION)) {
+				
+				getRequests(mLastRefreshTimestamp, false);
 				return true;
 			}
 			
@@ -311,13 +345,13 @@ public class OrderManagerFragment extends SherlockFragment {
 			}
 			
 			try {
-				List<Annotation> orders = Annotation.getAllAnnotationsForEnvironment(getActivity(), 
+				List<Annotation> orderRequests = Annotation.getAllAnnotationsForEnvironment(getActivity(), 
 						mLocation, 
 						Feature.ORDER,
 						cal
 				);
 				
-				return orders;
+				return orderRequests;
 			} catch (Exception e) {
 				e.printStackTrace();
 				return null;
@@ -332,9 +366,8 @@ public class OrderManagerFragment extends SherlockFragment {
 				// TODO: handle multiple order pages - currently all annotations are consumed
 				// TODO order by smth: ordered automatically by timestamp descending
 				try {
-					parseOrders(orders, mReverseOrder);
+					parseRequests(orders, mReverseOrder);
 					mAdapter.notifyDataSetChanged();
-					
 				} catch (JSONException e) {
 					e.printStackTrace();
 					

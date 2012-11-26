@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/actionbar_gray"
+    android:orientation="horizontal" >
+    <TextView android:id="@+id/order_tab_category_name"
+        android:layout_width="wrap_content"
+        android:layout_height="45dip"
+        android:layout_alignParentLeft="true"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:text="@string/lbl_group"
+        android:paddingLeft="40dip"
+        android:gravity="center_vertical|center_horizontal"/>
+    <ImageView android:id="@+id/order_tab_category_fb_share"
+        android:contentDescription="Share order on Facebook"
+        android:src="@drawable/com_facebook_icon"
+        android:layout_width="45dip"
+        android:layout_height="45dip"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="5dip"
+        android:background="@drawable/facebook_order_share_button" 
+        android:scaleType="fitCenter" />
+</RelativeLayout>

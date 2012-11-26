@@ -13,7 +13,7 @@ import com.envsocial.android.R;
 import com.envsocial.android.utils.EnvivedNotification;
 import com.envsocial.android.utils.EnvivedNotificationContents;
 
-public class NewOrderNotification extends EnvivedNotification {
+public class NewOrderRequestNotification extends EnvivedNotification {
 	
 	private int mId;
 	private int mIconId;
@@ -21,16 +21,16 @@ public class NewOrderNotification extends EnvivedNotification {
 	private long mWhen;
 	private String mMessage;
 	
-	public NewOrderNotification(Context context, Intent intent,
+	public NewOrderRequestNotification(Context context, Intent intent,
 			EnvivedNotificationContents notificationContents) {
 		super(context, intent, notificationContents);
 		
-		mId = R.string.incoming_order;
+		mId = R.string.incoming_order_request;
 		mIconId = R.drawable.ic_launcher;
-		mTitle = mContext.getResources().getString(R.string.incoming_order);
+		mTitle = mContext.getResources().getString(R.string.incoming_order_request);
 		mWhen = System.currentTimeMillis();
 		
-		mMessage = "You have new orders!";
+		mMessage = "You have new requests!";
 	}
 
 	@Override

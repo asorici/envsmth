@@ -42,6 +42,7 @@ import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
 import com.envsocial.android.utils.imagemanager.ImageCache;
 import com.envsocial.android.utils.imagemanager.ImageFetcher;
+import com.facebook.Session;
 import com.google.android.gcm.GCMRegistrar;
 
 
@@ -83,7 +84,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	private Tab mOrderManagementTab;
 	private Tab mPeopleTab;
 	
-	private AsyncTask<Void, Void, ResponseHolder> mGCMRegisterTask;
+	private RegisterEnvivedNotificationsTask mGCMRegisterTask;
 	private ImageFetcher mImageFetcher;
 	
 	@Override
@@ -104,8 +105,6 @@ public class DetailsActivity extends SherlockFragmentActivity {
         registerReceiver(mHandleGCMMessageReceiver,
                 new IntentFilter(GCMIntentService.ACTION_DISPLAY_GCM_MESSAGE));
         
-        // setup GCM notification registration
-        checkGCMRegistration();
         
         // ------------------------------------- checkin ------------------------------------ //
         String checkinUrl = getIntent().getStringExtra(ActionHandler.CHECKIN);
@@ -154,11 +153,18 @@ public class DetailsActivity extends SherlockFragmentActivity {
 			toast.show();
 		}
 		
+		// check if device is has an active registraionId
 		final String regId = GCMRegistrar.getRegistrationId(context);
         if (regId == null || "".equals(regId)) {
         	Log.d(TAG, "need to register for notifications");
         	NotificationRegistrationDialog dialog = NotificationRegistrationDialog.newInstance();
         	dialog.show(getSupportFragmentManager(), "dialog");
+        }
+        
+        // check if we are also registered with the server
+        if (!GCMRegistrar.isRegisteredOnServer(context)) {
+        	mGCMRegisterTask = new RegisterEnvivedNotificationsTask();
+        	mGCMRegisterTask.execute(regId);
         }
 	}
 	
@@ -176,7 +182,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
         }
     };
 	
-	
+    
 	@Override
 	public void onPause() {
 		super.onPause();
@@ -194,6 +200,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 		Log.d(TAG, " --- onStop called in DetailsActivity");
 		super.onStop();
 	}
+	
 	
 	@Override
 	public void onResume() {
@@ -217,6 +224,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 		}
 	}
 	
+	
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
@@ -239,8 +247,21 @@ public class DetailsActivity extends SherlockFragmentActivity {
 		}
 		*/
 		
+		// close image fetcher cache
 		mImageFetcher.closeCache();
+		
+		// close facebook session if existant
+		doFacebookLogout();
 	}
+	
+	
+	private void doFacebookLogout() {
+	    Session session = Session.getActiveSession();
+	    if (session != null) {
+	    	session.closeAndClearTokenInformation();
+	    }
+	}
+	
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -258,6 +279,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
      	
     	return true;
 	}
+	
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -284,46 +306,8 @@ public class DetailsActivity extends SherlockFragmentActivity {
 					// Try to register again, but not in the UI thread.
 	                // It's also necessary to cancel the thread onDestroy(),
 	                // hence the use of AsyncTask instead of a raw thread.
-					mGCMRegisterTask = new AsyncTask<Void, Void, ResponseHolder>() {
-
-	                    @Override
-	                    protected ResponseHolder doInBackground(Void... params) {
-	                        
-	                    	ResponseHolder holder = ActionHandler.registerWithServer(context, regId);
-	                    	
-	                        // At this point all attempts to register with the app
-	                        // server failed, so we need to unregister the device
-	                        // from GCM - the app will try to register again when
-	                        // it is restarted. Note that GCM will send an
-	                        // unregistered callback upon completion, but
-	                        // GCMIntentService.onUnregistered() will ignore it.
-	                        if (holder.hasError()) {
-	                        	Log.d(TAG, "Registration error: " + holder.getError().getMessage(), holder.getError());
-	                        	GCMRegistrar.unregister(context);
-	                        }
-	                        
-	                        return holder;
-	                    }
-
-	                    @Override
-	                    protected void onPostExecute(ResponseHolder holder) {
-	                    	if (holder.hasError()) {
-		                    	Toast toast = Toast.makeText(DetailsActivity.this, 
-		                    			R.string.msg_gcm_registration_error, Toast.LENGTH_LONG);
-		    					toast.show();
-	                    	}
-	                    	else {
-	                    		GCMRegistrar.setRegisteredOnServer(context, true);
-	                    		
-	                    		Toast toast = Toast.makeText(DetailsActivity.this, 
-		                    			R.string.msg_gcm_already_registered, Toast.LENGTH_LONG);
-		    					toast.show();
-	                    	}
-	                    	mGCMRegisterTask = null;
-	                    }
-
-	                };
-	                mGCMRegisterTask.execute(null, null, null);
+					mGCMRegisterTask = new RegisterEnvivedNotificationsTask();
+	                mGCMRegisterTask.execute(regId);
 					
 				}
             } else {
@@ -359,6 +343,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 		
 		return false;
 	}
+	
 	
 	@Override
 	public boolean onSearchRequested() {
@@ -480,8 +465,18 @@ public class DetailsActivity extends SherlockFragmentActivity {
 		// Compatibility library sends null ft, so we simply ignore it and get our own
 		public void onTabUnselected(Tab tab, FragmentTransaction ingnoredFt) {
 			FragmentManager fragmentManager = ((SherlockFragmentActivity) mActivity).getSupportFragmentManager();
-	        FragmentTransaction ft = fragmentManager.beginTransaction();
-	        
+			
+			// firstly pop the entire fragment backstack -- each feature may load it's different fragments
+	        // but since we are swapping features here we basically want to clear everything
+	        /*
+	        if (fragmentManager.getBackStackEntryCount() > 0) {
+	        	BackStackEntry bottomEntry = fragmentManager.getBackStackEntryAt(0);
+	        	fragmentManager.popBackStackImmediate(
+					bottomEntry.getId(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
+	        }
+			*/
+			
+			FragmentTransaction ft = fragmentManager.beginTransaction();
 			if (mFragment != null) {
 				// Detach the fragment, another one is being attached
 				ft.detach(mFragment);
@@ -512,6 +507,8 @@ public class DetailsActivity extends SherlockFragmentActivity {
 		
 		@Override
 		protected ResponseHolder doInBackground(Void...args) {
+			Log.d(TAG, "Checkin URL: " + checkinUrl);
+			
 			ResponseHolder holder = ActionHandler.checkin(DetailsActivity.this, checkinUrl);
 			if (!holder.hasError() && holder.getCode() == HttpStatus.SC_OK) {
 				Location location = (Location) holder.getTag();
@@ -544,6 +541,9 @@ public class DetailsActivity extends SherlockFragmentActivity {
 					if (feature != null) {
 						mActionBar.selectTab(mOrderManagementTab);
 					}
+					
+					// lastly setup GCM notification registration
+			        checkGCMRegistration();
 				}
 				else if (holder.getCode() == HttpStatus.SC_INTERNAL_SERVER_ERROR) {
 					setResult(RESULT_CANCELED);
@@ -580,6 +580,48 @@ public class DetailsActivity extends SherlockFragmentActivity {
 				finish();
 			}
 		}
+	}
+	
+	private class RegisterEnvivedNotificationsTask extends AsyncTask<String, Void, ResponseHolder> {
+		@Override
+        protected ResponseHolder doInBackground(String... params) {
+			Context context = getApplicationContext();
+			String regId = params[0];
+			
+        	ResponseHolder holder = ActionHandler.registerWithServer(context, regId);
+        	
+            // At this point all attempts to register with the app
+            // server failed, so we need to unregister the device
+            // from GCM - the app will try to register again when
+            // it is restarted. Note that GCM will send an
+            // unregistered callback upon completion, but
+            // GCMIntentService.onUnregistered() will ignore it.
+            if (holder.hasError()) {
+            	Log.d(TAG, "Registration error: " + holder.getError().getMessage(), holder.getError());
+            	GCMRegistrar.unregister(context);
+            }
+            
+            return holder;
+        }
+
+        @Override
+        protected void onPostExecute(ResponseHolder holder) {
+        	Context context = getApplicationContext();
+        	
+        	if (holder.hasError()) {
+            	Toast toast = Toast.makeText(DetailsActivity.this, 
+            			R.string.msg_gcm_registration_error, Toast.LENGTH_LONG);
+				toast.show();
+        	}
+        	else {
+        		GCMRegistrar.setRegisteredOnServer(context, true);
+        		
+        		Toast toast = Toast.makeText(DetailsActivity.this, 
+            			R.string.msg_gcm_registered, Toast.LENGTH_LONG);
+				toast.show();
+        	}
+        	mGCMRegisterTask = null;
+        }
 	}
 	
 }

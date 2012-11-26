@@ -3,11 +3,6 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:id="@+id/order_item_wrapper" >
-<!--     <ImageView android:id="@+id/icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:src="@drawable/ic_launcher" /> -->
     <LinearLayout android:id="@+id/quantity_layout"
         android:layout_width="wrap_content"
         android:layout_height="fill_parent"

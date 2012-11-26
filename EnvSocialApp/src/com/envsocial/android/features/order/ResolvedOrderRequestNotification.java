@@ -14,8 +14,8 @@ import com.envsocial.android.api.Url;
 import com.envsocial.android.utils.EnvivedNotification;
 import com.envsocial.android.utils.EnvivedNotificationContents;
 
-public class ResolvedOrderNotification extends EnvivedNotification {
-	private static final String TAG = "ResolvedOrderNotification";
+public class ResolvedOrderRequestNotification extends EnvivedNotification {
+	private static final String TAG = "ResolvedOrderRequestNotification";
 	private static int counter = 0;
 	
 	private int mId;
@@ -24,16 +24,15 @@ public class ResolvedOrderNotification extends EnvivedNotification {
 	private long mWhen;
 	private String mMessage;
 	
-	public ResolvedOrderNotification(Context context, Intent intent,
+	public ResolvedOrderRequestNotification(Context context, Intent intent,
 			EnvivedNotificationContents notificationContents) {
 		super(context, intent, notificationContents);
 		
-		//mId = R.string.resolved_order;
 		mId = counter++;
 		mIconId = R.drawable.ic_launcher;
-		mTitle = mContext.getResources().getString(R.string.resolved_order);
+		mTitle = mContext.getResources().getString(R.string.resolved_order_request);
 		mWhen = System.currentTimeMillis();
-		mMessage = "Your order is on the way!";
+		mMessage = "We are on our way with your request!";
 	}
 
 	
@@ -67,7 +66,7 @@ public class ResolvedOrderNotification extends EnvivedNotification {
 		// Create launcher intent
 		Intent launcher = new Intent();
 		launcher.setComponent(new ComponentName(mContext,
-				com.envsocial.android.features.order.ResolvedOrderDialogActivity.class));
+				com.envsocial.android.features.order.ResolvedOrderRequestDialogActivity.class));
 		
 		launcher.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK 
 				| Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);

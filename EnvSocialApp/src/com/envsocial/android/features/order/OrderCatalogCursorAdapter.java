@@ -1,5 +1,6 @@
 package com.envsocial.android.features.order;
 
+import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,8 +9,10 @@ import java.util.Map;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -25,21 +28,27 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 		implements IOrderCatalogAdapter, IFeatureAdapter {
 	
 	private static final String TAG = "OrderCatalogCursorAdapter";
+	private static final String LIST_DATA_KEY = "listData";
 	
 	private OrderFragment mParentFragment;
-	private SparseArray<Map<String, Object>> mOrderSelections;
+	private OrderCatalogPagerAdapter mPagerAdapter;
+	private int mPagePosition;
+	
+	private HashMap<Integer, HashMap<String, Object>> mOrderSelections;
 	private SparseArray<View> mOrderSelectionQuantityViews;
 	private Context mContext;
 	
-	public OrderCatalogCursorAdapter(OrderFragment parentFragment, Context context, Cursor cursor,
-			int groupLayout, int childLayout) {
-		super(context, cursor, groupLayout, childLayout);
+	public OrderCatalogCursorAdapter(OrderCatalogPagerAdapter pagerAdapter, int pagePosition, 
+			Cursor cursor, int groupLayout, int childLayout) {
+		super(pagerAdapter.getParentFragment().getActivity(), cursor, groupLayout, childLayout);
 		
-		mParentFragment = parentFragment;
-		mOrderSelections = new SparseArray<Map<String,Object>>();
+		mPagerAdapter = pagerAdapter;
+		mPagePosition = pagePosition;
+		mParentFragment = pagerAdapter.getParentFragment();
+		mContext = mParentFragment.getActivity();
+		
+		mOrderSelections = new HashMap<Integer, HashMap<String,Object>>();
 		mOrderSelectionQuantityViews = new SparseArray<View>();
-		
-		mContext = context;
 	}	
 	
 	
@@ -85,11 +94,9 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 			boolean isExpanded) {
 	}
 	
+	
 	protected void bindGroupData(GroupViewHolder holder, Context context, int groupPosition, 
 			Cursor cursor, boolean isExpanded) {
-		// we know there is one because we put it there in the newGroupView call
-		//Object tag = view.getTag();
-		//Log.d(TAG, "Group view TAG has class: " + tag.getClass().getName());
 		
 		int categoryIdColumnIdx = cursor.getColumnIndex(OrderDbHelper.COL_CATEGORY_ID);
 		int categoryNameColumnIdx = cursor.getColumnIndex(OrderDbHelper.COL_CATEGORY_NAME);
@@ -103,9 +110,11 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 		holder.orderCategoryNameView.setText(categoryName);
 	}
 	
+	
 	@Override
 	public View getChildView(int groupPosition, int childPosition, boolean isLastChild, 
 			View convertView, ViewGroup parent) {
+		
 		Cursor childCursor = getChild(groupPosition, childPosition);
 		if (childCursor == null) {
 			throw new IllegalStateException("this should only be called when the cursor is valid");
@@ -179,7 +188,6 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 		holder.priceView.setText(new DecimalFormat("#.##").format(itemPrice) + " RON");
 		holder.quantityView.setText("" + quantityCt);
 		
-		//mChildViewHolderMap.put(itemId, holder);
 	}
 	
 	
@@ -230,7 +238,9 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 		int groupPosition = holder.groupPosition;
 		Cursor categoryCursor = getGroup(groupPosition);
 		
+		int categoryIdColumnIdx = categoryCursor.getColumnIndex(OrderDbHelper.COL_CATEGORY_ID);
 		int categoryNameColumnIdx = categoryCursor.getColumnIndex(OrderDbHelper.COL_CATEGORY_NAME);
+		int categoryId = categoryCursor.getInt(categoryIdColumnIdx);
 		String categoryName = categoryCursor.getString(categoryNameColumnIdx);
 		
 		int itemId = holder.itemId;
@@ -238,7 +248,7 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 		double itemPrice = holder.itemPrice;
 		
 		// Check if we have an entry for group
-		Map<String, Object> itemMapping = mOrderSelections.get(itemId);
+		HashMap<String, Object> itemMapping = mOrderSelections.get(itemId);
 		if (itemMapping != null) {
 			int quantity = (Integer)itemMapping.get("quantity");
 			quantity += qDelta;
@@ -265,6 +275,7 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 			itemMapping = new HashMap<String, Object>();
 
 			itemMapping.put(OrderFeature.CATEGORY, categoryName);
+			itemMapping.put(OrderFeature.ITEM_CATEGORY_ID, categoryId);
 			itemMapping.put(OrderFeature.ITEM, itemName);
 			itemMapping.put(OrderFeature.ITEM_ID, itemId);
 			itemMapping.put(OrderFeature.ITEM_PRICE, itemPrice);
@@ -276,6 +287,9 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 			mOrderSelections.put(itemId, itemMapping);
 			mOrderSelectionQuantityViews.put(itemId, holder.quantityView);
 		}
+		
+		// notify pager adapter to save order selection data
+		mPagerAdapter.saveListData(mPagePosition, onSaveInstanceState());
 	}
 
 	
@@ -336,7 +350,8 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 	public void updateFeature(Cursor groupCursor) {
 		//re-initialize orderSelections
 		if (mOrderSelections == null) {
-			mOrderSelections = new SparseArray<Map<String,Object>>();
+			//mOrderSelections = new SparseArray<Map<String,Object>>();
+			mOrderSelections = new HashMap<Integer, HashMap<String,Object>>();
 		}
 		
 		if (mOrderSelectionQuantityViews == null) {
@@ -354,33 +369,22 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 
 	@Override
 	public List<Map<String, Object>> getOrderSelections() {
-		// linearize to list from SparseArray
 		List<Map<String, Object>> orderList = new ArrayList<Map<String,Object>>();
-		for (int i = 0; i < mOrderSelections.size(); i++) {
-			orderList.add(mOrderSelections.valueAt(i));
-		}
 		
+		orderList.addAll(mOrderSelections.values());
 		return orderList;
 	}
 	
 	
 	@Override
 	public void clearOrderSelections() {
-		for (int i = 0; i < mOrderSelectionQuantityViews.size(); i++) {
-			int itemId = mOrderSelectionQuantityViews.keyAt(i);
-			//Log.d(TAG,  "CLEARING SELECTION FOR item: " + itemId + "-> " 
-			//		+ mChildViewHolderMap.get(itemId).itemName);
+		if (mOrderSelections.size() > 0) {
+			// the clear all order selections
+			mOrderSelections.clear();
+			mOrderSelectionQuantityViews.clear();
 			
-			//mChildViewHolderMap.get(itemId).quantityView.setText("0");
-			TextView quantityView = (TextView)mOrderSelectionQuantityViews.get(itemId);
-			if (quantityView != null) {
-				quantityView.setText("0");
-			}
+			notifyDataSetChanged(false);
 		}
-		
-		// the clear all order selections
-		mOrderSelections.clear();
-		mOrderSelectionQuantityViews.clear();
 	}
 
 
@@ -396,5 +400,24 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 		// we have to close all cursors here
 		// the following will close the group cursor and all child cursors		
 		changeCursor(null);
+	}
+	
+	
+	protected Bundle onSaveInstanceState() {
+		Bundle listDataBundle = new Bundle();
+		listDataBundle.putSerializable(LIST_DATA_KEY, mOrderSelections);
+		
+		return listDataBundle;
+	}
+	
+	
+	protected void restoreState(Bundle listDataBundle) {
+		if (listDataBundle != null) {
+			HashMap<Integer, HashMap<String, Object>> selections = 
+					(HashMap<Integer, HashMap<String, Object>>)listDataBundle.getSerializable(LIST_DATA_KEY);
+			if (selections != null) {
+				mOrderSelections = selections;
+			}
+		}
 	}
 }

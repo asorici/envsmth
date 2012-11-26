@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/order_tab_title"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:background="@color/actionbar_gray"
+        android:gravity="center_horizontal"
+        android:text="@string/order_tab_title"
+        android:textSize="20dip"
+        android:textStyle="bold" />
+

@@ -30,7 +30,7 @@ import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.SimpleCursorLoader;
 
 public class OrderSearchResultFragment extends SherlockFragment 
-					implements LoaderManager.LoaderCallbacks<Cursor>, OnClickListener, ISendOrder {
+					implements LoaderManager.LoaderCallbacks<Cursor>, OnClickListener, ISendOrderRequest {
 	
 	private static final String TAG = "OrderSearchResultFragment";
 	
@@ -166,39 +166,41 @@ public class OrderSearchResultFragment extends SherlockFragment
 		
 		Location location = Preferences.getCheckedInLocation(getActivity());
 		Annotation order = new Annotation(location, Feature.ORDER, Calendar.getInstance(), orderJSON);
-		new SendOrderTask(getActivity(), this, order).execute();
+		new SendOrderRequestTask(getActivity(), this, OrderFeature.NEW_ORDER_NOTIFICATION, order).execute();
 		
 	}
 	
 	@Override
-	public void postSendOrder(boolean success) {
-		if (success) {
-			SparseArray<Map<String, Object>> orderTab = OrderFragment.getOrderTabInstance();
-			
-			// add current selections to tab then clear them
-			for (Map<String, Object> itemData : mCurrentOrderSelections) {
-				int itemId = (Integer) itemData.get(OrderFeature.ITEM_ID);
+	public void postSendOrderRequest(String orderRequestType, Annotation orderRequest, boolean success) {
+		if (orderRequestType.compareTo(OrderFeature.NEW_ORDER_NOTIFICATION) == 0) {
+			if (success) {
+				SparseArray<Map<String, Object>> orderTab = OrderFragment.getOrderTabInstance();
 				
-				Map<String, Object> itemTab = orderTab.get(itemId);
-				if (itemTab == null) {
-					itemTab = new HashMap<String, Object>();
-					itemTab.putAll(itemData);
+				// add current selections to tab then clear them
+				for (Map<String, Object> itemData : mCurrentOrderSelections) {
+					int itemId = (Integer) itemData.get(OrderFeature.ITEM_ID);
 					
-					orderTab.put(itemId, itemTab);
-				}
-				else {
-					Integer tabQuantity = (Integer)itemTab.get("quantity");
-					tabQuantity += (Integer)itemData.get("quantity");
-					itemTab.put("quantity", tabQuantity);
+					Map<String, Object> itemTab = orderTab.get(itemId);
+					if (itemTab == null) {
+						itemTab = new HashMap<String, Object>();
+						itemTab.putAll(itemData);
+						
+						orderTab.put(itemId, itemTab);
+					}
+					else {
+						Integer tabQuantity = (Integer)itemTab.get("quantity");
+						tabQuantity += (Integer)itemData.get("quantity");
+						itemTab.put("quantity", tabQuantity);
+					}
 				}
 			}
+			
+			// clear current temporary selections in OrderSearchResultFragment
+			mCurrentOrderSelections = null;
+			
+			// clear them in the pager adapter as well
+			mAdapter.clearOrderSelections();
 		}
-		
-		// clear current temporary selections in OrderSearchResultFragment
-		mCurrentOrderSelections = null;
-		
-		// clear them in the pager adapter as well
-		mAdapter.clearOrderSelections();
 	}
 	
 	// ##################################### Helper static classes #####################################

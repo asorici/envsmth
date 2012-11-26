@@ -78,6 +78,12 @@ public final class Preferences {
 		removeStringPreference(context, CHECKED_IN_LOCATION);
 		removeStringPreference(context, PEOPLE_IN_LOCATION);
 		removeStringPreference(context, USER_URI);
+		
+		// if we didn't log in
+		if (!isLoggedIn(context)) {
+			// remove the client SESSION ID
+			removeStringPreference(context, AppClient.SESSIONID);
+		}
 	}
 	
 	public static Location getCheckedInLocation(Context context) {
@@ -93,6 +99,10 @@ public final class Preferences {
 		}
 		
 		return null;
+	}
+	
+	public static boolean isCheckedIn(Context context) {
+		return getCheckedInLocation(context) != null;
 	}
 	
 	public static void setFeatureContentTimestamp(Context context, String feature, String timestamp) {

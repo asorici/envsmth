@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
     <style name="Theme.Envived" parent="Theme.Sherlock.Light">
 		<item name="actionBarStyle">@style/Widget.Envived.ActionBar</item>
 		<item name="android:actionBarStyle">@style/Widget.Envived.ActionBar</item>
@@ -43,4 +43,9 @@
     	<item name="android:gravity">center</item>
     </style>
     
+    <style name="AlertDialogFacebookStyle" parent="@android:style/Theme.Dialog">
+        <item name="android:background">@color/facebook_blue</item>
+        <item name="android:textColor">@color/divider_gray</item>
+    </style>
+
 </resources>

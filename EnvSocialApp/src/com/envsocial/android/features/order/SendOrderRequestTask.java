@@ -14,21 +14,25 @@ import com.envsocial.android.api.exceptions.EnvSocialComException;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.utils.ResponseHolder;
 
-public class SendOrderTask extends AsyncTask<Void, Void, ResponseHolder> {
+public class SendOrderRequestTask extends AsyncTask<Void, Void, ResponseHolder> {
 	private static final String TAG = "SendOrderTask";
 	
 	// loader dialog for sending an order
 	private ProgressDialog mSendOrderDialog;
 	private Context mContext;
-	private ISendOrder mOrderFragment;
+	private ISendOrderRequest mOrderFragment;
 	private boolean error = true;
 	
-	private Annotation mOrder;
+	private String mOrderRequestType;
+	private Annotation mOrderRequest;
 	
-	public SendOrderTask(Context context, ISendOrder orderFragment, Annotation order) {
-		this.mOrder = order;
-		this.mContext = context;
-		this.mOrderFragment = orderFragment;
+	
+	public SendOrderRequestTask(Context context, ISendOrderRequest orderFragment, String orderRequestType,
+			Annotation orderRequest) {
+		mOrderRequestType = orderRequestType;
+		mOrderRequest = orderRequest;
+		mContext = context;
+		mOrderFragment = orderFragment;
 	}
 	
 	
@@ -41,7 +45,7 @@ public class SendOrderTask extends AsyncTask<Void, Void, ResponseHolder> {
 	
 	@Override
 	protected ResponseHolder doInBackground(Void...args) {
-		return mOrder.post(mContext);
+		return mOrderRequest.post(mContext);
 	}
 	
 	
@@ -112,7 +116,7 @@ public class SendOrderTask extends AsyncTask<Void, Void, ResponseHolder> {
 		}
 		
 		// call post send order handler on the parent fragment
-		mOrderFragment.postSendOrder(!error);
+		mOrderFragment.postSendOrderRequest(mOrderRequestType, mOrderRequest, !error);
 	}
 	
 	

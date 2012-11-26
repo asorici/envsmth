@@ -5,12 +5,10 @@ static/
 .project
 .pydevproject
 .settings/
-.gitignore
 EnvSocialApp/bin/
 EnvSocialApp/project.properties
 c2dm_requests.log
 .metadata/
-libs/
 .classpath
 settings.py
 urls.py

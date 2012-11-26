@@ -134,9 +134,11 @@ public class DescriptionFragment extends SherlockFragment {
 						// Display a toast message and update the view
 						mDescriptionPeopleCount.setText("Checked in with " + peopleCount + " other users.");
 						
+						/*
 						Toast toast = Toast.makeText(context,
 								"Checked in users counter updated.", Toast.LENGTH_LONG);
 						toast.show();
+						*/
 					} catch (JSONException e) {
 						Log.d(TAG, holder.getResponseBody(), e);
 					} 

@@ -1,0 +1,22 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+    
+    <TextView android:id="@+id/order_check_called_content"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_marginTop="20dip"
+	    android:layout_marginLeft="10dip"
+	    android:layout_marginRight="10dip"
+	    android:layout_gravity="center_vertical|center_horizontal"
+	    android:gravity="fill_horizontal"
+	    android:textStyle="bold" />
+	
+	<Button android:id="@+id/order_check_called_button"
+	    android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dip"
+        android:text="OK"
+	    />
+</LinearLayout>

@@ -1,0 +1,286 @@
+package com.envsocial.android.features.order;
+
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.actionbarsherlock.app.SherlockDialogFragment;
+import com.envsocial.android.R;
+import com.facebook.FacebookException;
+import com.facebook.HttpMethod;
+import com.facebook.LoggingBehaviors;
+import com.facebook.Request;
+import com.facebook.RequestAsyncTask;
+import com.facebook.Response;
+import com.facebook.Session;
+import com.facebook.SessionState;
+import com.facebook.Settings;
+
+public class OrderTabDialogFragment extends SherlockDialogFragment implements OnClickListener {
+	private static final String TAG = "OrderTabDialogFragment";
+	private final String SUMMARY_TITLE = "Order Summary";
+	
+	private Button mBtnOk;
+	
+	private TextView mTotalOrderPrice;
+	private List<Map<String, Object>> mOrderSelections;
+	private OrderTabListAdapter mAdapter;
+	
+	// -------- facebook session and actions --------
+	private static final String PUBLISH_ORDER = "publish_order";
+	private static final String PENDING_PUBLISH_KEY = "pendingPublishReauthorization";
+	private static final List<String> PERMISSIONS = Arrays.asList("publish_actions");
+	private static final int REAUTH_ACTIVITY_CODE = 100;
+	
+	private Session.StatusCallback statusCallback = new SessionStatusCallback();
+	private HashMap<String, String> mPublishOrder;
+	private boolean pendingPublishReauthorization = false;
+	
+	static OrderTabDialogFragment newInstance(List<Map<String, Object>> tabOrderSelections) {
+		OrderTabDialogFragment f = new OrderTabDialogFragment();
+		
+		Bundle args = new Bundle();
+		args.putSerializable("selections", (Serializable)tabOrderSelections);
+		
+		f.setArguments(args);
+		return f;
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		
+		mOrderSelections = (List<Map<String, Object>>) getArguments().get("selections");
+		mAdapter = new OrderTabListAdapter(this, mOrderSelections);
+		
+		// get the publish order if there was one saved
+		if (savedInstanceState != null) {
+			mPublishOrder = (HashMap<String, String>)savedInstanceState.getSerializable(PUBLISH_ORDER);
+			pendingPublishReauthorization = savedInstanceState.getBoolean(PENDING_PUBLISH_KEY, false);
+		}
+		
+		// retrieve any existing facebook session
+		Settings.addLoggingBehavior(LoggingBehaviors.INCLUDE_ACCESS_TOKENS);
+        Session session = Session.getActiveSession();
+        if (session == null) {
+            if (savedInstanceState != null) {
+                session = Session.restoreSession(getActivity(), null, statusCallback, savedInstanceState);
+            }
+            
+            if (session == null) {
+                session = new Session(getActivity());
+            }
+            
+            Session.setActiveSession(session);
+            if (session.getState().equals(SessionState.CREATED_TOKEN_LOADED)) {
+                session.openForRead(new Session.OpenRequest(this).setCallback(statusCallback));
+            }
+        }
+	}
+	
+	
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		// Set title
+		getDialog().setTitle(SUMMARY_TITLE);
+		View v = inflater.inflate(R.layout.order_tab_dialog, container, false);
+		ListView list = (ListView) v.findViewById(R.id.order_tab_summary_list);
+		
+		View footer = inflater.inflate(R.layout.order_tab_dialog_footer, null, false);
+		list.addFooterView(footer);
+		list.setAdapter(mAdapter);
+		
+		mTotalOrderPrice = (TextView) footer.findViewById(R.id.order_tab_dialog_total_price);
+		mTotalOrderPrice.setText("" + mAdapter.getTotalTabPrice() + " RON");
+		
+		mBtnOk = (Button) footer.findViewById(R.id.btn_tab_ok);
+		mBtnOk.setOnClickListener(this);
+		
+		return v;
+	}
+	
+	
+	@Override
+    public void onStart() {
+        super.onStart();
+        Session.getActiveSession().addCallback(statusCallback);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Session.getActiveSession().removeCallback(statusCallback);
+    }
+	
+    
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        // since we only deal with the facebook loop here we can just pass the 
+        // results to the facebook session handler
+        Log.d(TAG, "Received activity request for code: " + requestCode + ", result: " + resultCode);
+        
+        Session.getActiveSession().onActivityResult(getActivity(), requestCode, resultCode, data);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        
+        // save publishOrder and pendingPublishReauthorization
+        if (mPublishOrder != null) {
+        	outState.putSerializable(PUBLISH_ORDER, mPublishOrder);
+        }
+        outState.putBoolean(PENDING_PUBLISH_KEY, pendingPublishReauthorization);
+        
+        // save facebook session
+        Session session = Session.getActiveSession();
+        Session.saveSession(session, outState);
+    }
+    
+	@Override
+	public void onClick(View v) {
+		if (v == mBtnOk) {
+			dismiss();
+		}
+	}
+	
+	protected void setPublishOrder(HashMap<String, String> order) {
+		mPublishOrder = order;
+	}
+	
+	protected void publishOrderOnFB() {
+		if (mPublishOrder != null) {
+			// retrieve the category for now - it will have to be rebuilt
+			String message = mPublishOrder.get("category");
+			
+			// check facebook session
+			Session session = Session.getActiveSession();
+			
+			if (session != null) {
+				Log.d(TAG, "## Facebook session state: " + session.getState());
+				
+				if (session.isOpened()) {
+					
+					// Check for publish permissions    
+			        List<String> permissions = session.getPermissions();
+			        if (!isSubsetOf(PERMISSIONS, permissions)) {
+			            pendingPublishReauthorization = true;
+			            Session.ReauthorizeRequest reauthRequest = new Session
+			                    .ReauthorizeRequest(this, PERMISSIONS)
+			                    .setRequestCode(REAUTH_ACTIVITY_CODE);
+			            session.reauthorizeForPublish(reauthRequest);
+			            
+			            Log.d(TAG, "## Checking for write permissions: " + session.getState());
+			            
+			            return;
+			        }
+			        
+			        Log.d(TAG, "## Composing message and sending: " + session.getState());
+			        
+			        Bundle postParams = new Bundle();
+			        postParams.putString("message", message);
+			        postParams.putString("description", "Test of order publish from Facebook integrated Android app.");
+			        
+
+			        Request.Callback callback= new Request.Callback() {
+			            public void onCompleted(Response response) {
+			                JSONObject graphResponse = response.getGraphObject().getInnerJSONObject();
+			                
+			                String postId = null;
+			                try {
+			                    postId = graphResponse.getString("id");
+			                } catch (JSONException e) {
+			                    Log.i(TAG,
+			                        "JSON error "+ e.getMessage());
+			                }
+			                
+			                FacebookException error = response.getError();
+			                
+			                if (error != null) {
+			                    Toast.makeText(getActivity().getApplicationContext(), error.getMessage(),
+			                         Toast.LENGTH_SHORT).show();
+			                } 
+			                else {
+								Toast.makeText(getActivity().getApplicationContext(), postId, 
+										Toast.LENGTH_LONG).show();
+			                }
+			                
+			                // after post - clear the publishOrder
+							mPublishOrder = null;
+			            }
+			        };
+
+			        Request request = new Request(session, "me/feed", postParams, 
+			                              HttpMethod.POST, callback);
+
+			        RequestAsyncTask task = new RequestAsyncTask(request);
+			        task.execute();
+				}
+				else if (!session.isOpened() && !session.isClosed()) {
+					Log.d(TAG, "## Need to open a new session because state is: " + session.getState());
+					session.openForRead(new Session.OpenRequest(this).setCallback(statusCallback));
+		        } else {
+		        	Log.d(TAG, "## Intermediary step: " + session.getState());
+		            Session.openActiveSession(getActivity(), this, true, statusCallback);
+		        }
+			}
+		}
+		else {
+			Log.d(TAG, "Nothing to publish, order is null.");
+		}
+	}
+	
+	
+	private boolean isSubsetOf(Collection<String> subset, Collection<String> superset) {
+	    for (String string : subset) {
+	        if (!superset.contains(string)) {
+	            return false;
+	        }
+	    }
+	    return true;
+	}
+	
+	
+	private class SessionStatusCallback implements Session.StatusCallback {
+        @Override
+        public void call(Session session, SessionState state, Exception exception) {
+        	
+        	// normally one would check for session state and take actions acordingly - but
+        	// in this case we only have the one action we want to do: publish order to the wall
+        	// so we just call that
+        	
+        	Log.d(TAG, "Calling FB onSessionChanged with state value: " + state);
+        	
+        	if (pendingPublishReauthorization && state.equals(SessionState.OPENED_TOKEN_UPDATED)) {
+        	    pendingPublishReauthorization = false;
+        	    publishOrderOnFB();
+        	}
+        	
+        	else if (state.equals(SessionState.OPENED)) {
+        		publishOrderOnFB();
+        	}
+        }
+    }
+}

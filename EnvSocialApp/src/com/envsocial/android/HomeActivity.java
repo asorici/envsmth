@@ -3,6 +3,7 @@ package com.envsocial.android;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -25,6 +26,7 @@ import com.envsocial.android.api.exceptions.EnvSocialComException;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
+import com.google.android.gcm.GCMRegistrar;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
@@ -229,7 +231,16 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 		
 		@Override
 		protected ResponseHolder doInBackground(Void...args) {
-			return ActionHandler.logout(getApplicationContext());
+			Context context = getApplicationContext();
+			
+			ResponseHolder response = ActionHandler.logout(context); 
+			 
+			if (!response.hasError()) {
+				// unregister from our server notifications
+				GCMRegistrar.setRegisteredOnServer(context, false);
+			}
+			
+			return response;
 		}
 		
 		@Override
@@ -237,10 +248,12 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 			mLoadingDialog.cancel();
 			
 			if (!holder.hasError()) {
+				Context context = getApplicationContext();
+				
 				// also checkout before going back to the main activity
-				Preferences.checkout(getApplicationContext());
-
-				startActivity(new Intent(HomeActivity.this, EnvSocialAppActivity.class));
+				Preferences.checkout(context);
+				
+				//startActivity(new Intent(HomeActivity.this, EnvSocialAppActivity.class));
 				finish();
 			}
 			else {
@@ -260,7 +273,7 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 				// checkout anyway before going back to the main activity
 				Preferences.checkout(getApplicationContext());
 				
-				startActivity(new Intent(HomeActivity.this, EnvSocialAppActivity.class));
+				//startActivity(new Intent(HomeActivity.this, EnvSocialAppActivity.class));
 				finish();
 			}
 		}
@@ -278,7 +291,15 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 		
 		@Override
 		protected ResponseHolder doInBackground(Void...args) {
-			return ActionHandler.checkout(getApplicationContext());
+			Context context = getApplicationContext();
+			
+			ResponseHolder response = ActionHandler.checkout(context);
+			if (!response.hasError() && !Preferences.isLoggedIn(context)) {
+				// unregister from our server notifications
+				GCMRegistrar.setRegisteredOnServer(context, false);
+			}
+			
+			return response;
 		}
 		
 		@Override
@@ -286,7 +307,7 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 			mLoadingDialog.cancel();
 			
 			if (!holder.hasError()) {
-				startActivity(new Intent(HomeActivity.this, EnvSocialAppActivity.class));
+				//startActivity(new Intent(HomeActivity.this, EnvSocialAppActivity.class));
 				finish();
 			}
 			else {

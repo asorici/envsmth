@@ -32,10 +32,10 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import android.annotation.TargetApi;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Process;
+import android.annotation.TargetApi;
 
 import com.envsocial.android.utils.Utils;
 
