@@ -14,6 +14,7 @@ import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentManager.BackStackEntry;
 import android.support.v4.app.FragmentTransaction;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -468,13 +469,13 @@ public class DetailsActivity extends SherlockFragmentActivity {
 			
 			// firstly pop the entire fragment backstack -- each feature may load it's different fragments
 	        // but since we are swapping features here we basically want to clear everything
-	        /*
+	        
 	        if (fragmentManager.getBackStackEntryCount() > 0) {
 	        	BackStackEntry bottomEntry = fragmentManager.getBackStackEntryAt(0);
 	        	fragmentManager.popBackStackImmediate(
 					bottomEntry.getId(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
 	        }
-			*/
+			
 			
 			FragmentTransaction ft = fragmentManager.beginTransaction();
 			if (mFragment != null) {
@@ -581,6 +582,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 			}
 		}
 	}
+	
 	
 	private class RegisterEnvivedNotificationsTask extends AsyncTask<String, Void, ResponseHolder> {
 		@Override

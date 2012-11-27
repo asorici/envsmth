@@ -5,6 +5,10 @@ class AnnotationValidation(Validation):
         from client.api import EnvironmentResource, AreaResource
         from coresql.models import CATEGORY_CHOICES, Annotation
         
+        ## check that we have a user
+        if not bundle.request.user or bundle.request.user.is_anonymous():
+            return {'__all__': 'No user found in request.'}
+        
         if not bundle.data:
             return {'__all__': 'No data submitted.'}
         
