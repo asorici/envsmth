@@ -70,7 +70,7 @@
         
         <activity android:name=".HomeActivity" >
         	<meta-data android:name="android.app.default_searchable"
-                   	   android:value=".HomeSearchableActivity" />	 
+                   	   android:value=".HomeSearchableActivity" />
         </activity>
         
         <activity android:name=".LoginActivity"
@@ -90,7 +90,7 @@
         
         <activity
             android:name=".features.order.ResolvedOrderRequestDialogActivity"
-            android:theme="@android:style/Theme.Dialog" />
+            android:screenOrientation="portrait" />
         
         <receiver android:name="com.google.android.gcm.GCMBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >

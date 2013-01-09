@@ -138,7 +138,7 @@ public class OrderManagerFragment extends SherlockFragment {
         DisplayMetrics metrics = appContext.getResources().getDisplayMetrics();
         
         int width = metrics.widthPixels;
-        mList.setIndicatorBounds(width - UIUtils.getDipsFromPixel(28, appContext), width - UIUtils.getDipsFromPixel(10, appContext));
+        mList.setIndicatorBounds(width - UIUtils.getDipsFromPixel(28 + 10, appContext), width - UIUtils.getDipsFromPixel(10 + 10, appContext));
 		mList.setAdapter(mAdapter);
 		
 		LayoutInflater inflater = (LayoutInflater)getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -335,6 +335,8 @@ public class OrderManagerFragment extends SherlockFragment {
 		protected void onPreExecute() {
 			mOrderRetrievalDialog = ProgressDialog.show(OrderManagerFragment.this.getActivity(), 
 					"", "Retrieving All Orders ...", true);
+			mOrderRetrievalDialog.setCancelable(true);
+			mOrderRetrievalDialog.setCanceledOnTouchOutside(false);
 		}
 		
 		@Override

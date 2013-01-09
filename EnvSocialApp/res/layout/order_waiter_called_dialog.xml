@@ -1,20 +1,29 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
+    android:layout_marginLeft="5dip"
+    android:layout_marginRight="5dip"
     android:orientation="vertical" >
-	<TextView android:id="@+id/order_waiter_called_content"
+
+	<TextView
+	    android:id="@+id/order_waiter_called_content"
 	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"
-	    android:layout_marginTop="20dip"
+	    android:layout_gravity="center_vertical|center_horizontal"
 	    android:layout_marginLeft="10dip"
 	    android:layout_marginRight="10dip"
-	    android:layout_gravity="center_vertical|center_horizontal"
+	    android:layout_marginTop="20dip"
 	    android:gravity="fill_horizontal"
+	    android:textColor="@color/envived_order_text_white"
 	    android:textStyle="bold" />
-	<Button android:id="@+id/order_waiter_called_button"
+
+	<Button
+	    android:id="@+id/order_waiter_called_button"
 	    android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dip"
-        android:text="OK"
-	    />
+	    android:layout_height="wrap_content"
+	    android:layout_marginLeft="10dip"
+	    android:layout_marginRight="10dip"
+	    android:layout_marginTop="20dip"
+	    android:text="OK" />
+
 </LinearLayout>

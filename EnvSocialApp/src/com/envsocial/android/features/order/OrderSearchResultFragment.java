@@ -11,6 +11,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
+import android.test.MoreAsserts;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
@@ -38,6 +39,7 @@ public class OrderSearchResultFragment extends SherlockFragment
 	
 	// the feature query
 	private String mFeatureQuery;
+	private OrderFeature mOrderFeature;
 	
 	private TextView mResultsCountText;
 	private Button mBtnOrder;
@@ -55,6 +57,9 @@ public class OrderSearchResultFragment extends SherlockFragment
 		if (args != null) {
 			mFeatureQuery = args.getString("query");
 		}
+		
+		Location location = Preferences.getCheckedInLocation(getActivity());
+		mOrderFeature = (OrderFeature)location.getFeature(Feature.ORDER);
 	}
 	
 	
@@ -70,11 +75,6 @@ public class OrderSearchResultFragment extends SherlockFragment
 		noResultsView.setText(getString(R.string.search_no_results, mFeatureQuery));
 		mListView.setEmptyView(noResultsView);
 		
-		/*
-		int[] colors = {0, getResources().getColor(R.color.light_green), 0};
-		mListView.setDivider(new GradientDrawable(Orientation.RIGHT_LEFT, colors));
-		mListView.setDividerHeight(2);
-		*/
 		
 		mResultsCountText = (TextView) v.findViewById(R.id.catalog_search_result_header_text);
 		
@@ -94,9 +94,8 @@ public class OrderSearchResultFragment extends SherlockFragment
 		mSearchLoaderDialog.setTitle("Loading search results ...");
 		
 		
-		mAdapter = new OrderSearchCursorAdapter(getActivity(), 
-				R.layout.catalog_search_result_item, null, 
-				/*CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER*/ 0);
+		mAdapter = new OrderSearchCursorAdapter(mOrderFeature, getActivity(),
+				R.layout.catalog_search_result_item, null, 0);
 		
 		mListView.setAdapter(mAdapter);
 		
@@ -123,7 +122,7 @@ public class OrderSearchResultFragment extends SherlockFragment
 	@Override
 	public Loader<Cursor> onCreateLoader(int loaderId, Bundle args) {
 		mSearchLoaderDialog.show();
-		return new OrderSearchCursorLoader(getActivity(), mFeatureQuery);
+		return new OrderSearchCursorLoader(getActivity(), mOrderFeature, mFeatureQuery);
 	}
 
 	@Override
@@ -207,18 +206,17 @@ public class OrderSearchResultFragment extends SherlockFragment
 	
 	static class OrderSearchCursorLoader extends SimpleCursorLoader {
 		private String mQuery;
+		private OrderFeature mFeature;
 		
-		public OrderSearchCursorLoader(Context context, String query) {
+		public OrderSearchCursorLoader(Context context, OrderFeature orderFeature, String query) {
 			super(context);
+			mFeature = orderFeature;
 			mQuery = query;
 		}
 
 		@Override
 		public Cursor loadInBackground() {
-			Location location = Preferences.getCheckedInLocation(this.getContext());
-			Feature feat = location.getFeature(Feature.ORDER);
-			
-			Cursor cursor = feat.localSearchQuery(mQuery);
+			Cursor cursor = mFeature.localSearchQuery(mQuery);
 			
 			return cursor;
 		}

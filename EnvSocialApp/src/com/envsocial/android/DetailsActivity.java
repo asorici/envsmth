@@ -92,7 +92,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        Log.i(TAG, "[INFO] running onCreate in DetailsActivity");
+        //Log.i(TAG, "[INFO] running onCreate in DetailsActivity");
         setContentView(R.layout.details);
         
         mActionBar = getSupportActionBar();
@@ -268,7 +268,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// add the search button
 		MenuItem item = menu.add(getText(R.string.menu_search));
-        item.setIcon(R.drawable.ic_menu_search);
+        item.setIcon(R.drawable.ic_menu_search_holder);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
 		
         // add the register/unregister for notifications menu options
@@ -276,7 +276,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
      	menu.add(UNREGISTER_GCM_ITEM);
      	
      	// add temporary test for feature update notification
-     	menu.add("Test Update Feature");
+     	//menu.add("Test Update Feature");
      	
     	return true;
 	}
@@ -504,6 +504,8 @@ public class DetailsActivity extends SherlockFragmentActivity {
 		protected void onPreExecute() {
 			mLoadingDialog = ProgressDialog.show(DetailsActivity.this, 
 					"", "Check in ...", true);
+			mLoadingDialog.setCancelable(true);
+			mLoadingDialog.setCanceledOnTouchOutside(false);
 		}
 		
 		@Override
@@ -534,7 +536,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 					mLocation = (Location) holder.getTag();
 
 					// TODO: fix padding issue in action bar style xml
-					mActionBar.setTitle("     " + mLocation.getName());
+					mActionBar.setTitle(mLocation.getName());
 
 					// We have location by now, so add tabs
 					addFeatureTabs();

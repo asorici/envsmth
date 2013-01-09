@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
     android:id="@+id/order_tab_item_wrapper"
-    android:background="@color/white" >
+    android:layout_width="fill_parent"
+    android:layout_height="60dip"
+    android:layout_marginTop="5dip"
+    android:layout_marginBottom="5dip"
+    android:background="@android:color/transparent" >
+    
     <LinearLayout android:id="@+id/order_tab_fb_layout"
         android:layout_width="wrap_content"
-        android:layout_height="fill_parent"
-        
+        android:layout_height="match_parent"
+        android:layout_gravity="center_vertical"
         android:layout_marginLeft="10dip"
         android:layout_marginRight="5dip"
         android:layout_alignParentRight="true" >
         <ImageView android:id="@+id/order_tab_item_fb_share"
 	        android:contentDescription="Share order on Facebook"
-	        android:src="@drawable/com_facebook_icon"
+	        android:src="@drawable/com_facebook_icon_green"
 	        android:layout_width="45dip"
 	        android:layout_height="45dip"
 	        android:layout_gravity="center_vertical|right"
@@ -23,30 +26,33 @@
     <RelativeLayout
         android:id="@+id/order_tab_item_name_holder"
         android:layout_width="match_parent"
-        android:layout_height="45dip"
+        android:layout_height="match_parent"
+        android:layout_marginTop="5dip"
+        android:layout_gravity="center_vertical"
         android:layout_toLeftOf="@id/order_tab_fb_layout"
         android:layout_marginRight="10dip" >
 
         <TextView
             android:id="@+id/order_tab_item_name"
             android:layout_width="120dip"
-            android:layout_height="45dip"
-            android:layout_marginLeft="20dip"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="10dip"
             android:layout_alignParentLeft="true"
             android:ellipsize="end"
             android:lines="2"
             
             android:text="@string/lbl_item"
             android:textStyle="bold"
-            android:textColor="@color/black"
             android:gravity="center_vertical|center_horizontal" 
-            android:background="@drawable/order_tab_item_background"/>
+            android:background="@drawable/feature_order_tab_item_background"/>
 		
         
         <TextView
             android:id="@+id/order_tab_item_plus"
             android:layout_width="wrap_content"
-            android:layout_height="45dip"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
             android:layout_marginLeft="5dip"
             android:layout_toRightOf="@id/order_tab_item_name"
             android:ellipsize="end"
@@ -58,19 +64,21 @@
         <TextView
             android:id="@+id/order_tab_item_quantity"
             android:layout_width="20dip"
-            android:layout_height="45dip"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
             android:layout_marginLeft="5dip"
             android:layout_toRightOf="@id/order_tab_item_plus"
             android:ellipsize="end"
             android:gravity="center_vertical|center_horizontal"
             android:lines="2"
             android:textStyle="bold" 
-            android:background="@drawable/order_tab_item_background"/>
+            android:background="@drawable/feature_order_tab_item_background"/>
         
         <TextView
             android:id="@+id/order_tab_item_equals"
             android:layout_width="wrap_content"
-            android:layout_height="45dip"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
             android:layout_marginLeft="5dip"
             android:layout_toRightOf="@id/order_tab_item_quantity"
             android:ellipsize="end"
@@ -81,15 +89,16 @@
         
         <TextView
             android:id="@+id/order_tab_item_price"
-            android:layout_width="80dip"
-            android:layout_height="45dip"
+            android:layout_width="100dip"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
             android:layout_marginLeft="5dip"
             android:layout_toRightOf="@id/order_tab_item_equals"
             android:ellipsize="end"
             android:gravity="center_vertical|center_horizontal"
             android:lines="2"
             android:textStyle="bold" 
-            android:background="@drawable/order_tab_item_background"/>
+            android:background="@drawable/feature_order_tab_item_background"/>
              
     </RelativeLayout>
 

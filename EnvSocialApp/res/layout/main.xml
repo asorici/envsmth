@@ -67,13 +67,15 @@
 	    android:layout_alignParentBottom="true"
 	    android:orientation="vertical" >
 	
-	    <Button android:id="@+id/btn_anonymous"
+	    <Button
+	        android:id="@+id/btn_anonymous"
+	        style="@style/Widget.Envived.Button"
 	        android:layout_width="fill_parent"
 	        android:layout_height="wrap_content"
+	        android:layout_marginBottom="3dip"
 	        android:layout_marginLeft="10dip"
 	        android:layout_marginRight="10dip"
 	        android:layout_marginTop="3dip"
-	        android:layout_marginBottom="3dip"
 	        android:text="@string/btn_anonymous" />
 	    
 <!-- 		<Button android:id="@+id/btn_fbconnect"
@@ -88,25 +90,29 @@
 		    android:layout_height="wrap_content"
 		    android:orientation="horizontal" >
 		
-			<Button android:id="@+id/btn_register"
-		        android:layout_weight="1"
-		        android:layout_width="fill_parent"
-		        android:layout_height="wrap_content"
-		        android:layout_marginLeft="10dp"
-		        android:layout_marginRight="3dip"
-		        android:layout_marginTop="3dip"
-		        android:layout_marginBottom="10dip"
-		        android:text="@string/btn_register" />
+			<Button
+			    android:id="@+id/btn_register"
+			    style="@style/Widget.Envived.Button"
+			    android:layout_width="fill_parent"
+			    android:layout_height="wrap_content"
+			    android:layout_marginBottom="10dip"
+			    android:layout_marginLeft="10dp"
+			    android:layout_marginRight="3dip"
+			    android:layout_marginTop="3dip"
+			    android:layout_weight="1"
+			    android:text="@string/btn_register" />
 		
-			<Button android:id="@+id/btn_login"
-		        android:layout_weight="1"
-		        android:layout_width="fill_parent"
-		        android:layout_height="wrap_content"
-		        android:layout_marginLeft="3dp"
-		        android:layout_marginRight="10dip"
-	        	android:layout_marginTop="3dip"
-	        	android:layout_marginBottom="10dip"
-		        android:text="@string/btn_login" />
+			<Button
+			    android:id="@+id/btn_login"
+			    style="@style/Widget.Envived.Button"
+			    android:layout_width="fill_parent"
+			    android:layout_height="wrap_content"
+			    android:layout_marginBottom="10dip"
+			    android:layout_marginLeft="3dp"
+			    android:layout_marginRight="10dip"
+			    android:layout_marginTop="3dip"
+			    android:layout_weight="1"
+			    android:text="@string/btn_login" />
 		
 		</LinearLayout>
 	

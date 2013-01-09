@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/envived_order_filler_green" >
     
     <ImageView android:id="@+id/order_request_type_image"
         android:layout_width="60dip"
@@ -11,7 +12,7 @@
         android:layout_marginLeft="10dip"
         android:layout_gravity="left|center_vertical"
         android:scaleType="fitCenter"
-        android:src="@drawable/order_request_new_order"
+        android:src="@drawable/feature_order_request_new_order"
         android:contentDescription="@string/lbl_order_request" />
         
     <RelativeLayout
@@ -23,7 +24,7 @@
 	        android:orientation="vertical"
 	        android:layout_alignParentRight="true">
 		    <Button android:id="@+id/btn_resolve"
-		        android:layout_width="wrap_content"
+		        android:layout_width="100dip"
 		        android:layout_height="60dip"
 		        android:layout_marginTop="10dip"
 		        android:layout_marginRight="10dip"
@@ -35,7 +36,7 @@
 		        android:layout_marginRight="10dip"
 		        android:layout_marginBottom="10dip"
 		        android:textStyle="bold"
-	        	android:textColor="@color/dark_green"
+	        	android:textColor="@color/envived_order_text_white"
 	        	android:text="n.a." />
 	    </LinearLayout>
 	    <TextView android:id="@+id/order_details"

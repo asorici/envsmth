@@ -4,7 +4,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="top|center_horizontal"
-        android:background="@color/actionbar_gray"
+        android:background="@drawable/envived_home_checkin_label"
         android:gravity="center_horizontal"
         android:text="@string/order_tab_title"
         android:textSize="20dip"

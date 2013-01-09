@@ -2,4 +2,11 @@
 <ExpandableListView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/order_tab_summary_list"
 	android:layout_width="fill_parent"
-	android:layout_height="fill_parent" />
+	android:layout_height="fill_parent"
+	android:layout_marginLeft="5dip"
+	android:layout_marginRight="5dip"
+	
+	android:divider="@android:color/transparent"
+	android:dividerHeight="2dip"
+	android:listSelector="@android:color/transparent" 
+	android:cacheColorHint="@android:color/transparent" />

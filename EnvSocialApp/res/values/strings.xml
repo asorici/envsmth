@@ -20,9 +20,9 @@
       <item quantity="one">%1$d result for \"%2$s\": </item>
       <item quantity="other">%1$d results for \"%2$s\": </item>
     </plurals>
+    
     <string name="search_no_results">No results found for \"%s\"</string>
     <string name="menu_search">Search</string>
-    
     
     
     <string name="menu_test">Test!</string>

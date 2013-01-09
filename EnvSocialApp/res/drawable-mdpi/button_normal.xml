@@ -5,7 +5,11 @@
         android:endColor="#ffffff"
         android:type="linear"
         android:angle="90" />
+    
+    <!-- 
     <corners android:radius="4dip" />
+     -->
+    
     <padding android:top="10dip"
         android:right="10dip"
         android:bottom="10dip"

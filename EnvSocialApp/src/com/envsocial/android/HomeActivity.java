@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -75,12 +76,12 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 	
 	
 	@Override
-	public void onStart() {
-		super.onStart();
+	public void onResume() {
+		super.onResume();
+		Log.d(TAG, "On Resume in Home Activity");
 		
 		// reset location if we have checked in at another activity in the meantime
 		displayCheckedInLocation();
-		this.findViewById(R.id.checked_in_location_name).invalidate();
 	}
 	
 	
@@ -104,7 +105,8 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 				String dialogMessage = "Keep previous checkin location ("  
 						+ currentLocation.getName() + ") ?";
 				
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				ContextThemeWrapper ctw = new ContextThemeWrapper( this, R.style.EnvivedDialogTheme );
+				AlertDialog.Builder builder = new AlertDialog.Builder(ctw);
 				
 				LayoutInflater inflater = getLayoutInflater();
 				//ViewGroup dialogViewGroup = (ViewGroup)findViewById(R.id.view_home);
