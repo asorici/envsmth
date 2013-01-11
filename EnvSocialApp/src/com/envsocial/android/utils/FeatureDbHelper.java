@@ -34,10 +34,17 @@ public abstract class FeatureDbHelper extends SQLiteOpenHelper implements Serial
 		this.databaseName = databaseName;
 	}
 	
+	public String getDatabaseName() {
+		return databaseName;
+	}
+	
 	public SQLiteDatabase getDatabase() {
 		return database;
 	}
 	
+	public Feature getFeature() {
+		return feature;
+	}
 	
 	@Override
 	public void onCreate(SQLiteDatabase db) {
@@ -81,9 +88,6 @@ public abstract class FeatureDbHelper extends SQLiteOpenHelper implements Serial
 		
 	}
 	
-	public Feature getFeature() {
-		return feature;
-	}
 	
 	protected abstract void onDbCreate(SQLiteDatabase db);
 	

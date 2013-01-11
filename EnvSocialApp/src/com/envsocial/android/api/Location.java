@@ -30,7 +30,7 @@ public class Location implements Serializable {
 	private String mJSONString;
 	
 	private String mId;
-	private String mUri;
+	private String mResourceUri;
 	private int mType;
 	private String mName;
 	private Map<String, Feature> mFeatures;
@@ -63,7 +63,7 @@ public class Location implements Serializable {
 	
 	public Location(String name, String uri) {
 		mName = name;
-		mUri = uri;
+		mResourceUri = uri;
 	}
 	
 	
@@ -85,7 +85,7 @@ public class Location implements Serializable {
 		JSONObject locationData = data.getJSONObject("location_data");
 		
 		mId = locationData.getString("id");
-		mUri = locationData.getString("resource_uri");
+		mResourceUri = locationData.getString("resource_uri");
 		mName = locationData.getString("name");
 		
 		JSONObject owner = locationData.getJSONObject("owner");
@@ -213,8 +213,8 @@ public class Location implements Serializable {
 		return mId;
 	}
 	
-	public String getUri() {
-		return mUri;
+	public String getLocationUri() {
+		return mResourceUri;
 	}
 	
 	public int getType() {
@@ -306,7 +306,7 @@ public class Location implements Serializable {
 	public String toString() {
 		String info = "";
 		info += "name::" + mName + ", ";
-		info += "uri::" + mUri + ", ";
+		info += "uri::" + mResourceUri + ", ";
 		info += "jsonString::" + mJSONString;
 		
 		return info;

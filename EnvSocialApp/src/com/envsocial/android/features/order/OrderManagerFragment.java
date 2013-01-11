@@ -239,7 +239,7 @@ public class OrderManagerFragment extends SherlockFragment {
 			
 			// get location name and uri - construct location data map
 			String locationName = annotation.getLocation().getName();
-			String locationUri = annotation.getLocation().getUri();
+			String locationUri = annotation.getLocation().getLocationUri();
 			Map<String, String> locationData = new HashMap<String, String>();
 			locationData.put("location_name", locationName);
 			locationData.put("location_uri", locationUri);

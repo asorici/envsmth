@@ -332,7 +332,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 		else if (item.getTitle().toString().compareTo("Test Update Feature") == 0) {
 			Intent updateService = new Intent(context, EnvivedFeatureUpdateService.class);
 			
-			String locationUri = mLocation.getUri();
+			String locationUri = mLocation.getLocationUri();
 			EnvivedNotificationContents notificationContents = 
 					new EnvivedNotificationContents(locationUri, Feature.ORDER, null, null);
 			updateService.putExtra(EnvivedFeatureUpdateService.UPDATE_SERVICE_INPUT, notificationContents);
