@@ -81,7 +81,6 @@ def logout(request):
             
             #user_profile.context.save()
             user_profile.save()
-            
     except UserContext.DoesNotExist:
         ## graceful error handling, if no context exists don't freak out, just ignore
         pass
