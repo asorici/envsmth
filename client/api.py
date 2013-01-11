@@ -610,7 +610,7 @@ class AnnotationResource(ModelResource):
             
         user_profile = bundle.obj.user
         
-        if not user_profile.is_anonymous:
+        if not user_profile is None and not user_profile.is_anonymous:
             first_name = user_profile.user.first_name
             last_name = user_profile.user.last_name
         
