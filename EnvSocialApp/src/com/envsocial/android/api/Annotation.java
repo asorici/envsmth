@@ -102,7 +102,7 @@ public class Annotation {
 		String locationUri = url.toString();
 		*/
 		String locationType = (mLocation.isEnvironment()) ? Location.ENVIRONMENT : Location.AREA;
-		String locationUri = mLocation.getUri();
+		String locationUri = mLocation.getLocationUri();
 		
 		Object data = null;
 		try {
@@ -323,11 +323,11 @@ public class Annotation {
 		List<Annotation> annotations = new ArrayList<Annotation>();
 		for (int i = 0; i < len; ++ i) {
 			JSONObject annotation = array.getJSONObject(i);
-			String uri = annotation.getString("resource_uri");
-			String userUri = annotation.getString("user");
+			String resourceUri = annotation.getString("resource_uri");
 			String category = annotation.getString("category");
+			String userUri = annotation.optString("user", null);
 			
-			//String strTimestamp = annotation.getString("timestamp").replace('T', ' ');
+//			String strTimestamp = annotation.getString("timestamp").replace('T', ' ');
 			String strTimestamp = annotation.getString("timestamp");
 			Calendar timestamp = Utils.stringToCalendar(strTimestamp, "yyyy-MM-dd'T'HH:mm:ssZ");
 			
@@ -352,24 +352,18 @@ public class Annotation {
 			}
 			
 			String data = annotation.getString("data");
-			annotations.add(new Annotation(context, annLocation, category, timestamp, data, uri, userUri));
+			annotations.add(new Annotation(context, annLocation, category, timestamp, data, resourceUri, userUri));
 		}
 		
 		return annotations;
 	}
 	
 	
-	public static int deleteAnnotation(Context context, 
-			String uri) throws Exception {
-		
+	public static int deleteAnnotation(Context context, String uri) throws Exception {
 		String url = Url.fromUri(uri);
 		AppClient client = new AppClient(context);
 		
-		System.out.println("[DEBUG]>> Sending delete request for: " + url);
-		
-		return client.makeDeleteRequest(url)
-						.getStatusLine()
-							.getStatusCode();
+		return client.makeDeleteRequest(url).getStatusLine().getStatusCode();
 	}
 	
 	

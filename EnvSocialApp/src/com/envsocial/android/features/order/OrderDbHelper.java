@@ -20,7 +20,7 @@ public class OrderDbHelper extends FeatureDbHelper {
 	
 	private static final String TAG = "OrderDbHelper";
 	
-	public static final String DATABASE_NAME = "db_order";
+	public static final String DATABASE_PREFIX = "db_order";
 	
 	protected static final String MENU_CATEGORY_TABLE = "category";
 	protected static final String COL_CATEGORY_ID = BaseColumns._ID;
@@ -47,8 +47,8 @@ public class OrderDbHelper extends FeatureDbHelper {
 												 COL_ORDER_FTS_DESCRIPTION };
 	
 	
-	public OrderDbHelper(Context context, OrderFeature orderFeature, int version) throws EnvSocialContentException {
-		super(context, DATABASE_NAME, orderFeature, version);
+	public OrderDbHelper(Context context, String databaseName, OrderFeature orderFeature, int version) throws EnvSocialContentException {
+		super(context, databaseName, orderFeature, version);
 		
 		this.database = this.getWritableDatabase();
 	}
@@ -56,7 +56,7 @@ public class OrderDbHelper extends FeatureDbHelper {
 
 	@Override
 	public void onDbCreate(SQLiteDatabase db) {
-		Log.d(TAG, "[DEBUG] >> ----------- Database " + DATABASE_NAME + " is being created. ------------");
+		Log.d(TAG, "[DEBUG] >> ----------- Database " + databaseName + " is being created. ------------");
 		
 		// create menu category table
 		db.execSQL("CREATE TABLE " + MENU_CATEGORY_TABLE + "(" + 
@@ -105,13 +105,13 @@ public class OrderDbHelper extends FeatureDbHelper {
 	
 	@Override
 	public void onOpen(SQLiteDatabase db) {
-		Log.d(TAG, "[DEBUG] >> ----------- Database " + DATABASE_NAME + " is being opened. ------------");
+		Log.d(TAG, "[DEBUG] >> ----------- Database " + databaseName + " is being opened. ------------");
 	}
 	
 	@Override
 	public void init() throws EnvSocialContentException {
 		// calling insertMenu here
-		Log.d(TAG, "[DEBUG] >> ----------- Init " + DATABASE_NAME + ". ------------");
+		Log.d(TAG, "[DEBUG] >> ----------- Init " + databaseName + ". ------------");
 		insertMenu();
 	}
 	

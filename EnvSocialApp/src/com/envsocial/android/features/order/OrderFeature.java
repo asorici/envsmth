@@ -1,7 +1,5 @@
 package com.envsocial.android.features.order;
 
-import java.util.List;
-import java.util.Map;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -55,8 +53,11 @@ public class OrderFeature extends Feature {
 	public void init() throws EnvSocialContentException {
 		super.init();
 		
+		String databaseName = getLocalDatabaseName(OrderDbHelper.DATABASE_PREFIX, 
+								environmentUri, areaUri, version);
+		
 		if (dbHelper == null) {
-			dbHelper = new OrderDbHelper(Envived.getContext(), this, version);
+			dbHelper = new OrderDbHelper(Envived.getContext(), databaseName, this, version);
 		}
 		
 		if (dbHelper != null) {
@@ -69,8 +70,11 @@ public class OrderFeature extends Feature {
 	public void doUpdate() throws EnvSocialContentException {
 		super.doUpdate();
 		
+		String databaseName = getLocalDatabaseName(OrderDbHelper.DATABASE_PREFIX, 
+				environmentUri, areaUri, version);
+	
 		if (dbHelper == null) {
-			dbHelper = new OrderDbHelper(Envived.getContext(), this, version);
+			dbHelper = new OrderDbHelper(Envived.getContext(), databaseName, this, version);
 		}
 		
 		dbHelper.update();
@@ -88,15 +92,16 @@ public class OrderFeature extends Feature {
 	
 	@Override
 	public void doClose(Context context) {
+		String databaseName = dbHelper.getDatabaseName();
 		super.doClose(context);
 		
 		// first do cleanup
 		doCleanup(context);
 		
 		// then remove the database file entirely
-		context.deleteDatabase(OrderDbHelper.DATABASE_NAME);
+		context.deleteDatabase(databaseName);
 	}
-
+	
 	
 	@Override
 	public boolean hasLocalDatabaseSupport() {

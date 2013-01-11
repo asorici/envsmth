@@ -26,6 +26,9 @@ import com.envsocial.android.utils.ResponseHolder;
 public abstract class Feature implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
+	public static final String ENVIRONMENT_TAG = "_environment_";
+	public static final String AREA_TAG = "_area_";
+	
 	public static final String DESCRIPTION 	= 	"description";
 	public static final String ORDER 		= 	"order";
 	public static final String PEOPLE 		= 	"people";
@@ -180,8 +183,21 @@ public abstract class Feature implements Serializable {
 		}
 	}
 	
+	
 	public static Feature getFromSavedLocation(Location location, String category) {
 		return location.getFeature(category);
+	}
+	
+	
+	public static String getLocalDatabaseName(String prefix, 
+			String environmentUri, String areaUri, int dbVersion) {
+		
+		if (environmentUri != null) {
+			return prefix + ENVIRONMENT_TAG + Url.resourceIdFromUri(environmentUri) + "_" + dbVersion;
+		}
+		else {
+			return prefix + AREA_TAG + Url.resourceIdFromUri(areaUri) + "_" + dbVersion;
+		}
 	}
 	
 	
