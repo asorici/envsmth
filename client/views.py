@@ -78,7 +78,9 @@ def logout(request):
             user_profile.c2dm_id = None
             user_profile.context.currentEnvironment = None
             user_profile.context.currentArea = None
-            user_profile.context.save()
+            
+            #user_profile.context.save()
+            user_profile.save()
             
     except UserContext.DoesNotExist:
         ## graceful error handling, if no context exists don't freak out, just ignore
