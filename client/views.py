@@ -68,14 +68,19 @@ def logout(request):
     ## log the user out
     user = getattr(request, 'user', None)
     
-    ## when logging out we also checkout from the current location
+    ## when logging out we also checkout from the current location and set the c2dm_id to null 
+    ## (because we might check in from another device and we don't want to send notifications to the
+    ## old device in the mean time)
     try:
         if not user is None and not request.user.is_anonymous():
-            user = request.user.get_profile()
+            user_profile = request.user.get_profile()
             
-            user.context.currentEnvironment = None
-            user.context.currentArea = None
-            user.context.save()
+            user_profile.c2dm_id = None
+            user_profile.context.currentEnvironment = None
+            user_profile.context.currentArea = None
+            
+            #user_profile.context.save()
+            user_profile.save()
             
     except UserContext.DoesNotExist:
         ## graceful error handling, if no context exists don't freak out, just ignore
