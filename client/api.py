@@ -499,7 +499,7 @@ class AnnouncementResource(ModelResource):
 class AnnotationResource(ModelResource):
     environment = fields.ForeignKey(EnvironmentResource, 'environment', null = True)
     area = fields.ForeignKey(AreaResource, 'area', null = True)
-    user = fields.ForeignKey(UserResource, 'user')
+    user = fields.ForeignKey(UserResource, 'user', null = True)
     data = fields.DictField()
     
     class Meta:
@@ -649,6 +649,7 @@ class AnnotationResource(ModelResource):
         
         ## get all data from bundle.data
         user = bundle.request.user.get_profile()
+        
         category = bundle.data['category']
         data = bundle.data['data']
         environment = None 
