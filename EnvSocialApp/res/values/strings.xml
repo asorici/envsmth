@@ -48,6 +48,7 @@
     <string name="btn_filter">Filter&#8230;</string>
     <string name="btn_history">View History</string>
     <string name="btn_resolve">Resolve</string>
+    <string name="btn_ok">OK</string>
     <string name="btn_cancel">Cancel</string>
     <string name="btn_send">Send</string>
     <string name="btn_more">Show More</string>

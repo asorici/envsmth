@@ -29,7 +29,7 @@ public class ResolvedOrderRequestNotification extends EnvivedNotification {
 		super(context, intent, notificationContents);
 		
 		mId = counter++;
-		mIconId = R.drawable.ic_launcher;
+		mIconId = R.drawable.ic_envived_white;
 		mTitle = mContext.getResources().getString(R.string.resolved_order_request);
 		mWhen = System.currentTimeMillis();
 		mMessage = "We are on our way with your request!";

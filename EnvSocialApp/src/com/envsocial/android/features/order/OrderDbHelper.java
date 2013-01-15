@@ -49,6 +49,7 @@ public class OrderDbHelper extends FeatureDbHelper {
 	
 	public OrderDbHelper(Context context, String databaseName, OrderFeature orderFeature, int version) throws EnvSocialContentException {
 		super(context, databaseName, orderFeature, version);
+		Log.d(TAG, "Creating dbHelper with name: " + databaseName);
 		
 		this.database = this.getWritableDatabase();
 	}

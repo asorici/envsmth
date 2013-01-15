@@ -26,7 +26,7 @@ public class NewOrderRequestNotification extends EnvivedNotification {
 		super(context, intent, notificationContents);
 		
 		mId = R.string.incoming_order_request;
-		mIconId = R.drawable.ic_launcher;
+		mIconId = R.drawable.ic_envived_white;
 		mTitle = mContext.getResources().getString(R.string.incoming_order_request);
 		mWhen = System.currentTimeMillis();
 		

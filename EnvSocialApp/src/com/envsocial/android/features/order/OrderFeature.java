@@ -52,7 +52,7 @@ public class OrderFeature extends Feature {
 	@Override
 	public void init() throws EnvSocialContentException {
 		super.init();
-		
+
 		String databaseName = getLocalDatabaseName(OrderDbHelper.DATABASE_PREFIX, 
 								environmentUri, areaUri, version);
 		
@@ -73,6 +73,7 @@ public class OrderFeature extends Feature {
 		String databaseName = getLocalDatabaseName(OrderDbHelper.DATABASE_PREFIX, 
 				environmentUri, areaUri, version);
 	
+
 		if (dbHelper == null) {
 			dbHelper = new OrderDbHelper(Envived.getContext(), databaseName, this, version);
 		}
@@ -92,7 +93,9 @@ public class OrderFeature extends Feature {
 	
 	@Override
 	public void doClose(Context context) {
-		String databaseName = dbHelper.getDatabaseName();
+		
+		String databaseName = getLocalDatabaseName(OrderDbHelper.DATABASE_PREFIX, 
+				environmentUri, areaUri, version);
 		super.doClose(context);
 		
 		// first do cleanup
@@ -102,7 +105,7 @@ public class OrderFeature extends Feature {
 		context.deleteDatabase(databaseName);
 	}
 	
-	
+
 	@Override
 	public boolean hasLocalDatabaseSupport() {
 		return true;
