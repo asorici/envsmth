@@ -28,8 +28,9 @@ import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.features.Feature;
 import com.facebook.FacebookException;
+import com.facebook.FacebookRequestError;
 import com.facebook.HttpMethod;
-import com.facebook.LoggingBehaviors;
+import com.facebook.LoggingBehavior;
 import com.facebook.Request;
 import com.facebook.RequestAsyncTask;
 import com.facebook.Response;
@@ -103,7 +104,7 @@ public class OrderTabFragment extends SherlockFragment {
 		Context context = getActivity();
 		
 		// retrieve any existing facebook session
-		Settings.addLoggingBehavior(LoggingBehaviors.INCLUDE_ACCESS_TOKENS);
+		Settings.addLoggingBehavior(LoggingBehavior.INCLUDE_ACCESS_TOKENS);
 		Session session = Session.getActiveSession();
 		if (session == null) {
 			if (savedInstanceState != null) {
@@ -208,10 +209,10 @@ public class OrderTabFragment extends SherlockFragment {
 					List<String> permissions = session.getPermissions();
 					if (!isSubsetOf(PERMISSIONS, permissions)) {
 						pendingPublishReauthorization = true;
-						Session.ReauthorizeRequest reauthRequest = new Session.ReauthorizeRequest(
+						Session.NewPermissionsRequest reauthRequest = new Session.NewPermissionsRequest(
 								this, PERMISSIONS)
 								.setRequestCode(REAUTH_ACTIVITY_CODE);
-						session.reauthorizeForPublish(reauthRequest);
+						session.requestNewPublishPermissions(reauthRequest);
 
 						Log.d(TAG, "## Checking for write permissions: "
 								+ session.getState());
@@ -239,7 +240,7 @@ public class OrderTabFragment extends SherlockFragment {
 								Log.i(TAG, "JSON error " + e.getMessage());
 							}
 
-							FacebookException error = response.getError();
+							FacebookException error = response.getError().getException();
 
 							if (error != null) {
 								Log.d(TAG, error.getMessage(), error);
