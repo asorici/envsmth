@@ -37,8 +37,10 @@ import com.facebook.Request;
 import com.facebook.RequestAsyncTask;
 import com.facebook.Response;
 import com.facebook.Session;
+import com.facebook.SessionDefaultAudience;
 import com.facebook.SessionState;
 import com.facebook.Settings;
+import com.facebook.UiLifecycleHelper;
 
 
 public class OrderTabFragment extends SherlockFragment implements OnClickListener {
@@ -74,6 +76,7 @@ public class OrderTabFragment extends SherlockFragment implements OnClickListene
 	private Session.StatusCallback statusCallback = new SessionStatusCallback();
 	private String mPublishOrderMessage;
 	private boolean pendingPublishReauthorization = false;
+	private UiLifecycleHelper uiHelper;
 	
 	
 	protected Location getLocation() {
@@ -106,23 +109,28 @@ public class OrderTabFragment extends SherlockFragment implements OnClickListene
 		
 		Context context = getActivity();
 		
+		
+		
 		// retrieve any existing facebook session
 		Settings.addLoggingBehavior(LoggingBehavior.INCLUDE_ACCESS_TOKENS);
-		Session session = Session.getActiveSession();
-		if (session == null) {
-			if (savedInstanceState != null) {
-				session = Session.restoreSession(context, null, statusCallback, savedInstanceState);
-			}
-
-			if (session == null) {
-				session = new Session(context);
-			}
-
-			Session.setActiveSession(session);
-			if (session.getState().equals(SessionState.CREATED_TOKEN_LOADED)) {
-				session.openForRead(new Session.OpenRequest(this).setCallback(statusCallback));
-			}
-		}
+//		Session session = Session.getActiveSession();
+//		if (session == null) {
+//			if (savedInstanceState != null) {
+//				session = Session.restoreSession(context, null, statusCallback, savedInstanceState);
+//			}
+//
+//			if (session == null) {
+//				session = new Session(context);
+//			}
+//
+//			Session.setActiveSession(session);
+//			if (session.getState().equals(SessionState.CREATED_TOKEN_LOADED)) {
+//				session.openForRead(new Session.OpenRequest(this).setCallback(statusCallback));
+//			}
+//		}
+		
+		uiHelper = new UiLifecycleHelper(getActivity(), statusCallback);
+		uiHelper.onCreate(savedInstanceState);
 	}
 	
 	
@@ -154,15 +162,23 @@ public class OrderTabFragment extends SherlockFragment implements OnClickListene
 	
 	
 	@Override
-    public void onStart() {
-        super.onStart();
-        Session.getActiveSession().addCallback(statusCallback);
+    public void onResume() {
+        super.onResume();
+        //Session.getActiveSession().addCallback(statusCallback);
+        uiHelper.onResume();
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
-        Session.getActiveSession().removeCallback(statusCallback);
+    public void onPause() {
+        super.onPause();
+        //Session.getActiveSession().removeCallback(statusCallback);
+        uiHelper.onPause();
+    }
+    
+    @Override
+    public void onDestroy() {
+    	super.onDestroy();
+    	uiHelper.onDestroy();
     }
 	
     
@@ -174,8 +190,10 @@ public class OrderTabFragment extends SherlockFragment implements OnClickListene
         // results to the facebook session handler
         Log.d(TAG, "Received activity request for code: " + requestCode + ", result: " + resultCode);
         
-        Activity activity = getActivity();
-        Session.getActiveSession().onActivityResult(activity, requestCode, resultCode, data);
+        uiHelper.onActivityResult(requestCode, resultCode, data);
+        
+//        Activity activity = getActivity();
+//        Session.getActiveSession().onActivityResult(activity, requestCode, resultCode, data);
     }
     
     
@@ -189,9 +207,11 @@ public class OrderTabFragment extends SherlockFragment implements OnClickListene
         }
         outState.putBoolean(PENDING_PUBLISH_KEY, pendingPublishReauthorization);
         
+        uiHelper.onSaveInstanceState(outState);
+        
         // save facebook session
-        Session session = Session.getActiveSession();
-        Session.saveSession(session, outState);
+//        Session session = Session.getActiveSession();
+//        Session.saveSession(session, outState);
     }
     
     
@@ -225,6 +245,7 @@ public class OrderTabFragment extends SherlockFragment implements OnClickListene
 						pendingPublishReauthorization = true;
 						Session.NewPermissionsRequest reauthRequest = new Session.NewPermissionsRequest(
 								this, PERMISSIONS)
+								.setDefaultAudience(SessionDefaultAudience.ONLY_ME)
 								.setRequestCode(REAUTH_ACTIVITY_CODE);
 						session.requestNewPublishPermissions(reauthRequest);
 
@@ -242,6 +263,15 @@ public class OrderTabFragment extends SherlockFragment implements OnClickListene
 
 					Request.Callback callback = new Request.Callback() {
 						public void onCompleted(Response response) {
+//							if (response == null) {
+//								Log.d(TAG, "response is null");
+//								return;
+//							}
+//							if (response.getGraphObject() == null) {
+//								Log.d(TAG, "getGraphObject is null");
+//								return;
+//							}
+							
 							JSONObject graphResponse = response.getGraphObject().getInnerJSONObject();
 
 							String postId = null;
@@ -251,10 +281,10 @@ public class OrderTabFragment extends SherlockFragment implements OnClickListene
 								Log.i(TAG, "JSON error " + e.getMessage());
 							}
 
-							FacebookException error = response.getError().getException();
+							FacebookRequestError error = response.getError();
 
 							if (error != null) {
-								Log.d(TAG, error.getMessage(), error);
+								Log.d(TAG, error.getErrorMessage(), error.getException());
 								Toast.makeText(getActivity().getApplicationContext(),
 										R.string.msg_share_order_fb_err, Toast.LENGTH_SHORT).show();
 							} else {
@@ -328,6 +358,8 @@ public class OrderTabFragment extends SherlockFragment implements OnClickListene
         	else if (state.equals(SessionState.OPENED)) {
         		publishOrderOnFB();
         	}
+        	
+        	
         }
     }
 }
