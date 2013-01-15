@@ -134,9 +134,9 @@
     <string name="msg_send_entry_comment_ok">Comment sent.</string>
     
     <string name="msg_send_entry_comment_err">Service error sending comments.</string>
-    <string name="msg_send_entry_comment_400">Send comment bad request.</string>
+<!--<string name="msg_send_entry_comment_400">Send comment bad request.</string>
     <string name="msg_send_entry_comment_401">Unauthorized comment submission.</string>
-    <string name="msg_send_entry_comment_405">Comment submission not allowed.</string>
+    <string name="msg_send_entry_comment_405">Comment submission not allowed.</string>-->
     
     <string name="msg_get_entry_comments_err">Service error retrieving comments. Please try again later.</string>
     <string name="msg_send_entry_comment_400">Comment retrieval bad request.</string>
