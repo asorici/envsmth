@@ -51,7 +51,6 @@ public class OrderDbHelper extends FeatureDbHelper {
 		super(context, databaseName, orderFeature, version);
 
 		Log.d(TAG, "Creating dbHelper with name: " + databaseName);
-
 		
 		this.database = this.getWritableDatabase();
 	}

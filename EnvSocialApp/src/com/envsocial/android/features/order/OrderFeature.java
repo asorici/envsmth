@@ -1,6 +1,5 @@
 package com.envsocial.android.features.order;
 
-
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -52,7 +51,7 @@ public class OrderFeature extends Feature {
 	@Override
 	public void init() throws EnvSocialContentException {
 		super.init();
-
+		
 		String databaseName = getLocalDatabaseName(OrderDbHelper.DATABASE_PREFIX, 
 								environmentUri, areaUri, version);
 		
@@ -104,7 +103,7 @@ public class OrderFeature extends Feature {
 		context.deleteDatabase(databaseName);
 	}
 	
-
+	
 	@Override
 	public boolean hasLocalDatabaseSupport() {
 		return true;
