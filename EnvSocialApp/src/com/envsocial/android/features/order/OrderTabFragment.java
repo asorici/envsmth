@@ -281,7 +281,9 @@ public class OrderTabFragment extends SherlockFragment implements OnClickListene
 								Log.i(TAG, "JSON error " + e.getMessage());
 							}
 
+
 							FacebookRequestError error = response.getError();
+
 
 							if (error != null) {
 								Log.d(TAG, error.getErrorMessage(), error.getException());
