@@ -3,7 +3,7 @@
 
     <string name="hello">Hello World, EnvSocialAppActivity!</string>
     <string name="app_name">Envived</string>
-    <string name="facebook_app_id">114985135329363</string>
+    <string name="app_id">114985135329363</string>
     
     <!-- Search labels -->
     <!-- The label for use as a searchable item -->
