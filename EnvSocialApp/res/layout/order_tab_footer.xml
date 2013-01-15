@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/order_tab_footer_wrapper"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="5dip"
+    android:layout_marginRight="5dip"
+    android:orientation="vertical" >
+
+    <RelativeLayout
         android:id="@+id/order_tab_total_wrapper"
         android:layout_width="fill_parent"
-        android:layout_height="45dip"
-        android:layout_marginLeft="5dip"
-        android:layout_marginRight="5dip" >
+        android:layout_height="45dip" >
 
         <TextView
             android:id="@+id/order_tab_total_label"
@@ -15,9 +21,9 @@
             android:gravity="center_vertical|left"
             android:lines="2"
             android:text="TOTAL:"
+            android:textColor="@color/envived_order_text_white"
             android:textSize="20sp"
-            android:textStyle="bold" 
-            android:textColor="@color/envived_order_text_white" />
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/order_tab_total_price"
@@ -28,7 +34,17 @@
             android:ellipsize="end"
             android:gravity="center_vertical|right"
             android:lines="2"
+            android:textColor="@color/envived_order_text_white"
             android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="@color/envived_order_text_white" />
+            android:textStyle="bold" />
     </RelativeLayout>
+
+    <Button
+        android:id="@+id/order_tab_back_to_orders_button"
+        style="@style/Widget.Envived.Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dip"
+        android:text="Back to Orders" />
+
+</LinearLayout>

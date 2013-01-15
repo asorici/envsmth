@@ -18,6 +18,7 @@ import android.support.v4.app.FragmentManager.BackStackEntry;
 import android.support.v4.app.FragmentTransaction;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.ActionBar;
@@ -502,10 +503,13 @@ public class DetailsActivity extends SherlockFragmentActivity {
 
 		@Override
 		protected void onPreExecute() {
-			mLoadingDialog = ProgressDialog.show(DetailsActivity.this, 
-					"", "Check in ...", true);
+			mLoadingDialog = new ProgressDialog(new ContextThemeWrapper(DetailsActivity.this, R.style.ProgressDialogWhiteText));
+			mLoadingDialog.setIndeterminate(true);
+			mLoadingDialog.setMessage("Checking in ...");
 			mLoadingDialog.setCancelable(true);
 			mLoadingDialog.setCanceledOnTouchOutside(false);
+			
+			mLoadingDialog.show();
 		}
 		
 		@Override

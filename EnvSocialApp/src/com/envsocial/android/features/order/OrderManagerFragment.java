@@ -19,6 +19,7 @@ import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -333,10 +334,16 @@ public class OrderManagerFragment extends SherlockFragment {
 		
 		@Override
 		protected void onPreExecute() {
-			mOrderRetrievalDialog = ProgressDialog.show(OrderManagerFragment.this.getActivity(), 
-					"", "Retrieving All Orders ...", true);
+			mOrderRetrievalDialog = new ProgressDialog(
+					new ContextThemeWrapper(OrderManagerFragment.this.getActivity(), 
+					R.style.ProgressDialogWhiteText));
+			
+			mOrderRetrievalDialog.setMessage("Retrieving All Requests ...");
+			mOrderRetrievalDialog.setIndeterminate(true);
 			mOrderRetrievalDialog.setCancelable(true);
 			mOrderRetrievalDialog.setCanceledOnTouchOutside(false);
+			
+			mOrderRetrievalDialog.show();
 		}
 		
 		@Override

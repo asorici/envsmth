@@ -6,8 +6,10 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.widget.Toast;
 
+import com.envsocial.android.HomeActivity;
 import com.envsocial.android.R;
 import com.envsocial.android.api.Annotation;
 import com.envsocial.android.api.exceptions.EnvSocialComException;
@@ -38,8 +40,12 @@ public class SendOrderRequestTask extends AsyncTask<Void, Void, ResponseHolder> 
 	
 	@Override
 	protected void onPreExecute() {
-		mSendOrderDialog = ProgressDialog.show(mContext, 
-				"", "Sending Order ...", true);
+		mSendOrderDialog = new ProgressDialog(new ContextThemeWrapper(mContext, R.style.ProgressDialogWhiteText));
+		mSendOrderDialog.setMessage("Sending Request ...");
+		mSendOrderDialog.setIndeterminate(true);
+		mSendOrderDialog.setCanceledOnTouchOutside(true);
+		
+		mSendOrderDialog.show();
 	}
 	
 	

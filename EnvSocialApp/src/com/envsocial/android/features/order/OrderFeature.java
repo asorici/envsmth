@@ -1,11 +1,5 @@
 package com.envsocial.android.features.order;
 
-<<<<<<< HEAD
-import java.util.List;
-import java.util.Map;
-
-=======
->>>>>>> master
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -57,12 +51,9 @@ public class OrderFeature extends Feature {
 	@Override
 	public void init() throws EnvSocialContentException {
 		super.init();
-<<<<<<< HEAD
-=======
 				
 		String databaseName = getLocalDatabaseName(OrderDbHelper.DATABASE_PREFIX, 
 								environmentUri, areaUri, version);
->>>>>>> master
 		
 		if (dbHelper == null) {
 			dbHelper = new OrderDbHelper(Envived.getContext(), databaseName, this, version);
@@ -78,12 +69,10 @@ public class OrderFeature extends Feature {
 	public void doUpdate() throws EnvSocialContentException {
 		super.doUpdate();
 		
-<<<<<<< HEAD
-=======
 		String databaseName = getLocalDatabaseName(OrderDbHelper.DATABASE_PREFIX, 
 				environmentUri, areaUri, version);
 	
->>>>>>> master
+
 		if (dbHelper == null) {
 			dbHelper = new OrderDbHelper(Envived.getContext(), databaseName, this, version);
 		}
@@ -103,22 +92,17 @@ public class OrderFeature extends Feature {
 	
 	@Override
 	public void doClose(Context context) {
-		String databaseName = dbHelper.getDatabaseName();
+		
+		String databaseName = getLocalDatabaseName(OrderDbHelper.DATABASE_PREFIX, 
+				environmentUri, areaUri, version);
 		super.doClose(context);
 		
 		// first do cleanup
 		doCleanup(context);
 		
 		// then remove the database file entirely
-<<<<<<< HEAD
-		context.deleteDatabase(OrderDbHelper.DATABASE_NAME);
-	}
-
-=======
 		context.deleteDatabase(databaseName);
 	}
-	
->>>>>>> master
 	
 	@Override
 	public boolean hasLocalDatabaseSupport() {

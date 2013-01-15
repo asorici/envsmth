@@ -17,7 +17,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,7 +40,7 @@ import com.facebook.SessionState;
 import com.facebook.Settings;
 
 
-public class OrderTabFragment extends SherlockFragment {
+public class OrderTabFragment extends SherlockFragment implements OnClickListener {
 	private static final String TAG = "OrderTabFragment"; 
 	
 	static OrderTabFragment newInstance(Location location, List<Map<String, Object>> tabOrderSelections) {
@@ -59,6 +61,7 @@ public class OrderTabFragment extends SherlockFragment {
 	
 	// views and adapters
 	private TextView mTotalOrderPrice;
+	private Button mBackButton;
 	private OrderTabListAdapter mAdapter;
 	
 	// -------- facebook session and actions --------
@@ -142,6 +145,8 @@ public class OrderTabFragment extends SherlockFragment {
 		
 		mTotalOrderPrice = (TextView) footer.findViewById(R.id.order_tab_total_price);
 		mTotalOrderPrice.setText(new DecimalFormat("#.##").format(totalTabPrice) + " RON");
+		mBackButton = (Button) footer.findViewById(R.id.order_tab_back_to_orders_button);
+		mBackButton.setOnClickListener(this);
 		
 		return v;
 	}
@@ -189,6 +194,15 @@ public class OrderTabFragment extends SherlockFragment {
     }
     
     
+    @Override
+	public void onClick(View v) {
+		if (v == mBackButton) {
+			// pop current fragment from back stack - return to the original 
+			getActivity().getSupportFragmentManager().popBackStackImmediate();
+		}
+	}
+    
+    
     protected void setPublishOrderMessage(String orderMessage) {
 		mPublishOrderMessage = orderMessage;
 	}
@@ -213,15 +227,12 @@ public class OrderTabFragment extends SherlockFragment {
 								.setRequestCode(REAUTH_ACTIVITY_CODE);
 						session.reauthorizeForPublish(reauthRequest);
 
-						Log.d(TAG, "## Checking for write permissions: "
-								+ session.getState());
+						Log.d(TAG, "## Checking for write permissions: " + session.getState());
 
 						return;
 					}
 
-					Log.d(TAG,
-							"## Composing message and sending: "
-									+ session.getState());
+					Log.d(TAG, "## Composing message and sending: " + session.getState());
 
 					Bundle postParams = new Bundle();
 					postParams.putString("message", mPublishOrderMessage);

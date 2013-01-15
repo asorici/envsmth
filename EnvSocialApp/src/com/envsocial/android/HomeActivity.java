@@ -1,16 +1,13 @@
 package com.envsocial.android;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -25,6 +22,8 @@ import com.envsocial.android.api.Location;
 import com.envsocial.android.api.Url;
 import com.envsocial.android.api.exceptions.EnvSocialComException;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
+import com.envsocial.android.features.order.OrderCustomAlertDialogFragment;
+import com.envsocial.android.features.order.OrderCustomAlertDialogFragment.OrderNoticeAlertDialogListener;
 import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
 import com.google.android.gcm.GCMRegistrar;
@@ -32,7 +31,8 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
 
-public class HomeActivity extends SherlockFragmentActivity implements OnClickListener {
+public class HomeActivity extends SherlockFragmentActivity 
+	implements OnClickListener, OrderNoticeAlertDialogListener {
 	
 	private static final String TAG = "HomeActivity";
 	private static final String SIGN_OUT = "Sign out";
@@ -105,11 +105,11 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 				String dialogMessage = "Keep previous checkin location ("  
 						+ currentLocation.getName() + ") ?";
 				
+				/*
 				ContextThemeWrapper ctw = new ContextThemeWrapper( this, R.style.EnvivedDialogTheme );
-				AlertDialog.Builder builder = new AlertDialog.Builder(ctw);
 				
+				AlertDialog.Builder builder = new AlertDialog.Builder(ctw);
 				LayoutInflater inflater = getLayoutInflater();
-				//ViewGroup dialogViewGroup = (ViewGroup)findViewById(R.id.view_home);
 				TextView titleDialogView = (TextView)inflater.inflate(R.layout.home_select_checkin_title, null, false);
 				titleDialogView.setText("Select Checkin Location");
 				
@@ -148,6 +148,13 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 				});
 
 				builder.show();
+				*/
+				
+				OrderCustomAlertDialogFragment checkinDialog = 
+						OrderCustomAlertDialogFragment.newInstance("Select Checkin Location", 
+								dialogMessage, "Yes", "No");
+				checkinDialog.setOrderNoticeAlertDialogListener(this);
+				checkinDialog.show(getSupportFragmentManager(), "dialog");
 			}
 			else {
 				IntentIntegrator integrator = new IntentIntegrator(this);
@@ -155,6 +162,32 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 			}
 		} 
 	}
+	
+
+	@Override
+	public void onDialogPositiveClick(DialogFragment dialog) {
+		dialog.dismiss();
+    	
+    	Intent i = new Intent(HomeActivity.this, DetailsActivity.class);
+		
+    	// we can put null for the payload since we have a location saved in preferences
+    	i.putExtra(ActionHandler.CHECKIN, (String)null);
+		startActivity(i);
+	}
+
+
+	@Override
+	public void onDialogNegativeClick(DialogFragment dialog) {
+		dialog.dismiss();
+    	
+    	// do a local checkout before checking in somewhere else
+    	// for now this will also refresh any feature data that was renewed server-side
+    	Preferences.checkout(getApplicationContext());
+    	
+    	IntentIntegrator integrator = new IntentIntegrator(HomeActivity.this);
+		integrator.initiateScan();
+	}
+	
 	
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
@@ -227,8 +260,13 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 		
 		@Override
 		protected void onPreExecute() {
-			mLoadingDialog = ProgressDialog.show(HomeActivity.this, 
-					"", "Signing out ...", true);
+			mLoadingDialog = new ProgressDialog(new ContextThemeWrapper(HomeActivity.this, R.style.ProgressDialogWhiteText));
+			mLoadingDialog.setMessage("Signing out ...");
+			mLoadingDialog.setIndeterminate(true);
+			mLoadingDialog.setCancelable(true);
+			mLoadingDialog.setCanceledOnTouchOutside(false);
+			
+			mLoadingDialog.show();
 		}
 		
 		@Override
@@ -287,8 +325,13 @@ public class HomeActivity extends SherlockFragmentActivity implements OnClickLis
 		
 		@Override
 		protected void onPreExecute() {
-			mLoadingDialog = ProgressDialog.show(HomeActivity.this, 
-					"", "Checking out ...", true);
+			mLoadingDialog = new ProgressDialog(new ContextThemeWrapper(HomeActivity.this, R.style.ProgressDialogWhiteText));
+			mLoadingDialog.setMessage("Checking out ...");
+			mLoadingDialog.setIndeterminate(true);
+			mLoadingDialog.setCancelable(true);
+			mLoadingDialog.setCanceledOnTouchOutside(false);
+			
+			mLoadingDialog.show();
 		}
 		
 		@Override
