@@ -234,6 +234,7 @@ class AreaResource(ModelResource):
     parent = fields.ForeignKey(EnvironmentResource, 'environment')
     features = fields.ListField()
     owner = fields.DictField()
+    admin = fields.ForeignKey(UserResource, 'admin', full = True)
     
     class Meta:
         queryset = Area.objects.all()
@@ -288,6 +289,7 @@ class AreaResource(ModelResource):
         
         return user_bundle.data
     
+    
     def dehydrate_features(self, bundle):
         feature_list = []
         for feature in bundle.obj.features.all().select_subclasses():
@@ -308,8 +310,8 @@ class AreaResource(ModelResource):
             if feat_dict:
                 ## attach resource_uri and area_uri
                 feat_dict['resource_uri'] = FeatureResource().get_resource_uri(env_feat)
-                feat_dict['area'] = self.get_resource_uri(bundle)
-                feat_dict['environment'] = None
+                feat_dict['area'] = None
+                feat_dict['environment'] = EnvironmentResource().get_resource_uri(environment)
                 feature_list.append(feat_dict)
         
         return feature_list
