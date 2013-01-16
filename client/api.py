@@ -234,7 +234,7 @@ class AreaResource(ModelResource):
     parent = fields.ForeignKey(EnvironmentResource, 'environment')
     features = fields.ListField()
     owner = fields.DictField()
-    admin = fields.ForeignKey(UserResource, 'admin', full = True)
+    admin = fields.ForeignKey(UserResource, 'admin', null = True, full = True)
     
     class Meta:
         queryset = Area.objects.all()
