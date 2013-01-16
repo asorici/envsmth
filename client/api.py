@@ -308,10 +308,6 @@ class AreaResource(ModelResource):
             if feat_dict:
                 ## attach resource_uri and area_uri
                 feat_dict['resource_uri'] = FeatureResource().get_resource_uri(env_feat)
-<<<<<<< HEAD
-=======
-                feat_dict['area'] = None
->>>>>>> Added admin field to Area model;
                 feat_dict['environment'] = EnvironmentResource().get_resource_uri(environment)
                 feature_list.append(feat_dict)
         
