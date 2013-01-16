@@ -148,11 +148,13 @@ public class Location implements Serializable {
 			mAreaType = locationData.getString("areaType");
 			mLevel = locationData.getInt("level");
 			
-			JSONObject admin = locationData.getJSONObject("admin");
-			mAdminUri = admin.getString("resource_uri");
-			mAdminFirstName = admin.getString("first_name");
-			mAdminLastName = admin.getString("last_name");
-			mAdminEmail = admin.optString("email", null);
+			JSONObject admin = locationData.optJSONObject("admin");
+			if (admin != null) {
+				mAdminUri = admin.getString("resource_uri");
+				mAdminFirstName = admin.getString("first_name");
+				mAdminLastName = admin.getString("last_name");
+				mAdminEmail = admin.optString("email", null);
+			}
 		}
 		
 		// lastly initialize the context manager
