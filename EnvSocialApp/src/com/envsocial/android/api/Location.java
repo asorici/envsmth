@@ -39,9 +39,10 @@ public class Location implements Serializable {
 	private String mParentUri;
 	private String mParentName;
 	
-	private String mOwnerFirst;
-	private String mOwnerLast;
+	private String mOwnerFirstName;
+	private String mOwnerLastName;
 	private String mOwnerEmail;
+	private String mOwnerUri;
 	
 	/** Environment specific fields */
 	private String mLatitude;
@@ -51,13 +52,15 @@ public class Location implements Serializable {
 	/** Area specific fields */
 	private String mAreaType;
 	private int mLevel;
+	private String mAdminFirstName;
+	private String mAdminLastName;
+	private String mAdminEmail;
+	private String mAdminUri;
 	
 	/** Location context specific fields */
 	private LocationContextManager mContextManager;
 	
 	
-	
-
 	private static Location mFullInstance = null;
 	private static String prevLocationString = null;
 	
@@ -89,13 +92,10 @@ public class Location implements Serializable {
 		mName = locationData.getString("name");
 		
 		JSONObject owner = locationData.getJSONObject("owner");
-		mOwnerFirst = owner.getString("first_name");
-		mOwnerLast = owner.getString("last_name");
-		try {
-			mOwnerEmail = owner.getString("email");
-		} catch (JSONException e) {
-			mOwnerEmail = null;
-		}
+		mOwnerUri = owner.getString("resource_uri");
+		mOwnerFirstName = owner.getString("first_name");
+		mOwnerLastName = owner.getString("last_name");
+		mOwnerEmail = owner.optString("email", null);
 		
 		// Get features
 		mFeatures = new HashMap<String, Feature>();
@@ -142,14 +142,17 @@ public class Location implements Serializable {
 		if (isEnvironment()) {
 			mLatitude = locationData.getString("latitude");
 			mLongitude = locationData.getString("longitude");
-			try {
-				mLayoutUrl = locationData.getString("layout_url");
-			} catch (JSONException e) {
-				// Do nothing, layout was not requested
-			}
-		} else if (isArea()) {
+			mLayoutUrl = locationData.optString("layout_url", null);
+		} 
+		else if (isArea()) {
 			mAreaType = locationData.getString("areaType");
 			mLevel = locationData.getInt("level");
+			
+			JSONObject admin = locationData.getJSONObject("admin");
+			mAdminUri = admin.getString("resource_uri");
+			mAdminFirstName = admin.getString("first_name");
+			mAdminLastName = admin.getString("last_name");
+			mAdminEmail = admin.optString("email", null);
 		}
 		
 		// lastly initialize the context manager
@@ -182,6 +185,7 @@ public class Location implements Serializable {
 		}
 	}
 	
+	
 	public void doCleanup(Context context) {
 		// call cleanup on all the features of this location doing things like
 		// closing all handlers to local support databases
@@ -192,6 +196,7 @@ public class Location implements Serializable {
 			}
 		}
 	}
+	
 	
 	public void doClose(Context context) {
 		/* called only on checkout when we want to remove all data associated with this location
@@ -226,11 +231,15 @@ public class Location implements Serializable {
 	}
 	
 	public String getOwnerName() {
-		return mOwnerFirst + " " + mOwnerLast;
+		return mOwnerFirstName + " " + mOwnerLastName;
 	}
 	
 	public String getOwnerEmail() {
 		return mOwnerEmail;
+	}
+	
+	public String getOwnerUri() {
+		return mOwnerUri;
 	}
 	
 	public boolean isOwnerByEmail(String email) {
@@ -289,6 +298,18 @@ public class Location implements Serializable {
 	
 	
 	/** Area specific methods */
+	
+	public String getAdminName() {
+		return mAdminFirstName + " " + mAdminLastName;
+	}
+	
+	public String getAdminEmail() {
+		return mAdminEmail;
+	}
+	
+	public String getAdminUri() {
+		return mAdminUri;
+	}
 	
 	public String getAreaType() {
 		return mAreaType;

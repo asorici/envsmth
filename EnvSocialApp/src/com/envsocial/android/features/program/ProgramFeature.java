@@ -36,8 +36,6 @@ public class ProgramFeature extends Feature {
 	public ProgramFeature(String category, int version, String resourceUri, 
 			String environmentUri, String areaUri, String data) throws EnvSocialContentException {
 		super(category, version, resourceUri, environmentUri, areaUri, data);
-	
-		
 	}
 	
 	@Override
