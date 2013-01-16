@@ -119,6 +119,7 @@ class Area(models.Model):
     
     environment = models.ForeignKey(Environment, related_name = "areas")
     areaType = models.CharField(max_length=50, choices = TYPE_CHOICES)
+    admin = models.ForeignKey(UserProfile, null = True, blank = True, related_name = "administered_areas")
     name = models.CharField(max_length=140)
     
     tags = fields.TagListField(null = True, blank = True)
