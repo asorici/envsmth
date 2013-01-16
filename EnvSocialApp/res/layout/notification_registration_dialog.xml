@@ -4,6 +4,18 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 	
+    <TextView
+	    android:id="@+id/notification_info_title"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content" 
+		android:textColor="@color/envived_order_text_warm_green"
+		android:textStyle="bold"
+		android:textSize="20sp"
+		android:background="@drawable/feature_order_catalog_category_wrapper"
+		android:padding="10dip"
+		android:layout_marginBottom="20dip"
+	/>
+    
 	<TextView
 	    android:id="@+id/notification_info_message"
 		android:layout_width="fill_parent"
@@ -15,21 +27,26 @@
 		/>
 	
 	<LinearLayout android:layout_width="fill_parent"
-			android:layout_height="wrap_content">
+			android:layout_height="wrap_content"
+			android:layout_marginLeft="10dip"
+			android:layout_marginRight="10dip"
+			android:layout_marginBottom="10dip">
     	
 	    <Button android:id="@+id/btn_notification_register" 
-				android:layout_width="0dip"
-		         android:layout_height="wrap_content"
-		         android:layout_weight="1"
-		         android:layout_marginLeft="5dip"
-		         android:text="@string/btn_notification_register"
-				/>
+			android:layout_width="0dip"
+		    android:layout_height="wrap_content"
+		    android:layout_weight="1"
+		    android:layout_marginRight="5dip"
+		    android:text="@string/btn_notification_register"
+		    style="@style/Widget.Envived.Button" 
+		/>
 	    <Button android:id="@+id/btn_notification_cancel" 
-				android:layout_width="0dip"
-		         android:layout_height="wrap_content"
-		         android:layout_weight="1"
-		         android:layout_marginRight="5dip"
-		         android:text="@string/btn_cancel" 
-		         />
+			android:layout_width="0dip"
+		    android:layout_height="wrap_content"
+		    android:layout_weight="1"
+		    android:layout_marginLeft="5dip"
+		    android:text="@string/btn_cancel"
+		    style="@style/Widget.Envived.Button" 
+		/>
     </LinearLayout>
 </LinearLayout>

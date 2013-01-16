@@ -132,7 +132,7 @@ public class DescriptionFragment extends SherlockFragment {
 						int peopleCount = dataJSON.getInt("response");
 						
 						// Display a toast message and update the view
-						mDescriptionPeopleCount.setText("Checked in with " + peopleCount + " other users.");
+						mDescriptionPeopleCount.setText("Checked in with " + (peopleCount - 1) + " other users.");
 						
 						/*
 						Toast toast = Toast.makeText(context,

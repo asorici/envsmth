@@ -216,14 +216,16 @@ public class OrderSearchCursorAdapter extends ResourceCursorAdapter
 					// there should be only one entry so advance the cursor to it
 					catalogDetailCursor.moveToFirst();
 					
+					int itemNameColumnId = catalogDetailCursor.getColumnIndex(OrderDbHelper.COL_ITEM_NAME);
 					int itemDescriptionColumnId = catalogDetailCursor.getColumnIndex(OrderDbHelper.COL_ITEM_DESCRIPTION);
 					int itemUsageRankColumnId = catalogDetailCursor.getColumnIndex(OrderDbHelper.COL_ITEM_USAGE_RANK);
 					
+					String itemName = catalogDetailCursor.getString(itemNameColumnId);
 					String itemDescription = catalogDetailCursor.getString(itemDescriptionColumnId);
 					float itemUsageRating = catalogDetailCursor.getInt(itemUsageRankColumnId) / (float)2.0;
 					
 					OrderCatalogItemDescriptionFragment newFragment = 
-							OrderCatalogItemDescriptionFragment.newInstance(itemDescription, itemUsageRating);
+							OrderCatalogItemDescriptionFragment.newInstance(itemName, itemDescription, itemUsageRating);
 					
 					FragmentManager fm = ((FragmentActivity)mContext).getSupportFragmentManager(); 
 					newFragment.show(fm, "description");

@@ -337,11 +337,12 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 		
 		@Override
 		public void onClick(View v) {
+			String itemName = mViewHolder.itemName;
 			String itemDescription = mViewHolder.itemDescription;
 			float itemUsageRating = mViewHolder.itemUsageRank / (float)2.0;
 			
 			OrderCatalogItemDescriptionFragment newFragment = 
-					OrderCatalogItemDescriptionFragment.newInstance(itemDescription, itemUsageRating);
+					OrderCatalogItemDescriptionFragment.newInstance(itemName, itemDescription, itemUsageRating);
 			
 			FragmentManager fm = mAdapter.getParentFragment().getActivity().getSupportFragmentManager(); 
 			newFragment.show(fm, "description");
