@@ -315,9 +315,11 @@ class AreaResource(ModelResource):
     
     
     def dehydrate(self, bundle):
-        """
-        append level data from the layout reference of the Area obj
-        """
+        """ delete admin field from bundle.data if the model field is null """
+        if bundle.obj.admin is None:
+            del bundle.data['admin']
+        
+        """ append level data from the layout reference of the Area obj """
         bundle.data['level'] = bundle.obj.layout.level
         
         """
