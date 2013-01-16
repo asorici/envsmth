@@ -102,8 +102,8 @@ public class OrderFeature extends Feature {
 		// then remove the database file entirely
 		context.deleteDatabase(databaseName);
 	}
-	
 
+	
 	@Override
 	public boolean hasLocalDatabaseSupport() {
 		return true;
