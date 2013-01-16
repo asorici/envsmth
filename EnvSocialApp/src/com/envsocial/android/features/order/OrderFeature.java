@@ -51,7 +51,7 @@ public class OrderFeature extends Feature {
 	@Override
 	public void init() throws EnvSocialContentException {
 		super.init();
-		
+				
 		String databaseName = getLocalDatabaseName(OrderDbHelper.DATABASE_PREFIX, 
 								environmentUri, areaUri, version);
 		
@@ -71,7 +71,7 @@ public class OrderFeature extends Feature {
 		
 		String databaseName = getLocalDatabaseName(OrderDbHelper.DATABASE_PREFIX, 
 				environmentUri, areaUri, version);
-	
+
 		if (dbHelper == null) {
 			dbHelper = new OrderDbHelper(Envived.getContext(), databaseName, this, version);
 		}
@@ -102,7 +102,7 @@ public class OrderFeature extends Feature {
 		// then remove the database file entirely
 		context.deleteDatabase(databaseName);
 	}
-	
+
 	
 	@Override
 	public boolean hasLocalDatabaseSupport() {
