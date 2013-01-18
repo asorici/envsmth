@@ -42,7 +42,8 @@ public class HomeActivity extends SherlockFragmentActivity
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        Log.d(TAG, "--- onCreate called in HomeActivity");
+		super.onCreate(savedInstanceState);
         
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
@@ -64,6 +65,8 @@ public class HomeActivity extends SherlockFragmentActivity
 	
 	@Override
 	public void onDestroy() {
+		Log.d(TAG, "--- onDestroy called in HomeActivity");
+		
 		// if there is a current location
 		Location currentLocation = Preferences.getCheckedInLocation(this);
 		if (currentLocation != null) {
@@ -74,6 +77,19 @@ public class HomeActivity extends SherlockFragmentActivity
 		super.onDestroy();
 	}
 	
+	@Override
+    public void onStart() {
+    	super.onStart();
+    	Log.d(TAG, "--- onStart in HomeActivity ");
+    }
+    
+    
+    @Override
+    public void onStop() {
+    	super.onStop();
+    	Log.d(TAG, "--- onStop in HomeActivity");
+    }
+	
 	
 	@Override
 	public void onResume() {
@@ -83,6 +99,13 @@ public class HomeActivity extends SherlockFragmentActivity
 		// reset location if we have checked in at another activity in the meantime
 		displayCheckedInLocation();
 	}
+	
+	@Override
+	public void onPause() {
+		super.onPause();
+		Log.d(TAG, "On Pause in Home Activity");
+	}
+	
 	
 	
 	private void displayCheckedInLocation() {
@@ -337,7 +360,7 @@ public class HomeActivity extends SherlockFragmentActivity
 		@Override
 		protected ResponseHolder doInBackground(Void...args) {
 			Context context = getApplicationContext();
-			
+			Log.d(TAG, "Performing CheckOutTask");
 			ResponseHolder response = ActionHandler.checkout(context);
 			if (!response.hasError() && !Preferences.isLoggedIn(context)) {
 				// unregister from our server notifications
@@ -349,7 +372,7 @@ public class HomeActivity extends SherlockFragmentActivity
 		
 		@Override
 		protected void onPostExecute(ResponseHolder holder) {
-			mLoadingDialog.cancel();
+			mLoadingDialog.dismiss();
 			
 			if (!holder.hasError()) {
 				//startActivity(new Intent(HomeActivity.this, EnvSocialAppActivity.class));

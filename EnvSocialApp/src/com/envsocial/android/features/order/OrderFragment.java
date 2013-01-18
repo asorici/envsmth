@@ -146,6 +146,21 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 	
 	
 	@Override
+	public void onDestroy() {
+		Log.d(TAG, " --- onDestroy called in OrderFragment");
+		super.onDestroy();
+		
+		SparseArray<Map<String, Object>> orderTab = getOrderTabInstance();
+		orderTab.clear();
+		orderTab = null;
+		
+		mOrderFeature.doCleanup(getActivity().getApplicationContext());
+		mCatalogPagerAdapter.doCleanup();
+		getActivity().unregisterReceiver(mUpdateReceiver);
+	}
+	
+	
+	@Override
 	public void onResume() {
 		Log.d(TAG, " --- onResume called in OrderFragment");
 		active = true;
@@ -178,20 +193,6 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 		
 	}
 	
-	
-	@Override
-	public void onDestroy() {
-		Log.d(TAG, " --- onDestroy called in OrderFragment");
-		super.onDestroy();
-		
-		SparseArray<Map<String, Object>> orderTab = getOrderTabInstance();
-		orderTab.clear();
-		orderTab = null;
-		
-		mOrderFeature.doCleanup(getActivity().getApplicationContext());
-		mCatalogPagerAdapter.doCleanup();
-		getActivity().unregisterReceiver(mUpdateReceiver);
-	}
 	
 	
 	@Override

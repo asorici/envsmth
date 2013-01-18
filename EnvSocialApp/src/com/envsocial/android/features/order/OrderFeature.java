@@ -3,6 +3,7 @@ package com.envsocial.android.features.order;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.envsocial.android.Envived;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
@@ -93,7 +94,7 @@ public class OrderFeature extends Feature {
 	public void doClose(Context context) {
 		String databaseName = getLocalDatabaseName(OrderDbHelper.DATABASE_PREFIX, 
 				environmentUri, areaUri, version);
-
+		
 		super.doClose(context);
 		
 		// first do cleanup

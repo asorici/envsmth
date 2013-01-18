@@ -7,6 +7,7 @@ import org.json.JSONException;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.envsocial.android.api.AppClient;
 import com.envsocial.android.api.Location;
@@ -71,7 +72,9 @@ public final class Preferences {
 	
 	public static void checkout(Context context) {
 		Location currentLocation = getCheckedInLocation(context);
+		
 		if (currentLocation != null) {
+			Log.d("CHECKOUT", "doing checkout from " + currentLocation.getName());
 			currentLocation.doClose(context);
 		}
 		
