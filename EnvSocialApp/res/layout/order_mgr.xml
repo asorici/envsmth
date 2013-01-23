@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical">
+    android:orientation="vertical" >
     
     <TextView 
         android:id="@+id/order_mgr_request_filter"
@@ -24,10 +24,17 @@
 			android:paddingRight="2dip" android:paddingBottom="2dip"
 			android:paddingTop="2dip" />
     
-	<ExpandableListView xmlns:android="http://schemas.android.com/apk/res/android" 
+	<ExpandableListView 
 	    android:id="@+id/order_list"
 	    android:layout_width="fill_parent"
-	    android:layout_height="fill_parent" 
-	    android:groupIndicator="@drawable/group_indicator"
+	    android:layout_height="fill_parent"
+	    android:layout_marginLeft="5dip"
+	    android:layout_marginRight="5dip"
+	    
+	    android:childDivider="@drawable/envived_green_separator"
+	    android:groupIndicator="@drawable/feature_order_catalog_group_indicator"
+	    
+	    android:listSelector="@android:color/transparent" 
+		android:cacheColorHint="@android:color/transparent"
     />    
 </LinearLayout>

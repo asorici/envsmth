@@ -3,6 +3,7 @@
     	android:layout_width="fill_parent"
     	android:layout_height="wrap_content" 
 		android:text="@string/search_no_results"
+		android:textColor="@color/envived_order_text_white"
 		android:textStyle="bold"
 		android:textSize="14sp"
 		android:gravity="center" 

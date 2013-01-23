@@ -3,13 +3,12 @@
     	android:id="@+id/view_select_checkin_title"
     	android:layout_width="fill_parent"
     	android:layout_height="fill_parent" 
+		android:background="@drawable/feature_order_catalog_category_wrapper"
+		
 		android:textStyle="bold"
-		android:textColor="@color/white"
 		android:textSize="18sp"
 		android:gravity="center" 
-		android:paddingLeft="3dp"
-		android:paddingRight="3dp">
-</TextView>
+		android:padding="5dp" />
 	    
 
 

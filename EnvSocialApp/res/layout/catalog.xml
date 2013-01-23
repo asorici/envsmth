@@ -11,15 +11,16 @@
         android:id="@+id/catalog_page_titles"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dip"
         android:background="@color/actionbar_gray"
         android:padding="10dip"
         android:textColor="@color/black"
-        app:footerColor="#FFAA2222"
+        app:footerColor="@color/envived_order_text_dark_green"
         app:footerIndicatorHeight="3dp"
         app:footerIndicatorStyle="underline"
         app:footerLineHeight="1dp"
         app:selectedBold="true"
-        app:selectedColor="@color/light_green" />
+        app:selectedColor="@color/envived_order_text_dark_green" />
     
     <android.support.v4.view.ViewPager
 	    	android:layout_width="fill_parent"
@@ -30,26 +31,32 @@
     <LinearLayout
         android:id="@+id/footer"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dip"
+        android:layout_marginRight="5dip"
+        android:layout_marginBottom="5dip">
 
         <Button
             android:id="@+id/btn_order"
             android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight = "1"
-            android:layout_marginLeft="5dip"
+            android:layout_marginRight="2dip"
             android:clickable="true"
-            android:text="@string/btn_order" />
+            android:text="@string/btn_order" 
+            style="@style/Widget.Envived.Button" />
 
         <Button
             android:id="@+id/btn_tab"
             android:layout_width="0dip"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="5dip"
+            android:layout_marginLeft="2dip"
             android:clickable="true"
-            android:text="@string/btn_tab" />
-        <!--
+            android:text="@string/btn_tab" 
+            style="@style/Widget.Envived.Button" />
+                
+            <!--
      		</LinearLayout>
 		<LinearLayout android:layout_width="fill_parent"
 	        android:layout_height="wrap_content" >

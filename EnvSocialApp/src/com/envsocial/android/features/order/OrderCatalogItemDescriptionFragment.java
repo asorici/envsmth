@@ -1,5 +1,9 @@
 package com.envsocial.android.features.order;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import com.envsocial.android.R;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -27,18 +31,25 @@ public class OrderCatalogItemDescriptionFragment extends DialogFragment {
         return f;
     }
     
+    @Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		
+		setStyle(STYLE_NO_TITLE, R.style.FeatureOrderDialogTheme);
+	}
+    
     
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
-        
-    	getDialog().setTitle("ITEM DETAILS");
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     	
     	String itemDescription = getArguments().getString("item_description");
         float itemUsageRanking = getArguments().getFloat("item_usage_ranking");
     	
     	View v = inflater.inflate(R.layout.catalog_item_details, container, false);
-        TextView itemDescriptionTextView = (TextView)v.findViewById(R.id.item_description_text);
+    	TextView itemDescriptionTitleView = (TextView)v.findViewById(R.id.item_description_title);
+    	itemDescriptionTitleView.setText("ITEM DETAILS");
+    	
+    	TextView itemDescriptionTextView = (TextView)v.findViewById(R.id.item_description_text);
         itemDescriptionTextView.setText(itemDescription);
         
         RatingBar itemUsageRankingView = (RatingBar)v.findViewById(R.id.item_usage_ratingbar);

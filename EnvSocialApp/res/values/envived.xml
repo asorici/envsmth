@@ -3,13 +3,21 @@
     <style name="Theme.Envived" parent="Theme.Sherlock.Light">
 		<item name="actionBarStyle">@style/Widget.Envived.ActionBar</item>
 		<item name="android:actionBarStyle">@style/Widget.Envived.ActionBar</item>
-<!-- 		<item name="actionBarTabBarStyle">@style/Widget.Envived.ActionBar.TabBar</item>
-        <item name="android:actionBarTabBarStyle">@style/Widget.Envived.ActionBar.TabBar</item> -->
+
+		<item name="actionBarTabStyle">@style/envived_default_green_ActionBarTabStyle</item>
+		<item name="android:actionBarTabStyle">@style/envived_default_green_ActionBarTabStyle</item>
+				
+		<!-- <item name="android:buttonStyle">@style/Widget.Envived.Button</item> -->
+		<item name="android:buttonStyle">@style/Widget.Envived.OrderButton</item>
 		
-		<item name="android:buttonStyle">@style/Widget.Envived.Button</item>
+		<!-- Window background - the current default is the greenish color -->
+		<item name="android:windowBackground">@color/envived_default_layout_green</item>
+		<item name="android:windowIsTranslucent">true</item>
+		<item name="android:textColor">@color/envived_order_text_dark_green</item>
     </style>
     
-    <style name="Widget.Envived.ActionBar" parent="Widget.Sherlock.ActionBar">
+     
+    <style name="Widget.Envived.ActionBar" parent="Widget.Sherlock.Light.ActionBar">
         <item name="background">@color/actionbar_gray</item>
         <item name="android:background">@color/actionbar_gray</item>
         <item name="titleTextStyle">@style/Widget.Envived.ActionBar.Title</item>
@@ -18,29 +26,59 @@
     
     <style name="Widget.Envived.ActionBar.Title" parent="TextAppearance.Sherlock.Widget.ActionBar.Title">
         <item name="android:paddingLeft">15dip</item>
+        <item name="background">@color/actionbar_gray</item>
+        <item name="android:background">@color/actionbar_gray</item>
 	</style>
     
-<!--     <style name="Widget.Envived.ActionBar.TabView" parent="Widget.Sherlock.ActionBar.TabView">
-        <item name="background">@color/light_green</item>
-        <item name="android:background">@color/light_green</item>
-    </style> -->
-    
-    <style name="Widget.Envived.ActionBar.TabBar" parent="Widget.Sherlock.ActionBar.TabBar">
-		<item name="android:background">@color/dark_green</item>
+    <style name="envived_default_green_ActionBarTabStyle" parent="@style/Widget.Sherlock.Light.ActionBar.TabView">
+        <item name="background">@drawable/envived_default_green_tab_indicator_ab</item>
+        <item name="android:background">@drawable/envived_default_green_tab_indicator_ab</item>
     </style>
     
     <style name="Widget.Envived.Button" parent="@android:style/Widget.Button">
         <item name="android:background">@drawable/button</item>
     </style>
     
+    <style name="Widget.Envived.OrderButton" parent="@android:style/Widget.Button">
+        <item name="android:background">@drawable/feature_order_button</item>
+        <item name="android:textColor">@color/envived_order_text_dark_green</item>
+    </style>
+    
     <style name="CheckinTextView" parent="@android:style/Widget.TextView">
-    	<item name="android:background">@drawable/textview_rounded_rectangle</item>
+    	<item name="android:background">@drawable/envived_home_checkin_label</item>
     	<item name="android:layout_width">fill_parent</item>
     	<item name="android:layout_height">wrap_content</item>
     	<item name="android:textStyle">italic</item>
-    	<item name="android:textColor">@color/white</item>
+    	<item name="android:textColor">@color/envived_order_text_dark_green</item>
     	<item name="android:textSize">20sp</item>
     	<item name="android:gravity">center</item>
+    </style>
+    
+    <style name="DetailsDescriptionTextView" parent="@android:style/Widget.TextView">
+    	<item name="android:background">@drawable/feature_details_description_default</item>
+    	<item name="android:layout_width">fill_parent</item>
+    	<item name="android:layout_height">wrap_content</item>
+    	
+    	<item name="android:textStyle">italic</item>
+    	<item name="android:textColor">@color/envived_order_text_light_green</item>
+    	<item name="android:gravity">fill_horizontal|center_vertical</item>
+    </style>
+    
+    
+    <style name="EnvivedDialogTheme" parent="@android:style/Theme.Dialog">
+        <item name="android:windowBackground">@color/envived_default_layout_green</item>
+        <item name="android:textColor">@color/envived_order_text_white</item>
+    </style>
+    
+    
+    <style name="ProgressDialogWhiteText" parent="@android:style/Theme.Dialog">
+        <item name="android:textColor">@color/white</item>
+    </style>
+    
+    
+    <style name="FeatureOrderDialogTheme" parent="@android:style/Theme.Dialog">
+        <item name="android:background">@color/envived_default_layout_green</item>
+        <item name="android:textColor">@color/envived_order_text_white</item>
     </style>
     
     <style name="AlertDialogFacebookStyle" parent="@android:style/Theme.Dialog">

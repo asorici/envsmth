@@ -8,7 +8,10 @@ import java.util.Map;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.ResourceCursorAdapter;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,7 +27,9 @@ public class OrderSearchCursorAdapter extends ResourceCursorAdapter
 					implements IOrderCatalogAdapter, IFeatureAdapter {
 	private static final String TAG = "OrderSearchCursorAdapter";
 	
+	private OrderFeature mOrderFeature;
 	private SparseArray<ViewHolder> mViewHolderMap;
+	private Context mContext;
 	
 	/**
 	 * Holds the mappings between position of quantity > 0 elements in list (cursor) and the data in the cursor.
@@ -32,22 +37,26 @@ public class OrderSearchCursorAdapter extends ResourceCursorAdapter
 	 */
 	private SparseArray<Map<String, Object>> searchOrderSelection;
 	
-	public OrderSearchCursorAdapter(Context context, int layout, Cursor c, int flags) {
+	public OrderSearchCursorAdapter(OrderFeature orderFeature, Context context, 
+			int layout, Cursor c, int flags) {
 		super(context, layout, c, flags);
 		
+		mContext = context;
+		mOrderFeature = orderFeature;
 		searchOrderSelection = new SparseArray<Map<String, Object>>();
 		mViewHolderMap = new SparseArray<OrderSearchCursorAdapter.ViewHolder>();
 	}
 	
 	@Override
 	public View newView(Context context, Cursor cursor, ViewGroup parent) {
-		
 		LayoutInflater inflater = LayoutInflater.from(context);
 		View convertView = inflater.inflate(R.layout.catalog_search_result_item, null);
 		
 		ViewHolder holder = new ViewHolder();
 		holder.categoryView = (TextView)convertView.findViewById(R.id.catalog_search_result_category);
 		holder.itemView = (TextView)convertView.findViewById(R.id.catalog_search_result_item);
+		holder.itemView.setOnClickListener(new OrderSearchItemNameListener(holder));
+		
 		holder.priceView = (TextView)convertView.findViewById(R.id.catalog_search_result_price);
 		holder.quantityView = (TextView)convertView.findViewById(R.id.catalog_search_result_quantity);
 		
@@ -186,6 +195,51 @@ public class OrderSearchCursorAdapter extends ResourceCursorAdapter
 		}
 		
 	}
+	
+	
+	private class OrderSearchItemNameListener implements OnClickListener {
+		private ViewHolder mHolder;
+		
+		OrderSearchItemNameListener(ViewHolder holder) {
+			mHolder = holder;
+		}
+
+		@Override
+		public void onClick(View v) {
+			int itemId = mHolder.itemId;
+			Cursor catalogDetailCursor = null;
+			
+			try {
+				catalogDetailCursor = mOrderFeature.getOrderItemDetailCursor(itemId);
+				
+				if (catalogDetailCursor != null) {
+					// there should be only one entry so advance the cursor to it
+					catalogDetailCursor.moveToFirst();
+					
+					int itemDescriptionColumnId = catalogDetailCursor.getColumnIndex(OrderDbHelper.COL_ITEM_DESCRIPTION);
+					int itemUsageRankColumnId = catalogDetailCursor.getColumnIndex(OrderDbHelper.COL_ITEM_USAGE_RANK);
+					
+					String itemDescription = catalogDetailCursor.getString(itemDescriptionColumnId);
+					float itemUsageRating = catalogDetailCursor.getInt(itemUsageRankColumnId) / (float)2.0;
+					
+					OrderCatalogItemDescriptionFragment newFragment = 
+							OrderCatalogItemDescriptionFragment.newInstance(itemDescription, itemUsageRating);
+					
+					FragmentManager fm = ((FragmentActivity)mContext).getSupportFragmentManager(); 
+					newFragment.show(fm, "description");
+				}
+			} 
+			catch (Exception ex) {
+				Log.d(TAG, "Error getting order item details for itemId: " + itemId, ex);
+			} 
+			finally {
+				if (catalogDetailCursor != null) {
+					catalogDetailCursor.close();
+				}
+			}
+		}
+	}
+	
 	
 	@Override
 	public List<Map<String, Object>> getOrderSelections() {

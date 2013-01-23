@@ -6,11 +6,24 @@
     <LinearLayout
         android:layout_width="fill_parent"
     	android:layout_height="wrap_content"
-    	android:background="@drawable/dialog_layout_rounded_corners"
     	android:orientation="vertical"
-    	android:scrollbars="vertical"
-        >
-    
+    	android:scrollbars="vertical" >
+    	
+        <TextView 
+		    android:id="@+id/item_description_title"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center"
+			android:gravity="left"
+			android:text="Order Summary"
+			android:textColor="@color/envived_order_text_warm_green"
+			android:textStyle="bold"
+			android:textSize="20sp"
+			android:background="@drawable/feature_order_catalog_category_wrapper"
+			android:padding="5dip"
+			android:layout_marginBottom="20dip"
+		/>
+        
 	    <TextView
 	        android:id="@+id/item_description_label"
 	        android:layout_width="fill_parent"
@@ -18,7 +31,7 @@
 	        android:layout_marginLeft="5dip"
 	        android:layout_marginTop="20dip"
 	        android:text="Description"
-	        android:textColor="@color/dark_green"
+	        android:textColor="@color/envived_order_text_dark_green"
 	        android:textSize="20dip"
 	        android:textStyle="bold" />
 	
@@ -28,7 +41,7 @@
 	        android:layout_height="wrap_content"
 	        android:layout_marginLeft="20dip"
 	        android:layout_marginTop="5dip"
-	        android:text="TextView" />
+	        android:text="No description available." />
 	
 	    <TextView
 	        android:id="@+id/item_rating_label"
@@ -37,7 +50,7 @@
 	        android:layout_marginLeft="5dip"
 	        android:layout_marginTop="20dip"
 	        android:text="Consumption rating"
-	        android:textColor="@color/dark_green"
+	        android:textColor="@color/envived_order_text_dark_green"
 	        android:textSize="20dip"
 	        android:textStyle="bold" />
 	
@@ -61,6 +74,8 @@
 	        android:layout_marginLeft="5dip"
 	        android:layout_marginRight="5dip"
 	        android:layout_marginTop="20dip"
-	        android:text="OK" />
+	        android:layout_marginBottom="20dip"
+	        android:text="OK" 
+	        style="@style/Widget.Envived.Button" />
 	</LinearLayout>
 </ScrollView>

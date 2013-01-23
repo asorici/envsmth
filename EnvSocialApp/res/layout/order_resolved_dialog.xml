@@ -2,28 +2,75 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical" >
-    <TextView android:id="@+id/order_resolved_header"
+
+    <TextView
+        android:id="@+id/order_resolved_header"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="left|top"
+        android:layout_marginBottom="5dip"
+        android:layout_marginLeft="5dip"
+        android:layout_marginRight="5dip"
         android:gravity="left"
-        android:text="Your Order ..." />
-	<TextView android:id="@+id/order_resolved_content"
+        android:text="Your Order ..."
+        android:textColor="@color/envived_order_text_white"
+        android:textSize="20sp" />
+	
+    
+    <ImageView
+        android:id="@+id/top_delimiter"
+        android:layout_width="match_parent"
+        android:layout_height="1dip"
+        android:layout_marginBottom="5dip"
+        android:layout_marginTop="5dip"
+        android:layout_marginLeft="5dip"
+        android:layout_marginRight="5dip"
+        android:src="@drawable/feature_order_catalog_category_border" />
+	
+
+	<TextView
+	    android:id="@+id/order_resolved_content"
 	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"
-	    android:layout_marginTop="20dip"
 	    android:layout_gravity="center_horizontal|center_vertical"
-	    android:textStyle="bold" />
-	<TextView android:id="@+id/order_resolved_footer"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dip"
-        android:gravity="right|bottom"
-        android:text="... is on the way." />
-	<Button android:id="@+id/order_resolved_button"
+	    android:layout_marginTop="20dip"
+	    android:layout_marginLeft="5dip"
+        android:layout_marginRight="5dip"
+	    android:textColor="@color/envived_order_text_white"
+	    android:textStyle="bold"
+	    android:gravity="center_horizontal|center_vertical" />
+	
+	
+	<ImageView
+	    android:id="@+id/bottom_delimiter"
+	    android:layout_width="match_parent"
+        android:layout_height="1dip"
+	    android:layout_marginBottom="5dip"
+	    android:layout_marginTop="5dip"
+	    android:layout_marginLeft="5dip"
+        android:layout_marginRight="5dip"
+	    android:src="@drawable/feature_order_catalog_category_border" />
+	
+	
+	<TextView
+	    android:id="@+id/order_resolved_footer"
 	    android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dip"
-        android:text="OK"
-	    />
+	    android:layout_height="wrap_content"
+	    android:layout_marginTop="5dip"
+	    android:layout_marginLeft="5dip"
+        android:layout_marginRight="5dip"
+	    android:gravity="right|bottom"
+	    android:text="... is on the way."
+	    android:textColor="@color/envived_order_text_white"
+	    android:textSize="20sp" />
+
+	<Button
+	    android:id="@+id/order_resolved_button"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_marginLeft="5dip"
+	    android:layout_marginRight="5dip"
+	    android:layout_marginTop="20dip"
+	    android:text="OK" />
+
 </LinearLayout>

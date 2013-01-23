@@ -19,6 +19,7 @@ import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -138,7 +139,7 @@ public class OrderManagerFragment extends SherlockFragment {
         DisplayMetrics metrics = appContext.getResources().getDisplayMetrics();
         
         int width = metrics.widthPixels;
-        mList.setIndicatorBounds(width - UIUtils.getDipsFromPixel(28, appContext), width - UIUtils.getDipsFromPixel(10, appContext));
+        mList.setIndicatorBounds(width - UIUtils.getDipsFromPixel(28 + 10, appContext), width - UIUtils.getDipsFromPixel(10 + 10, appContext));
 		mList.setAdapter(mAdapter);
 		
 		LayoutInflater inflater = (LayoutInflater)getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -333,8 +334,16 @@ public class OrderManagerFragment extends SherlockFragment {
 		
 		@Override
 		protected void onPreExecute() {
-			mOrderRetrievalDialog = ProgressDialog.show(OrderManagerFragment.this.getActivity(), 
-					"", "Retrieving All Orders ...", true);
+			mOrderRetrievalDialog = new ProgressDialog(
+					new ContextThemeWrapper(OrderManagerFragment.this.getActivity(), 
+					R.style.ProgressDialogWhiteText));
+			
+			mOrderRetrievalDialog.setMessage("Retrieving All Requests ...");
+			mOrderRetrievalDialog.setIndeterminate(true);
+			mOrderRetrievalDialog.setCancelable(true);
+			mOrderRetrievalDialog.setCanceledOnTouchOutside(false);
+			
+			mOrderRetrievalDialog.show();
 		}
 		
 		@Override

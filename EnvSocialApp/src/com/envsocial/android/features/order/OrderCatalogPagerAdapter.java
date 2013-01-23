@@ -99,7 +99,8 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
         String type = mCatalogTitleMap.get(position);
         OrderCatalogCursorAdapter adapter = new OrderCatalogCursorAdapter(this, position, 
         		orderFeat.getOrderCategoryCursor(type), 
-    			R.layout.catalog_group, R.layout.catalog_item);
+    			R.layout.catalog_group, R.layout.catalog_group_expanded, 
+    			R.layout.catalog_item);
         mCatalogListAdapterMap.put(position, adapter);
         
         
@@ -117,7 +118,7 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
         DisplayMetrics metrics = appContext.getResources().getDisplayMetrics();
         
         int width = metrics.widthPixels;
-        listView.setIndicatorBounds(width - UIUtils.getDipsFromPixel(28, appContext), width - UIUtils.getDipsFromPixel(10, appContext));
+        listView.setIndicatorBounds(width - UIUtils.getDipsFromPixel(28 + 10, appContext), width - UIUtils.getDipsFromPixel(10 + 10, appContext));
         
         // Set list adapter
      	listView.setAdapter(adapter);
@@ -126,7 +127,7 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
      	final int pagePosition = position;
      	final ExpandableListView fListView = listView;
      	
-     	listView.setOnGroupExpandListener(new OnGroupExpandListener() {			
+     	listView.setOnGroupExpandListener(new OnGroupExpandListener() {	
 			@Override
 			public void onGroupExpand(int groupPosition) {
 				Bundle listSavedData = saveListState(fListView);
@@ -189,7 +190,7 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
 
 	@Override
 	public CharSequence getPageTitle(int position) {
-		return mCatalogTitleMap.get(position);
+		return mCatalogTitleMap.get(position).toUpperCase();
 	}
 	
 	public void setTitlePageIndicator(TitlePageIndicator titleIndicator) {

@@ -7,10 +7,14 @@
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
         android:layout_marginBottom="10dp"
+        android:layout_marginTop="20dp"
         android:gravity="center_horizontal"
-        android:text="@string/lbl_login" />
+        android:text="@string/lbl_login"
+        android:textColor="@color/envived_order_text_dark_green"
+        android:textColorLink="@color/black"
+        android:textSize="20sp"
+        android:textStyle="bold" />
     
     <EditText android:id="@+id/txt_email"
         android:layout_width="fill_parent"
@@ -27,11 +31,13 @@
         android:inputType="textPassword"
         android:hint="@string/lbl_password" />
     
-    <Button android:id="@+id/btn_login"
+    <Button
+        android:id="@+id/btn_login"
+        style="@style/Widget.Envived.Button"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="5dp"
-       	android:layout_marginRight="5dp"
+        android:layout_marginRight="5dp"
         android:text="@string/btn_login" />
 
 </LinearLayout>

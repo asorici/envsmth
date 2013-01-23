@@ -49,6 +49,8 @@ public class OrderDbHelper extends FeatureDbHelper {
 	
 	public OrderDbHelper(Context context, String databaseName, OrderFeature orderFeature, int version) throws EnvSocialContentException {
 		super(context, databaseName, orderFeature, version);
+
+		Log.d(TAG, "Creating dbHelper with name: " + databaseName);
 		
 		this.database = this.getWritableDatabase();
 	}
@@ -265,5 +267,13 @@ public class OrderDbHelper extends FeatureDbHelper {
 		
 		return database.query(MENU_ITEM_TABLE, null, selection, selectionArgs, null, null, orderBy);
 	}
-
+	
+	
+	public Cursor getItemDetailCursor(int itemId) {
+		String selection = COL_ITEM_ID + " = ?";
+		String[] selectionArgs = new String[] {"" + itemId};
+		String[] selectionColumns = new String[] {COL_ITEM_DESCRIPTION, COL_ITEM_USAGE_RANK};
+		
+		return database.query(MENU_ITEM_TABLE, selectionColumns, selection, selectionArgs, null, null, null);
+	}
 }

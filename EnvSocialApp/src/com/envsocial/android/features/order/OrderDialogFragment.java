@@ -52,6 +52,8 @@ public class OrderDialogFragment extends SherlockDialogFragment implements OnCli
 		
 		mOrderSelections = (List<Map<String, Object>>) getArguments().get("selections");
 		mOrderSummary = new ArrayList<Map<String,String>>();
+		
+		setStyle(STYLE_NO_TITLE, R.style.FeatureOrderDialogTheme);
 	}
 	
 	

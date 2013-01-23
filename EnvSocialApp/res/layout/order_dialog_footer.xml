@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content" 
+    android:layout_height="wrap_content"
+    android:padding="5dip" 
     android:orientation="vertical">
     
     <RelativeLayout
@@ -16,6 +17,7 @@
             android:layout_width="wrap_content"
             android:layout_height="45dip"
             android:textSize="16sp"
+            android:textColor="@color/envived_order_text_dark_green"
             android:ellipsize="end"
             android:gravity="center_vertical|left"
             android:lines="2"
@@ -26,12 +28,14 @@
             android:id="@+id/order_dialog_total_price"
             android:layout_width="fill_parent"
             android:layout_height="45dip"
-            android:textSize="16sp"
             android:layout_toRightOf="@id/order_dialog_total_label"
             android:ellipsize="end"
             android:gravity="center_vertical|right"
             android:lines="2"
+            android:textColor="@color/envived_order_text_white"
+            android:textSize="16sp"
             android:textStyle="bold" />
+
 	</RelativeLayout>
     
     <ImageView 
@@ -47,17 +51,21 @@
         android:layout_width="fill_parent"
     	android:layout_height="wrap_content"
     	android:layout_below="@id/order_dialog_total_divider">
+	    
 	    <Button android:id="@+id/btn_order"
 	         android:layout_width="0dip"
 	         android:layout_height="wrap_content"
 	         android:layout_weight="1"
-	         android:layout_marginLeft="5dip"
-	         android:text="@string/btn_order" />
+	         android:layout_marginRight="5dip"
+	         android:text="@string/btn_order" 
+	         style="@style/Widget.Envived.Button"/>
+	    
 	    <Button android:id="@+id/btn_cancel"
 	         android:layout_width="0dip"
 	         android:layout_height="wrap_content"
 	         android:layout_weight="1"
-	         android:layout_marginRight="5dip"
-	         android:text="@string/btn_cancel" />
+	         android:layout_marginLeft="5dip"
+	         android:text="@string/btn_cancel" 
+	         style="@style/Widget.Envived.Button" />
     </LinearLayout>
 </RelativeLayout>

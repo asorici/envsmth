@@ -11,7 +11,9 @@ import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.drawable.ColorDrawable;
+import android.support.v4.app.DialogFragment;
 import android.util.SparseArray;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -22,8 +24,10 @@ import android.widget.TextView;
 
 import com.envsocial.android.R;
 import com.envsocial.android.api.Location;
+import com.envsocial.android.features.order.OrderCustomAlertDialogFragment.OrderNoticeAlertDialogListener;
 
 public class OrderTabListAdapter extends BaseExpandableListAdapter {
+	
 	// internal structures
 	private List<Map<String, Object>> mOrderSelections;
 	private Map<String, List<Map<String, Object>>> mOrderCategoryGrouping;
@@ -241,23 +245,20 @@ public class OrderTabListAdapter extends BaseExpandableListAdapter {
 		final String statusMessage = message;
 		
 		// build the dialog for facebook message post request 
-		//AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-		//		new ContextThemeWrapper(mParentFragment.getActivity(), 
-		//				R.style.AlertDialogFacebookStyle));
+		/*
 		Context context = mParentFragment.getActivity();
+		ContextThemeWrapper ctw = new ContextThemeWrapper(context, R.style.EnvivedDialogTheme);
 		
-		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ctw);
+		//AlertDialog.Builder alertDialogBuilder = new OrderCustomAlertDialogFragment(ctw);
+		
 		LayoutInflater inflater = (LayoutInflater) context.getSystemService(Service.LAYOUT_INFLATER_SERVICE);
 		View layout = inflater.inflate(R.layout.order_tab_fb_share_dialog, null);
 		TextView messageView = (TextView)layout.findViewById(R.id.order_tab_fb_share_dialog_message);
 		messageView.setText(statusMessage);
 		
-		
-		
 		// set title
 		alertDialogBuilder.setTitle("Post status to Wall");
-		//alertDialogBuilder.setMessage("The following message will be posted to your wall: \"" +
-		//								statusMessage + "\"");
 		
 		// set content
 		alertDialogBuilder.setView(layout);
@@ -282,8 +283,34 @@ public class OrderTabListAdapter extends BaseExpandableListAdapter {
 		
 		// show it
 		alertDialog.show();
+		*/
 		
+		Context context = mParentFragment.getActivity();
+		OrderCustomAlertDialogFragment orderPostDialog = 
+				OrderCustomAlertDialogFragment.newInstance("Post Status to Wall", null, "OK", "Cancel");
+		
+		LayoutInflater inflater = (LayoutInflater) context.getSystemService(Service.LAYOUT_INFLATER_SERVICE);
+		View messageView = inflater.inflate(R.layout.order_tab_fb_share_dialog, null);
+		TextView messageTextView = (TextView)messageView.findViewById(R.id.order_tab_fb_share_dialog_message);
+		messageTextView.setText(statusMessage);
+		
+		orderPostDialog.setMessageView(messageView);
+		orderPostDialog.setOrderNoticeAlertDialogListener(new OrderNoticeAlertDialogListener() {
+			
+			@Override
+			public void onDialogPositiveClick(DialogFragment dialog) {
+				dialog.dismiss();
+				publishOrderOnFB(statusMessage);
+			}
+			
+			@Override
+			public void onDialogNegativeClick(DialogFragment dialog) {
+				dialog.dismiss();
+			}
+		});
+		orderPostDialog.show(mParentFragment.getFragmentManager(), "dialog");
 	}
+		
 	
 	private void publishOrderOnFB(String message) {
 		

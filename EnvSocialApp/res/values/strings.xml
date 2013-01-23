@@ -3,7 +3,7 @@
 
     <string name="hello">Hello World, EnvSocialAppActivity!</string>
     <string name="app_name">Envived</string>
-    <string name="facebook_app_id">114985135329363</string>
+    <string name="app_id">114985135329363</string>
     
     <!-- Search labels -->
     <!-- The label for use as a searchable item -->
@@ -20,9 +20,9 @@
       <item quantity="one">%1$d result for \"%2$s\": </item>
       <item quantity="other">%1$d results for \"%2$s\": </item>
     </plurals>
+    
     <string name="search_no_results">No results found for \"%s\"</string>
     <string name="menu_search">Search</string>
-    
     
     
     <string name="menu_test">Test!</string>
@@ -48,6 +48,7 @@
     <string name="btn_filter">Filter&#8230;</string>
     <string name="btn_history">View History</string>
     <string name="btn_resolve">Resolve</string>
+    <string name="btn_ok">OK</string>
     <string name="btn_cancel">Cancel</string>
     <string name="btn_send">Send</string>
     <string name="btn_more">Show More</string>

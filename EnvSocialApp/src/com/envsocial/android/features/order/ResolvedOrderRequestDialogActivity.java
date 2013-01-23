@@ -4,7 +4,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
@@ -13,10 +12,11 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.envsocial.android.R;
 import com.envsocial.android.utils.EnvivedNotificationContents;
 
-public class ResolvedOrderRequestDialogActivity extends Activity implements OnClickListener {
+public class ResolvedOrderRequestDialogActivity extends SherlockFragmentActivity implements OnClickListener {
 	private static final String TAG = "ResolvedOrderDialogActivity";
 	
 	@Override

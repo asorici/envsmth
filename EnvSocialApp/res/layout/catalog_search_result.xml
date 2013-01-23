@@ -2,8 +2,10 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    
+    android:layout_marginLeft="5dip"
+    android:layout_marginRight="5dip"
     android:id="@+id/catalog_search_container">
+    
     <LinearLayout android:id="@+id/catalog_search_result_footer"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -12,21 +14,23 @@
 	            android:layout_width="0dip"
 	            android:layout_height="wrap_content"
 	            android:layout_weight="1"
-	            android:layout_marginLeft="5dip"
-	            android:text="@string/btn_order" />
+	            android:text="@string/btn_order"
+	            style="@style/Widget.Envived.Button" />
     </LinearLayout>
     <LinearLayout android:id="@+id/catalog_search_result_header"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true" >
+        android:layout_alignParentTop="true"
+        android:layout_marginBottom="10dip" >
 			<TextView android:id="@+id/catalog_search_result_header_text"
 	            android:layout_width="0dip"
 	            android:layout_height="wrap_content"
 	            android:layout_weight="1"
-	            android:background="@color/dark_green"
 	            android:textSize="16sp"
 	            android:textStyle="bold"
+	            android:textColor="@color/envived_order_text_white"
 	            android:gravity="center_horizontal|center_vertical"
+	            
 	            android:paddingLeft="10dip"
 	            android:paddingRight="10dip"
 	            android:paddingTop="10dip"
@@ -38,6 +42,10 @@
 	    android:layout_below="@id/catalog_search_result_header"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" 
-        android:divider="@drawable/order_catalog_child_divider"
+        
+        android:listSelector="@android:color/transparent" 
+		android:cacheColorHint="@android:color/transparent"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="10dip"
         />
 </RelativeLayout>

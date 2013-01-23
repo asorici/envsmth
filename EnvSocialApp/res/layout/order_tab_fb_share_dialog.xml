@@ -1,19 +1,22 @@
-
+<?xml version="1.0" encoding="utf-8"?>
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:background="@color/facebook_light_blue"
         android:orientation="vertical" >
 
         <TextView
-            android:id="@+id/textView1"
+            android:id="@+id/fb_share_post_intro"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dip"
             android:layout_marginRight="10dip"
-            android:text="The following message ..."
+            android:layout_gravity="left|center_vertical"
+            
+            android:gravity="left|center_vertical"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textSize="16sp" />
+            android:textColor="@color/envived_order_text_dark_green"
+            android:text="The following message ..."
+            />
 
         <TextView
             android:id="@+id/order_tab_fb_share_dialog_message"
@@ -25,21 +28,22 @@
             android:layout_marginRight="10dip"
             android:layout_marginTop="10dip"
             android:gravity="center_vertical|fill"
+            android:ellipsize="end"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textColorHint="@color/actionbar_gray"
-            android:textSize="20sp"
-            android:textStyle="italic" />
+            android:textStyle="italic"
+            android:textColor="@color/envived_order_text_white" />
 
         <TextView
-            android:id="@+id/textView2"
+            android:id="@+id/fb_share_post_outro"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
+            android:layout_gravity="right|center_vertical"
             android:layout_marginLeft="10dip"
             android:layout_marginRight="10dip"
-            android:gravity="right"
-            android:text="... will be posted to your wall."
+            
+            android:gravity="right|center_vertical"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textSize="16sp" />
+            android:textColor="@color/envived_order_text_dark_green" 
+            android:text="... will be posted to your wall." />
 
     </LinearLayout>

@@ -58,9 +58,9 @@ public class OrderManagerListAdapter extends BaseExpandableListAdapter implement
 		//mChildViewHolderMap = new HashMap<String, OrderManagerListAdapter.ChildViewHolder>();
 		mTimestampGapMapper = new HashMap<String,String>();
 		mOrderRequestTypeImageMap = new HashMap<String, Integer>();
-		mOrderRequestTypeImageMap.put(OrderFeature.NEW_ORDER_NOTIFICATION, R.drawable.order_request_new_order);
-		mOrderRequestTypeImageMap.put(OrderFeature.CALL_CHECK_NOTIFICATION, R.drawable.order_request_call_check);
-		mOrderRequestTypeImageMap.put(OrderFeature.CALL_WAITER_NOTIFICATION, R.drawable.order_request_call_waiter);
+		mOrderRequestTypeImageMap.put(OrderFeature.NEW_ORDER_NOTIFICATION, R.drawable.feature_order_request_new_order_grey);
+		mOrderRequestTypeImageMap.put(OrderFeature.CALL_CHECK_NOTIFICATION, R.drawable.feature_order_request_call_check_grey);
+		mOrderRequestTypeImageMap.put(OrderFeature.CALL_WAITER_NOTIFICATION, R.drawable.feature_order_request_call_waiter);
 		
 		// default filter is "all"
 		filterOrderRequestMap("all");
@@ -278,11 +278,16 @@ public class OrderManagerListAdapter extends BaseExpandableListAdapter implement
 
 	@Override
 	public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
-		if (convertView == null) {
-			LayoutInflater inflater = 
-					(LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		LayoutInflater inflater = 
+			(LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			
+		if (isExpanded) {
+			convertView = inflater.inflate(R.layout.order_mgr_group_expanded, parent, false);
+		}
+		else {
 			convertView = inflater.inflate(R.layout.order_mgr_group, parent, false);
 		}
+		
 		
 		TextView locationNameTextView = (TextView)convertView.findViewById(R.id.order_group);
 		Map<String, String> locationData = getGroup(groupPosition);
@@ -337,10 +342,24 @@ public class OrderManagerListAdapter extends BaseExpandableListAdapter implement
 			boolean isLastChild, View convertView, ViewGroup parent) {
 		
 		ChildViewHolder holder;
+		boolean instantiate = false;
 		
 		if (convertView == null) {
+			instantiate = true;
+		}
+		else {
+			holder = (ChildViewHolder) convertView.getTag();
+			instantiate = !(isLastChild && holder.isLastChild);
+		}
+		
+		if (instantiate) {
 			LayoutInflater inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			convertView = inflater.inflate(R.layout.order_mgr_item, parent, false);
+			if (isLastChild) {
+				convertView = inflater.inflate(R.layout.order_mgr_item_last, parent, false);
+			}
+			else {
+				convertView = inflater.inflate(R.layout.order_mgr_item, parent, false);
+			}
 			
 			holder = new ChildViewHolder();
 			holder.orderDetailsView = (TextView) convertView.findViewById(R.id.order_details);
@@ -356,17 +375,19 @@ public class OrderManagerListAdapter extends BaseExpandableListAdapter implement
 			holder = (ChildViewHolder) convertView.getTag();
 		}
 		
-		bindChildData(holder, groupPosition, childPosition);
+		bindChildData(holder, groupPosition, childPosition, isLastChild);
 		
 		return convertView;
 	}
 	
-	private void bindChildData(ChildViewHolder holder, int groupPosition, int childPosition) {
+	private void bindChildData(ChildViewHolder holder, int groupPosition, int childPosition, 
+			boolean isLastChild) {
 		
 		Map<String,String> childData = getChild(groupPosition, childPosition);
 		
 		holder.groupPosition = groupPosition;
 		holder.childPosition = childPosition;
+		holder.isLastChild = isLastChild;
 		holder.uri = childData.get(OrderManagerFragment.RESOURCE_URI);
 		
 		String orderRequestType = childData.get(OrderManagerFragment.ORDER_REQUEST_TYPE);
@@ -389,6 +410,7 @@ public class OrderManagerListAdapter extends BaseExpandableListAdapter implement
 	private static class ChildViewHolder {
 		int groupPosition;
 		int childPosition;
+		boolean isLastChild;
 		
 		String uri;
 		

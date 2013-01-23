@@ -1,6 +1,5 @@
 package com.envsocial.android.features.order;
 
-import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,7 +11,6 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -39,8 +37,8 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 	private Context mContext;
 	
 	public OrderCatalogCursorAdapter(OrderCatalogPagerAdapter pagerAdapter, int pagePosition, 
-			Cursor cursor, int groupLayout, int childLayout) {
-		super(pagerAdapter.getParentFragment().getActivity(), cursor, groupLayout, childLayout);
+			Cursor cursor, int groupLayout, int groupExpandedLayout, int childLayout) {
+		super(pagerAdapter.getParentFragment().getActivity(), cursor, groupLayout, groupExpandedLayout, childLayout);
 		
 		mPagerAdapter = pagerAdapter;
 		mPagePosition = pagePosition;
@@ -90,8 +88,7 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 	}
 	
 	@Override
-	protected void bindGroupView(View view, Context context, Cursor cursor,
-			boolean isExpanded) {
+	protected void bindGroupView(View view, Context context, Cursor cursor, boolean isExpanded) {
 	}
 	
 	
@@ -193,7 +190,7 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 	
 	@Override
 	protected void bindChildView(View view, Context context, Cursor cursor, boolean isLastChild) {
-		
+	
 	}
 	
 	
@@ -204,8 +201,16 @@ public class OrderCatalogCursorAdapter extends ResourceCursorTreeAdapter
 		
 		return mParentFragment.getOrderFeature().getOrderItemCursor(categoryId);
 	}
-
 	
+	/*
+	@Override
+	public boolean isChildSelectable(int groupPosition, int childPosition) {
+		return false;
+	}
+	*/
+	
+	
+	// =================== static child and group view holders and click listeners ===================
 	private static class ChildViewHolder {
 		public int childPosition;
 		public int groupPosition;

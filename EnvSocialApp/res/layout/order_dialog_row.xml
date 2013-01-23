@@ -3,17 +3,20 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="10dip"
-    android:background="#ffffff"
     android:orientation="vertical" >
+    
     <TextView android:id="@+id/category"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="5dip"
         android:textStyle="bold"
+        android:textColor="@color/envived_order_text_white"
         android:text="@string/lbl_group" />
+	
 	<TextView android:id="@+id/items"
 	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"
 	    android:layout_marginLeft="20dip"
+	    android:textColor="@color/envived_order_text_white"
 	    android:text="@string/lbl_item" />
 </LinearLayout>

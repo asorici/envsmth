@@ -4,14 +4,14 @@
     	android:id="@+id/view_select_checkin_body"
     	android:layout_width="fill_parent"
     	android:layout_height="fill_parent" 
+		android:background="@color/envived_default_layout_green"
+		
 		android:textStyle="bold"
 		android:textColor="@color/white"
 		android:textSize="14sp"
-		android:gravity="center" 
+		android:ellipsize="end"
+		android:gravity="left|center_vertical" 
 		android:paddingLeft="10dip"
 		android:paddingRight="10dip"
 		android:paddingBottom="20dip"
-		android:paddingTop="20dip"
-		>
-		
-</TextView>
+		android:paddingTop="20dip" />
