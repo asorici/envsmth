@@ -202,7 +202,6 @@ class EnvironmentResource(ModelResource):
                 ## attach resource_uri and environment_uri
                 feat_dict['resource_uri'] = FeatureResource().get_resource_uri(feature)
                 feat_dict['environment'] = self.get_resource_uri(bundle)
-                feat_dict['area'] = None
                 feature_list.append(feat_dict)
                 
         return feature_list
@@ -234,6 +233,7 @@ class AreaResource(ModelResource):
     parent = fields.ForeignKey(EnvironmentResource, 'environment')
     features = fields.ListField()
     owner = fields.DictField()
+    admin = fields.ForeignKey(UserResource, 'admin', null = True, full = True)
     
     class Meta:
         queryset = Area.objects.all()
@@ -288,6 +288,7 @@ class AreaResource(ModelResource):
         
         return user_bundle.data
     
+    
     def dehydrate_features(self, bundle):
         feature_list = []
         for feature in bundle.obj.features.all().select_subclasses():
@@ -296,7 +297,6 @@ class AreaResource(ModelResource):
                 ## attach resource_uri and area_uri
                 feat_dict['resource_uri'] = FeatureResource().get_resource_uri(feature)
                 feat_dict['area'] = self.get_resource_uri(bundle)
-                feat_dict['environment'] = None
                 feature_list.append(feat_dict)
         
         ## then see if environment features which also apply to the area are available - e.g. program, order
@@ -308,17 +308,18 @@ class AreaResource(ModelResource):
             if feat_dict:
                 ## attach resource_uri and area_uri
                 feat_dict['resource_uri'] = FeatureResource().get_resource_uri(env_feat)
-                feat_dict['area'] = self.get_resource_uri(bundle)
-                feat_dict['environment'] = None
+                feat_dict['environment'] = EnvironmentResource().get_resource_uri(environment)
                 feature_list.append(feat_dict)
         
         return feature_list
     
     
     def dehydrate(self, bundle):
-        """
-        append level data from the layout reference of the Area obj
-        """
+        """ delete admin field from bundle.data if the model field is null """
+        if bundle.obj.admin is None:
+            del bundle.data['admin']
+        
+        """ append level data from the layout reference of the Area obj """
         bundle.data['level'] = bundle.obj.layout.level
         
         """
@@ -404,6 +405,16 @@ class FeatureResource(ModelResource):
         filters = bundle.request.GET.copy()
         return bundle.obj.get_feature_data(filters)
     
+    
+    def dehydrate(self, bundle):
+        if bundle.obj.environment is None:
+            del bundle.data['environment']
+        
+        elif bundle.obj.area is None:
+            del bundle.data['area']
+    
+        return bundle
+
 
 class AnnouncementResource(ModelResource):
     environment = fields.ForeignKey(EnvironmentResource, 'environment')
