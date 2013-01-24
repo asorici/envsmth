@@ -69,7 +69,6 @@ public class DescriptionFragment extends SherlockFragment {
  		filter.addAction(EnvivedFeatureDataRetrievalService.ACTION_FEATURE_RETRIEVE_DATA);
  		getActivity().registerReceiver(mFeatureDataReceiver, filter, 
  						EnvivedFeatureDataRetrievalService.FEATURE_RETRIEVE_DATA_PERMISSION, null);
- 		//getActivity().registerReceiver(mFeatureDataReceiver, filter); 
  		
  		if (!mDescriptionFeature.isInitialized()) {
  			try {
