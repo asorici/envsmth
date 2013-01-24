@@ -6,20 +6,22 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.envsocial.android.api.Location;
+import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
+import com.envsocial.android.features.description.DescriptionFeature;
 import com.envsocial.android.utils.EnvivedNotificationContents;
 import com.envsocial.android.utils.Preferences;
 
-public class EnvivedFeatureUpdateService extends IntentService {
-	private static final String TAG = "EnvivedFeatureUpdateService";
+public class EnvivedFeatureDataRetrievalService extends IntentService {
+	private static final String TAG = "EnvivedFeatureDataRetrievalService";
 	
-	public static String UPDATE_SERVICE_NAME = "EnvivedFeatureUpdateService";
-	public static String UPDATE_SERVICE_INPUT = "com.envsocial.android.Input";
-	public static String ACTION_UPDATE_FEATURE = "com.envsocial.android.intent.UPDATE_FEATURE";
-	public static String UPDATE_PERMISSION = "com.envsocial.android.permission.UPDATE";
+	public static String DATA_RETRIEVE_SERVICE_NAME = "EnvivedFeatureDataRetrievalService";
+	public static String DATA_RETRIEVE_SERVICE_INPUT = "com.envsocial.android.Input";
+	public static String ACTION_FEATURE_RETRIEVE_DATA = "com.envsocial.android.intent.FEATURE_RETRIEVE_DATA";
+	public static String FEATURE_RETRIEVE_DATA_PERMISSION = "com.envsocial.android.permission.FEATURE_RETRIEVE_DATA";
 	
-	public EnvivedFeatureUpdateService() {
-		super(UPDATE_SERVICE_NAME);
+	public EnvivedFeatureDataRetrievalService() {
+		super(DATA_RETRIEVE_SERVICE_NAME);
 	}
 
 	@Override
@@ -32,25 +34,25 @@ public class EnvivedFeatureUpdateService extends IntentService {
 		if (currentLocation != null) {
 			// get the contents from the GCM message
 			EnvivedNotificationContents notificationContents = 
-					(EnvivedNotificationContents)intent.getSerializableExtra(UPDATE_SERVICE_INPUT);
+					(EnvivedNotificationContents)intent.getSerializableExtra(DATA_RETRIEVE_SERVICE_INPUT);
 			String featureCategory = notificationContents.getFeature();
+			String featureResourceUrl = notificationContents.getResourceUrl();
 			
 			Feature updatedFeature = Feature.getFromServer(getApplicationContext(), 
-												currentLocation, featureCategory);
+												currentLocation, featureCategory, featureResourceUrl);
 			
 			if (updatedFeature != null) {
 				// we have successfully obtained the new feature contents
 				// use an intent to signal to active listeners that they may refresh their feature contents
 				
-				Intent updateIntent = new Intent(ACTION_UPDATE_FEATURE);
+				Intent updateIntent = new Intent(ACTION_FEATURE_RETRIEVE_DATA);
 				Bundle extras = new Bundle();
 				extras.putString("feature_category", featureCategory);
 				extras.putSerializable("feature_content", updatedFeature);
 				
 				updateIntent.putExtras(extras);
 				//sendBroadcast(updateIntent);
-				//sendBroadcast(updateIntent, UPDATE_PERMISSION);
-				sendOrderedBroadcast(updateIntent, UPDATE_PERMISSION);
+				sendOrderedBroadcast(updateIntent, FEATURE_RETRIEVE_DATA_PERMISSION);
 			}
 			else {
 				Log.d(TAG, "Received NO feature update");

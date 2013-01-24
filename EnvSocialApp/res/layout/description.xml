@@ -77,7 +77,8 @@
 		        android:layout_height="65dip"
 		        android:layout_gravity="fill_horizontal|fill_vertical"
 		        android:gravity="fill_horizontal|center_vertical"
-		        android:textColor="@color/envived_order_text_dark_green"/>
+		        android:textColor="@color/envived_order_text_dark_green"
+		        android:text="Indeterminate number of checked in users."/>
 		</LinearLayout>
 		<ImageView 
 	        android:contentDescription="delimiter"

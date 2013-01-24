@@ -24,6 +24,7 @@ import com.envsocial.android.api.exceptions.EnvSocialComException;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.order.OrderCustomAlertDialogFragment;
 import com.envsocial.android.features.order.OrderCustomAlertDialogFragment.OrderNoticeAlertDialogListener;
+import com.envsocial.android.utils.FeatureLRUTracker;
 import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
 import com.google.android.gcm.GCMRegistrar;
@@ -45,6 +46,16 @@ public class HomeActivity extends SherlockFragmentActivity
         Log.d(TAG, "--- onCreate called in HomeActivity");
 		super.onCreate(savedInstanceState);
         
+		// look in the shared preferences to see if we have a FeatureLRUTracker
+        FeatureLRUTracker featureLRUTracker = Preferences.getFeatureLRUTracker(getApplicationContext());
+        if (featureLRUTracker == null) {
+        	// if non exists create one with the default number of entries
+        	featureLRUTracker = new FeatureLRUTracker();
+        }
+        
+        // make it gloabally accessible in the application
+        Envived.setFeatureLRUTracker(featureLRUTracker);
+		
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
         	// From notification, we forward to details
@@ -73,6 +84,12 @@ public class HomeActivity extends SherlockFragmentActivity
 			// perform cleanup on exit
 			currentLocation.doCleanup(getApplicationContext());
 		}
+		
+		// save the feature lru tracker in the shared preferences
+        FeatureLRUTracker featureLRUTracker = Envived.getFeatureLRUTracker();
+        if (featureLRUTracker != null) {
+        	Preferences.setFeatureLRUTracker(getApplicationContext(), featureLRUTracker);
+        }
 		
 		super.onDestroy();
 	}
@@ -125,53 +142,7 @@ public class HomeActivity extends SherlockFragmentActivity
 		if (v == mBtnCheckin) {
 			final Location currentLocation = Preferences.getCheckedInLocation(this);
 			if (currentLocation != null) {
-				String dialogMessage = "Keep previous checkin location ("  
-						+ currentLocation.getName() + ") ?";
-				
-				/*
-				ContextThemeWrapper ctw = new ContextThemeWrapper( this, R.style.EnvivedDialogTheme );
-				
-				AlertDialog.Builder builder = new AlertDialog.Builder(ctw);
-				LayoutInflater inflater = getLayoutInflater();
-				TextView titleDialogView = (TextView)inflater.inflate(R.layout.home_select_checkin_title, null, false);
-				titleDialogView.setText("Select Checkin Location");
-				
-				TextView bodyDialogView = (TextView)inflater.inflate(R.layout.home_select_checkin_body, null, false);
-				bodyDialogView.setText(dialogMessage);
-				
-				builder.setCustomTitle(titleDialogView);
-				builder.setView(bodyDialogView);
-				
-				builder.setPositiveButton("Yes", new Dialog.OnClickListener() {
-				    @Override
-				    public void onClick(DialogInterface dialog, int which) { 
-				    	dialog.cancel();
-				    	
-				    	Intent i = new Intent(HomeActivity.this, DetailsActivity.class);
-			    		// we can put null for the payload since we have a location saved in preferences
-				    	i.putExtra(ActionHandler.CHECKIN, (String)null);
-			    		startActivity(i);
-				    }
-				});
-
-				builder.setNegativeButton("No", new Dialog.OnClickListener() {
-
-				    @Override
-				    public void onClick(DialogInterface dialog, int which) {
-				    	dialog.cancel();
-				    	
-				    	// do a local checkout before checking in somewhere else
-				    	// for now this will also refresh any feature data that was renewed server-side
-				    	Preferences.checkout(getApplicationContext());
-				    	
-				    	IntentIntegrator integrator = new IntentIntegrator(HomeActivity.this);
-						integrator.initiateScan();
-				    }
-
-				});
-
-				builder.show();
-				*/
+				String dialogMessage = "Keep previous checkin location ("  + currentLocation.getName() + ") ?";
 				
 				OrderCustomAlertDialogFragment checkinDialog = 
 						OrderCustomAlertDialogFragment.newInstance("Select Checkin Location", 
@@ -221,6 +192,8 @@ public class HomeActivity extends SherlockFragmentActivity
 					IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
 		    	if (scanResult != null) {
 		    		String actionUrl = scanResult.getContents();
+		    		Log.d(TAG, "CHECKIN URL: " + actionUrl);
+		    		
 		    		// Check if checkin url is proper
 		    		if (actionUrl.startsWith(Url.actionUrl(ActionHandler.CHECKIN))) {
 		    			Intent i = new Intent(this, DetailsActivity.class);
@@ -228,8 +201,7 @@ public class HomeActivity extends SherlockFragmentActivity
 			    		startActivity(i);
 		    		} else {
 		    			// If not, inform the user
-		    			Toast toast = Toast.makeText(this, 
-		    					R.string.msg_malformed_checkin_url, Toast.LENGTH_LONG);
+		    			Toast toast = Toast.makeText(this, R.string.msg_malformed_checkin_url, Toast.LENGTH_LONG);
 		    			toast.show();
 		    		}
 		    	}

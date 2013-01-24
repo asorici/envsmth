@@ -3,6 +3,8 @@ from client.authorization import AnnotationAuthorization, UserAuthorization, \
 from client.validation import AnnotationValidation
 from coresql.models import Environment, Area, Feature, Annotation, Announcement, \
     History, UserProfile, ResearchProfile, UserContext, UserSubProfile
+from coresql.utils import str2bool
+
 from datetime import datetime
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from tastypie import fields, http
@@ -151,7 +153,7 @@ class UserResource(ModelResource):
             del serdes
                     
             if deserialized is None:
-                return ImmediateHttpResponse(http.HttpBadRequest())
+                return ImmediateHttpResponse(response = http.HttpBadRequest())
             
             if 'unregister_c2dm' in deserialized and deserialized['unregister_c2dm'] == True:
                 bundle.data['c2dm_id'] = None
@@ -159,7 +161,7 @@ class UserResource(ModelResource):
             updated_bundle = super(UserResource, self).obj_update(bundle, request, **kwargs)
             return updated_bundle
         except (NotFound, MultipleObjectsReturned):
-            raise ImmediateHttpResponse(http.HttpBadRequest())
+            raise ImmediateHttpResponse(response = http.HttpBadRequest())
     
 
 
@@ -175,7 +177,7 @@ class EnvironmentResource(ModelResource):
         #fields = ['name', 'data', 'tags', 'parentID', 'category', 'latitude', 'longitude', 'timestamp']
         excludes = ['width', 'height']
         detail_allowed_methods = ['get']
-        list_allowed_methods = []
+        list_allowed_methods = ['get']
         authentication = Authentication()
         default_format = "application/json"
         
@@ -194,10 +196,13 @@ class EnvironmentResource(ModelResource):
     
     
     def dehydrate_features(self, bundle):
+        ## retrieve the value of the virtual flag
+        virtual = get_virtual_flag_from_url(bundle.request)
+        
         ## return a list of dictionary values from the features of this environment
         feature_list = []
         for feature in bundle.obj.features.select_subclasses():
-            feat_dict = feature.to_serializable()
+            feat_dict = feature.to_serializable(virtual = virtual)
             if feat_dict:
                 ## attach resource_uri and environment_uri
                 feat_dict['resource_uri'] = FeatureResource().get_resource_uri(feature)
@@ -290,9 +295,14 @@ class AreaResource(ModelResource):
     
     
     def dehydrate_features(self, bundle):
+        ## retrieve the value of the virtual flag
+        print "Calling dehydrate features in AREA"
+        virtual = get_virtual_flag_from_url(bundle.request)
+        
+        ## return a list of dictionary values from the features of this area
         feature_list = []
         for feature in bundle.obj.features.all().select_subclasses():
-            feat_dict = feature.to_serializable()
+            feat_dict = feature.to_serializable(virtual = virtual)
             if feat_dict:
                 ## attach resource_uri and area_uri
                 feat_dict['resource_uri'] = FeatureResource().get_resource_uri(feature)
@@ -304,7 +314,7 @@ class AreaResource(ModelResource):
         environment_features = environment.features.select_subclasses().filter(is_general = True)
         
         for env_feat in environment_features:
-            feat_dict = env_feat.to_serializable()
+            feat_dict = env_feat.to_serializable(virtual = virtual)
             if feat_dict:
                 ## attach resource_uri and area_uri
                 feat_dict['resource_uri'] = FeatureResource().get_resource_uri(env_feat)
@@ -402,8 +412,11 @@ class FeatureResource(ModelResource):
     
     
     def dehydrate_data(self, bundle):
+        ## retrieve the value of the virtual flag
+        virtual = get_virtual_flag_from_url(bundle.request)
+        
         filters = bundle.request.GET.copy()
-        return bundle.obj.get_feature_data(filters)
+        return bundle.obj.get_feature_data(virtual, filters)
     
     
     def dehydrate(self, bundle):
@@ -588,7 +601,8 @@ class AnnotationResource(ModelResource):
     
     
     def dehydrate_data(self, bundle):
-        ## return the data representation of this annotation according to its type        
+        ## return the data representation of this annotation according to its type
+        user_profile = bundle.request.user.get_profile()
         return bundle.obj.get_annotation_data()
         
     
@@ -704,7 +718,6 @@ class AnnotationResource(ModelResource):
         """
         
         """TODO: the things below have to be refactored, big time"""
-        
         ## because of the AnnotationAuthorization class, request.user will have a profile
         user_profile = request.user.get_profile()
         updated_bundle = super(AnnotationResource, self).obj_create(bundle, request, user=user_profile)
@@ -763,7 +776,7 @@ class AnnotationResource(ModelResource):
             
             return updated_bundle
         except (NotFound, MultipleObjectsReturned):
-            raise ImmediateHttpResponse(http.HttpBadRequest())
+            raise ImmediateHttpResponse(response = http.HttpBadRequest())
     
     
     def obj_delete(self, request=None, **kwargs):
@@ -953,6 +966,41 @@ class ClientApi(Api):
         )
         return urlpatterns
 
+
+#############################################################################################################
+#############################################################################################################
+
+def get_virtual_flag_from_url(request):
+    """
+    import inspect
+    
+    print 'caller 1:', inspect.stack()[1]
+    print 'caller 2:', inspect.stack()[2]
+    print 'caller 3:', inspect.stack()[3]
+    print 'caller 4:', inspect.stack()[4]
+    print 'caller 5:', inspect.stack()[5]
+    print 'caller 6:', inspect.stack()[6]
+    print 'caller 7:', inspect.stack()[7]
+    print 'caller 8:', inspect.stack()[8]
+    print 'caller 9:', inspect.stack()[9]
+    print 'caller 10:', inspect.stack()[10]
+    print 'caller 11:', inspect.stack()[11]
+    print 'caller 12:', inspect.stack()[12]
+    """
+    
+    ## retrieve the value of the virtual flag
+    virtual = str(request.GET.get('virtual'))    
+    if virtual is None:
+        raise ImmediateHttpResponse(response = http.HttpBadRequest(content='No "virtual" flag in request url'))
+    
+    try:
+        virtual = str2bool(virtual)
+    except ValueError:
+        raise ImmediateHttpResponse(response = http.HttpBadRequest(content='"virtual" flag could not be parsed to a boolean'))
+    
+    return virtual
+
+    
 
 def get_timestamp_from_url(date_string):
     timestamp = None

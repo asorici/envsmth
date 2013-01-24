@@ -33,7 +33,7 @@ import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
-import com.envsocial.android.EnvivedFeatureUpdateService;
+import com.envsocial.android.EnvivedFeatureDataRetrievalService;
 import com.envsocial.android.R;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Annotation;
@@ -75,7 +75,7 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 	private List<Map<String, Object>> mCurrentOrderSelections;
 	
 	
-	private OrderFeatureUpdateReceiver mUpdateReceiver;
+	private OrderFeatureDataReceiver mFeatureDataReceiver;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -87,11 +87,11 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 		//mCatalogPagerAdapter = new OrderCatalogPagerAdapter(this);
 		
 		// register the order feature update receiver here
-		mUpdateReceiver = new OrderFeatureUpdateReceiver();
+		mFeatureDataReceiver = new OrderFeatureDataReceiver();
 		IntentFilter filter = new IntentFilter();
-		filter.addAction(EnvivedFeatureUpdateService.ACTION_UPDATE_FEATURE);
-		getActivity().registerReceiver(mUpdateReceiver, filter, 
-						EnvivedFeatureUpdateService.UPDATE_PERMISSION, null);
+		filter.addAction(EnvivedFeatureDataRetrievalService.ACTION_FEATURE_RETRIEVE_DATA);
+		getActivity().registerReceiver(mFeatureDataReceiver, filter, 
+						EnvivedFeatureDataRetrievalService.FEATURE_RETRIEVE_DATA_PERMISSION, null);
 	}
 	
 	
@@ -156,7 +156,7 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 		
 		mOrderFeature.doCleanup(getActivity().getApplicationContext());
 		mCatalogPagerAdapter.doCleanup();
-		getActivity().unregisterReceiver(mUpdateReceiver);
+		getActivity().unregisterReceiver(mFeatureDataReceiver);
 	}
 	
 	
@@ -346,7 +346,7 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 		mOrderFeature = feature;
 	}
 	
-	private class OrderFeatureUpdateReceiver extends BroadcastReceiver {
+	private class OrderFeatureDataReceiver extends BroadcastReceiver {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
@@ -360,7 +360,7 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 			
 			if (featureCategory.equals(Feature.ORDER)) {
 				// check if the fragment is currently active
-				if (active) {
+				if (active && mOrderFeature.isInitialized()) {
 					AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 					LayoutInflater inflater = getActivity().getLayoutInflater();
 
@@ -410,14 +410,13 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 					builder.show();
 
 				} else {
-					OrderFeature updatedOrderFeature = (OrderFeature) extras
-							.getSerializable("feature_content");
+					OrderFeature updatedOrderFeature = (OrderFeature) extras.getSerializable("feature_content");
 					
 					// notify the adapter directly
 					mCatalogPagerAdapter.updateFeature(updatedOrderFeature);
 				}
 				
-				//abortBroadcast();
+				abortBroadcast();
 			}
 		}
 		

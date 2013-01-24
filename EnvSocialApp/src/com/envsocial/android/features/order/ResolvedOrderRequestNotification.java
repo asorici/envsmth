@@ -72,7 +72,7 @@ public class ResolvedOrderRequestNotification extends EnvivedNotification {
 				| Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
 
 		// Add extras
-		launcher.setData(Uri.parse(Uri.encode(Url.fromUri(mNotificationContents.getResourceUri()))));
+		launcher.setData(Uri.parse(Uri.encode(Url.fromRelativeUrl(mNotificationContents.getResourceUrl()))));
 		launcher.putExtra(EnvivedNotificationContents.INTENT_EXTRA_PARAMS,
 				mNotificationContents.getParams().toString());
 		

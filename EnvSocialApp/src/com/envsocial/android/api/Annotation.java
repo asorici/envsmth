@@ -65,8 +65,13 @@ public class Annotation {
 		AppClient client = new AppClient(context);
 		String userUri = Preferences.getLoggedInUserUri(context);
 		
-		String jsonContent = "";
+		// build annotation request uri taking into account the type of access that is made
+		boolean virtualAccess = mLocation.hasVirtualAccess();
+		String annotationRequestUri = Url.appendOrReplaceParameter(Url.resourceUrl(TAG), "virtual", 
+				Boolean.toString(virtualAccess));
 		
+		
+		String jsonContent = "";
 		try {
 			jsonContent = toJSON();
 		}
@@ -77,7 +82,7 @@ public class Annotation {
 		
 		HttpResponse response = null;
 		try {
-			response = client.makePostRequest(Url.resourceUrl(TAG),
+			response = client.makePostRequest(annotationRequestUri,
 					jsonContent,
 					new String[] {"Content-Type", "Data-Type"},
 					new String[] {"application/json", "json"}
@@ -237,16 +242,17 @@ public class Annotation {
 		
 		String envId = location.getId();
 		if (location.isArea()) {
-			envId = Url.resourceIdFromUri(location.getParentUri());
+			envId = Url.resourceIdFromUrl(location.getParentUrl());
 		}
 		
 		Url url = new Url(Url.RESOURCE, TAG);
 		url.setParameters(
-				new String[] { Location.ENVIRONMENT, "all", "category", "order_by" }, 
-				new String[] { envId, "true", category, "timestamp" }
+				new String[] { "virtual", Location.ENVIRONMENT, "all", "category", "order_by" }, 
+				new String[] { Boolean.toString(location.hasVirtualAccess()), 
+						envId, "true", category, "timestamp" }
 		);
 		
-		String uri  = url.toString();
+		String annotationRequestUrl  = url.toString();
 		if (timestamp != null) {
 			String timeStr = Utils.calendarToString(timestamp, "yyyy-MM-dd HH:mm:ss");
 			try {
@@ -254,27 +260,36 @@ public class Annotation {
 			} catch (UnsupportedEncodingException e) {
 				throw new EnvSocialContentException(timeStr, EnvSocialResource.ANNOTATION, e);
 			}
-			uri = Url.appendParameter(uri, "timestamp__gt", timeStr);
+			annotationRequestUrl = Url.appendOrReplaceParameter(annotationRequestUrl, "timestamp__gt", timeStr);
 		}
 		
 		// consume all annotations from server - no pagination needed afterwards
-		return getAnnotationsList(context, uri, null, true);
+		return getAnnotationsList(context, annotationRequestUrl, null, true);
 	}
 	
 	
 	private static List<Annotation> getAnnotationsList(Context context, 
-			String url, Location location, 
+			String annotationRequestUrl, Location location, 
 			boolean retrieveAll) throws EnvSocialComException, EnvSocialContentException {
 		
 		// get data of the user executing this action
 		String userUri = Preferences.getLoggedInUserUri(context);
 		AppClient client = new AppClient(context);
 		
+		// append virtual access flag to the request url
+		// if location is null, the flag will have been set earlier in the url
+		if (location != null) {
+			boolean virtualAccess = location.hasVirtualAccess();
+			annotationRequestUrl = Url.appendOrReplaceParameter(annotationRequestUrl, "virtual", 
+					Boolean.toString(virtualAccess));
+		}
+		
+		
 		HttpResponse response;
 		String responseData;
 		
 		try {
-			response = client.makeGetRequest(url);
+			response = client.makeGetRequest(annotationRequestUrl);
 			responseData = EntityUtils.toString(response.getEntity());
 		} catch (Exception e) {
 			throw new EnvSocialComException(userUri, HttpMethod.GET, EnvSocialResource.ANNOTATION, e);
@@ -298,7 +313,7 @@ public class Annotation {
 				String next = meta.getString("next");
 
 				if (next != null && !next.equalsIgnoreCase("null")) {
-					next = Url.fromUri(next);
+					next = Url.fromRelativeUrl(next);
 					annotations.addAll(getAnnotationsList(context, next, location, true));
 				}
 			}
@@ -360,7 +375,7 @@ public class Annotation {
 	
 	
 	public static int deleteAnnotation(Context context, String uri) throws Exception {
-		String url = Url.fromUri(uri);
+		String url = Url.fromRelativeUrl(uri);
 		AppClient client = new AppClient(context);
 		
 		return client.makeDeleteRequest(url).getStatusLine().getStatusCode();
