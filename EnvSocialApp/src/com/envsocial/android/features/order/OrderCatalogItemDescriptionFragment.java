@@ -1,10 +1,5 @@
 package com.envsocial.android.features.order;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import com.envsocial.android.R;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
@@ -15,15 +10,18 @@ import android.widget.Button;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
+import com.envsocial.android.R;
+
 public class OrderCatalogItemDescriptionFragment extends DialogFragment {
 	/**
      * Create a new instance of MyDialogFragment, providing "num"
      * as an argument.
      */
-    static OrderCatalogItemDescriptionFragment newInstance(String itemDescription, float itemUsageRanking) {
+    static OrderCatalogItemDescriptionFragment newInstance(String itemName, String itemDescription, float itemUsageRanking) {
     	OrderCatalogItemDescriptionFragment f = new OrderCatalogItemDescriptionFragment();
 
         Bundle args = new Bundle();
+        args.putString("item_name", itemName);
         args.putString("item_description", itemDescription);
         args.putFloat("item_usage_ranking", itemUsageRanking);
         f.setArguments(args);
@@ -41,16 +39,19 @@ public class OrderCatalogItemDescriptionFragment extends DialogFragment {
     
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    	
+    	String itemName = getArguments().getString("item_name");
     	String itemDescription = getArguments().getString("item_description");
         float itemUsageRanking = getArguments().getFloat("item_usage_ranking");
     	
     	View v = inflater.inflate(R.layout.catalog_item_details, container, false);
-    	TextView itemDescriptionTitleView = (TextView)v.findViewById(R.id.item_description_title);
-    	itemDescriptionTitleView.setText("ITEM DETAILS");
     	
-    	TextView itemDescriptionTextView = (TextView)v.findViewById(R.id.item_description_text);
-        itemDescriptionTextView.setText(itemDescription);
+    	TextView itemNameView = (TextView)v.findViewById(R.id.item_name_text);
+    	itemNameView.setText(itemName);
+    	
+    	if(!itemDescription.equals("")) {
+    		TextView itemDescriptionTextView = (TextView)v.findViewById(R.id.item_description_text);
+        	itemDescriptionTextView.setText(itemDescription);
+        }
         
         RatingBar itemUsageRankingView = (RatingBar)v.findViewById(R.id.item_usage_ratingbar);
         itemUsageRankingView.setRating(itemUsageRanking);

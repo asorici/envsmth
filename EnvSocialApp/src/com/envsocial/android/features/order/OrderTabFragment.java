@@ -272,24 +272,28 @@ public class OrderTabFragment extends SherlockFragment implements OnClickListene
 //								return;
 //							}
 							
-							JSONObject graphResponse = response.getGraphObject().getInnerJSONObject();
-
-							String postId = null;
-							try {
-								postId = graphResponse.getString("id");
-							} catch (JSONException e) {
-								Log.i(TAG, "JSON error " + e.getMessage());
-							}
-
-							FacebookRequestError error = response.getError();
-
-							if (error != null) {
-								Log.d(TAG, error.getErrorMessage(), error.getException());
-								Toast.makeText(getActivity().getApplicationContext(),
-										R.string.msg_share_order_fb_err, Toast.LENGTH_SHORT).show();
-							} else {
-								Toast.makeText(getActivity().getApplicationContext(),
-										R.string.msg_share_order_fb, Toast.LENGTH_LONG).show();
+							if (response != null && response.getGraphObject() != null) {
+								JSONObject graphResponse = response.getGraphObject().getInnerJSONObject();
+	
+								String postId = null;
+								try {
+									postId = graphResponse.getString("id");
+								} catch (JSONException e) {
+									Log.i(TAG, "JSON error " + e.getMessage());
+								}
+	
+	
+								FacebookRequestError error = response.getError();
+	
+	
+								if (error != null) {
+									Log.d(TAG, error.getErrorMessage(), error.getException());
+									Toast.makeText(getActivity().getApplicationContext(),
+											R.string.msg_share_order_fb_err, Toast.LENGTH_SHORT).show();
+								} else {
+									Toast.makeText(getActivity().getApplicationContext(),
+											R.string.msg_share_order_fb, Toast.LENGTH_LONG).show();
+								}
 							}
 							
 							// after post - clear the publishOrder

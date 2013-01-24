@@ -1,16 +1,20 @@
 package com.envsocial.android.features.people;
 
-import android.database.sqlite.SQLiteOpenHelper;
+import java.util.Calendar;
 
+import android.content.Context;
+
+import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
+import com.envsocial.android.utils.FeatureDbHelper;
 
 public class PeopleFeature extends Feature {
 	private static final long serialVersionUID = 1L;
 
-	public PeopleFeature(String category, int version, String resourceUri,
-			String environmentUri, String areaUri, String data) {
+	public PeopleFeature(String category, int version, Calendar timestamp, String resourceUri,
+			String environmentUri, String areaUri, String data, boolean virtualAccess) {
 		
-		super(category, version, resourceUri, environmentUri, areaUri, data);
+		super(category, version, timestamp, resourceUri, environmentUri, areaUri, data, virtualAccess);
 	}
 	
 	
@@ -25,8 +29,24 @@ public class PeopleFeature extends Feature {
 	}
 
 	@Override
-	public SQLiteOpenHelper getLocalDatabaseSupport() {
+	public FeatureDbHelper getLocalDatabaseSupport() {
 		return null;
 	}
+
+
+	@Override
+	protected void featureInit() throws EnvSocialContentException {}
+
+
+	@Override
+	protected void featureUpdate() throws EnvSocialContentException {}
+
+
+	@Override
+	protected void featureCleanup(Context context) {}
+
+
+	@Override
+	protected void featureClose(Context context) {}
 
 }

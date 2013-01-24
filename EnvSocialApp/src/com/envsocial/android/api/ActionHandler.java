@@ -47,7 +47,7 @@ public class ActionHandler {
 		HttpResponse response = null;
 		
 		try {
-			String url = Url.fromUri(Preferences.getLoggedInUserUri(context));
+			String url = Url.fromRelativeUrl(Preferences.getLoggedInUserUri(context));
 			
 			String data = new JSONStringer()
 				.object()
@@ -166,8 +166,6 @@ public class ActionHandler {
 			if (!holder.hasError()) {
 				if (holder.getCode() == HttpStatus.SC_OK) {
 					JSONObject checkinData = holder.getJsonContent();
-					//Location checkinLoc = new Location(checkinData.getJSONObject("data"));
-					Location checkinLoc = Location.fromSerialized(checkinData.getString("data"));
 					
 					if (userUri == null) {
 						// it is null when we are doing an anonymous checkin
@@ -175,6 +173,7 @@ public class ActionHandler {
 						userUri = checkinData.getJSONObject("data").getString("user_uri");
 					}
 					
+					Location checkinLoc = Location.fromSerialized(checkinData.getString("data"));
 					holder.setTag(checkinLoc);
 					Preferences.checkin(context, userUri, checkinLoc);
 				}

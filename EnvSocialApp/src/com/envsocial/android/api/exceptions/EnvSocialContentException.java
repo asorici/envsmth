@@ -3,6 +3,8 @@ package com.envsocial.android.api.exceptions;
 import com.envsocial.android.api.EnvSocialResource;
 
 public class EnvSocialContentException extends EnvSocialException {
+	private static final long serialVersionUID = 1L;
+	
 	protected String mContent;
 	protected EnvSocialResource mResource;
 	
@@ -19,7 +21,7 @@ public class EnvSocialContentException extends EnvSocialException {
 
 	@Override
 	public String getMessage() {
-		String info = "Error parsing content :: " + mContent + " for resource :: " + mResource.getName();
+		String info = "Error parsing content for resource :: " + mResource.getName();
 		return info;
 	}
 

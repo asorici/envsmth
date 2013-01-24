@@ -77,8 +77,10 @@ public class EnvSocialAppActivity extends Activity implements OnClickListener {
     
     
     @Override
-    public void onStart() {
-    	super.onStart();
+    public void onRestart() {
+    	super.onRestart();
+    	Log.d(TAG, "--- onRestart in EnvSocialAppActivity !!!!!!!!!!!!!!");
+    	
     	
     	if (Preferences.isCheckedIn(getApplicationContext())) {
     		// the flow is such that this method should be called when ending the
@@ -88,6 +90,25 @@ public class EnvSocialAppActivity extends Activity implements OnClickListener {
     	}
     }
     
+    @Override
+    public void onStart() {
+    	super.onStart();
+    	Log.d(TAG, "--- onStart in EnvSocialAppActivity !!!!!!!!!!!!!!");
+    }
+    
+    
+    @Override
+    public void onStop() {
+    	super.onStop();
+    	Log.d(TAG, "--- onStop in EnvSocialAppActivity !!!!!!!!!!!!!!");
+    }
+    
+    
+    @Override
+	public void onPause() {
+		super.onPause();
+		Log.d(TAG, "--- onPause in EnvSocialAppActivity !!!!!!!!!!!!!");
+	}
     
     public void onClick(View v) {
     	if (v == mBtnAnonymous) {

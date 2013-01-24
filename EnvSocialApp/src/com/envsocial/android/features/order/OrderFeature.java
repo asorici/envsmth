@@ -1,18 +1,24 @@
 package com.envsocial.android.features.order;
 
+import java.util.Calendar;
+
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteOpenHelper;
 
 import com.envsocial.android.Envived;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
+import com.envsocial.android.utils.EnvivedNotificationDispatcher;
+import com.envsocial.android.utils.EnvivedNotificationHandler;
+import com.envsocial.android.utils.FeatureDbHelper;
 
 public class OrderFeature extends Feature {
 	private static final long serialVersionUID = 1L;
 	private static final String TAG = "OrderFeature";
 	
+	private EnvivedNotificationHandler notificationHandler;
 	private OrderDbHelper dbHelper;
+	
 	
 	public static final String TYPE_DRINKS = "drinks";
 	public static final String TYPE_FOOD = "food";
@@ -39,68 +45,64 @@ public class OrderFeature extends Feature {
 	public static final String NEW_ORDER_NOTIFICATION = "new_order";
 	public static final String CALL_WAITER_NOTIFICATION = "call_waiter";
 	public static final String CALL_CHECK_NOTIFICATION = "call_check";
-	public static final String UPDATE_CONTENT_NOTIFICATION = "update_content";
-	public static final String UPDATE_STRUCTURE_NOTIFICATION = "update_structure";
 	
-	public OrderFeature(String category, int version, String resourceUri,
-			String environmentUri, String areaUri, String data) throws EnvSocialContentException {
+	
+	public OrderFeature(String category, int version, Calendar timestamp, String resourceUri,
+			String environmentUri, String areaUri, String data, boolean virtualAccess) throws EnvSocialContentException {
 		
-		super(category, version, resourceUri, environmentUri, areaUri, data);
+		super(category, version, timestamp, resourceUri, environmentUri, areaUri, data, virtualAccess);
 	}
 
+	
 	@Override
-	public void init() throws EnvSocialContentException {
-		super.init();
-		String databaseName = getLocalDatabaseName(OrderDbHelper.DATABASE_PREFIX, 
-								environmentUri, areaUri, version);
-		
+	protected void featureInit() throws EnvSocialContentException {
+		// register order notification handler
+		notificationHandler = new OrderFeatureNotificationHandler();
+		EnvivedNotificationDispatcher.registerNotificationHandler(notificationHandler);
+
+		// instantiate local database
+		String databaseName = getLocalCacheFileName(category, 
+				environmentUrl, areaUrl, version);
+
 		if (dbHelper == null) {
 			dbHelper = new OrderDbHelper(Envived.getContext(), databaseName, this, version);
 		}
-		
+
 		if (dbHelper != null) {
 			dbHelper.init();
 		}
 	}
-	
-	
+
 	@Override
-	public void doUpdate() throws EnvSocialContentException {
-		super.doUpdate();
-		
-		String databaseName = getLocalDatabaseName(OrderDbHelper.DATABASE_PREFIX, 
-				environmentUri, areaUri, version);
-	
+	protected void featureUpdate() throws EnvSocialContentException {
+		String databaseName = getLocalCacheFileName(category, 
+				environmentUrl, areaUrl, version);
+
 		if (dbHelper == null) {
 			dbHelper = new OrderDbHelper(Envived.getContext(), databaseName, this, version);
 		}
 		
-		dbHelper.update();
+		dbHelper.update();		
 	}
-	
+
 	@Override
-	public void doCleanup(Context context) {
-		super.doCleanup(context);
-		
+	protected void featureCleanup(Context context) {
 		if (dbHelper != null) {
 			dbHelper.close();
 			dbHelper = null;
 		}
 	}
-	
-	@Override
-	public void doClose(Context context) {
-		String databaseName = getLocalDatabaseName(OrderDbHelper.DATABASE_PREFIX, 
-				environmentUri, areaUri, version);
 
-		super.doClose(context);
+	@Override
+	protected void featureClose(Context context) {
 		
 		// first do cleanup
-		doCleanup(context);
+		featureCleanup(context);
 		
-		// then remove the database file entirely
-		context.deleteDatabase(databaseName);
+		// unregister notification handler
+		EnvivedNotificationDispatcher.unregisterNotificationHandler(notificationHandler);
 	}
+
 	
 	@Override
 	public boolean hasLocalDatabaseSupport() {
@@ -113,7 +115,7 @@ public class OrderFeature extends Feature {
 	}
 
 	@Override
-	public SQLiteOpenHelper getLocalDatabaseSupport() {
+	public FeatureDbHelper getLocalDatabaseSupport() {
 		return dbHelper;
 	}
 

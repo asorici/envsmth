@@ -1,6 +1,7 @@
 package com.envsocial.android.features.program;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,6 +22,7 @@ import com.envsocial.android.api.Location;
 import com.envsocial.android.api.Url;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
+import com.envsocial.android.utils.FeatureDbHelper;
 import com.envsocial.android.utils.ResponseHolder;
 
 public class ProgramFeature extends Feature {
@@ -33,15 +35,14 @@ public class ProgramFeature extends Feature {
 	
 	private ProgramDbHelper dbHelper;
 	
-	public ProgramFeature(String category, int version, String resourceUri, 
-			String environmentUri, String areaUri, String data) throws EnvSocialContentException {
-		super(category, version, resourceUri, environmentUri, areaUri, data);
+	public ProgramFeature(String category, int version, Calendar timestamp, String resourceUri, 
+			String environmentUri, String areaUri, String data, boolean virtualAccess) throws EnvSocialContentException {
+		super(category, version, timestamp, resourceUri, environmentUri, areaUri, data, virtualAccess);
 	}
 	
+	
 	@Override
-	public void init() throws EnvSocialContentException {
-		super.init();
-		
+	protected void featureInit() throws EnvSocialContentException {
 		if (dbHelper == null) {
 			dbHelper = new ProgramDbHelper(Envived.getContext(), this, version);
 		}
@@ -50,39 +51,32 @@ public class ProgramFeature extends Feature {
 			dbHelper.init();
 		}
 	}
-	
-	
+
 	@Override
-	public void doUpdate() throws EnvSocialContentException {
-		super.doUpdate();
-		
+	protected void featureUpdate() throws EnvSocialContentException {
 		if (dbHelper == null) {
 			dbHelper = new ProgramDbHelper(Envived.getContext(), this, version);
 		}
 		
 		dbHelper.update();
 	}
-	
-	
+
 	@Override
-	public void doCleanup(Context context) {
-		super.doCleanup(context);
-		
+	protected void featureCleanup(Context context) {
 		if (dbHelper != null) {
 			dbHelper.close();
 			dbHelper = null;
 		}
 	}
-	
+
 	@Override
-	public void doClose(Context context) {
-		super.doClose(context);
-		
+	protected void featureClose(Context context) {
 		// first do cleanup
 		doCleanup(context);
-				
+		
 		context.deleteDatabase(ProgramDbHelper.DATABASE_NAME);
 	}
+	
 	
 	
 	/**
@@ -103,7 +97,7 @@ public class ProgramFeature extends Feature {
 		String locationId = location.getId();
 		if ( location.isArea() ) {
 			// get the locationId from the URI of the parent environment
-			locationId = Url.resourceIdFromUri(location.getParentUri());
+			locationId = Url.resourceIdFromUrl(location.getParentUrl());
 		}
 		
 		Url url = new Url(Url.RESOURCE, Feature.TAG);
@@ -165,7 +159,7 @@ public class ProgramFeature extends Feature {
 	}
 
 	@Override
-	public SQLiteOpenHelper getLocalDatabaseSupport() {
+	public FeatureDbHelper getLocalDatabaseSupport() {
 		return dbHelper;
 	}
 

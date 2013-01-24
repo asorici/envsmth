@@ -26,15 +26,22 @@ public class NotificationRegistrationDialog extends DialogFragment implements On
 	}
 	
 	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		
+		setStyle(STYLE_NO_TITLE, R.style.FeatureOrderDialogTheme);
+	}
+	
+	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		// Set title
-		getDialog().setTitle(NOTIFICATION_TITLE);
 		
 		View v = inflater.inflate(R.layout.notification_registration_dialog, container, false);
-		TextView info = (TextView) v.findViewById(R.id.notification_info_message);
+		TextView infoTitle = (TextView) v.findViewById(R.id.notification_info_title);
+		TextView infoMessage = (TextView) v.findViewById(R.id.notification_info_message);
 		
-		info.setText("You are not yet registered to receive ENVIVED notifications.\nENVIVED applications rely on" +
+		infoTitle.setText(NOTIFICATION_TITLE);
+		infoMessage.setText("You are not yet registered to receive ENVIVED notifications.\nENVIVED applications rely on" +
 				" this feature for their normal functioning.\nPlease press the Register" +
 				" button below to do so.\nYou can also do this later from the menu options.");
 		

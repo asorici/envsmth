@@ -324,11 +324,12 @@ public class OrderCatalogListAdapter extends SimpleExpandableListAdapter
 			Map<String, String> itemData = 
 					mAdapter.getChild(mParentView.groupPosition, mParentView.childPosition);
 			
+			String itemName = itemData.get(OrderFeature.ITEM_NAME);
 			String itemDescription = itemData.get(OrderFeature.ITEM_DESCRIPTION);
 			float itemUsageRating = Integer.parseInt(itemData.get(OrderFeature.ITEM_USAGE_RANK)) / (float)2.0;
 			
 			OrderCatalogItemDescriptionFragment newFragment = 
-					OrderCatalogItemDescriptionFragment.newInstance(itemDescription, itemUsageRating);
+					OrderCatalogItemDescriptionFragment.newInstance(itemName, itemDescription, itemUsageRating);
 			
 			FragmentManager fm = mAdapter.getParentFragment().getActivity().getSupportFragmentManager(); 
 			newFragment.show(fm, "description");

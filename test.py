@@ -14,10 +14,7 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "envsocial.settings"
 from coresql.models import *
 from django.contrib.auth.models import User
 from django.utils import simplejson
-
-
-
-    
+ 
 def test_Q():
     from django.db.models import Q
 
@@ -188,19 +185,19 @@ def dummy_sql_insert():
                 annotation.save()
 
 
-def generate_qrcodes():
+def generate_qrcodes(virtual = False):
     from coresql.utils.qrcodegen import QRCodeManager
     
     ## generate qrcodes for all environments
     environment_list = Environment.objects.all()
     for environment in environment_list:
-        environment_url = QRCodeManager.generate_qr_code(environment=environment)
+        environment_url = QRCodeManager.generate_qr_code(environment=environment, virtual = virtual)
         print environment_url
         
     ## generate qrcodes for all areas
     area_list = Area.objects.all()
     for area in area_list:
-        area_url = QRCodeManager.generate_qr_code(area=area)
+        area_url = QRCodeManager.generate_qr_code(area=area, virtual = virtual)
         print area_url
 
 
@@ -407,7 +404,8 @@ if __name__ == "__main__":
     #main()
     #test_Q()
     #dummy_sql_insert()
-    generate_qrcodes()
+    generate_qrcodes(virtual = False)
+    generate_qrcodes(virtual = True)
     #urllib_header_test()
     #parse_program()
     #build_wims_simulation()

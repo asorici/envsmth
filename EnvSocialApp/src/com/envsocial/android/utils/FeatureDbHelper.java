@@ -17,9 +17,9 @@ public abstract class FeatureDbHelper extends SQLiteOpenHelper implements Serial
 	private static final String TAG = "FeatureDbHelper";
 	
 	protected Feature feature;
-	protected String databaseName;
 	
 	protected transient SQLiteDatabase database;
+	protected String databaseName;
 	
 	protected static final int TABLES_INEXISTENT = 0;
 	protected static final int TABLES_CREATED = 1;
@@ -30,8 +30,8 @@ public abstract class FeatureDbHelper extends SQLiteOpenHelper implements Serial
 	public FeatureDbHelper(Context context, String databaseName, Feature feature, int version) {
 		super(context, databaseName, null, version);
 		
-		this.feature = feature;
 		this.databaseName = databaseName;
+		this.feature = feature;
 	}
 	
 	public String getDatabaseName() {

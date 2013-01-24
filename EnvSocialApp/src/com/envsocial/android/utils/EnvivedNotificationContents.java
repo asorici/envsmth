@@ -21,16 +21,16 @@ public class EnvivedNotificationContents implements Serializable {
 	
 	public static final String INTENT_EXTRA_PARAMS = "com.envsocial.android.notification_params";
 	
-	private String mLocationUri;
+	private String mLocationUrl;
 	private String mFeature;
-	private String mResourceUri;
-	private JSONObject mParams;
+	private String mResourceUrl;
+	private String mJSONSerializedParams;
 	
-	public EnvivedNotificationContents(String locationUri, String feature, String resourceUri, JSONObject params) {
-		mLocationUri = locationUri;
+	public EnvivedNotificationContents(String locationUrl, String feature, String resourceUrl, String params) {
+		mLocationUrl = locationUrl;
 		mFeature = feature;
-		mResourceUri = resourceUri;
-		mParams = params;
+		mResourceUrl = resourceUrl;
+		mJSONSerializedParams = params;
 	}
 	
 	public static EnvivedNotificationContents extractFromIntent(Context context, Intent intent) {
@@ -58,33 +58,38 @@ public class EnvivedNotificationContents implements Serializable {
 			return null;
 		}
 		
-		JSONObject paramsJSON = null;
+		// just see if JSON serialized parameters are parsable
 		try {
-			paramsJSON = new JSONObject(params);
+			new JSONObject(params);
 		} catch(JSONException ex) {
 			Log.d(TAG, "Notification parameters (" + params + ") from GCM Envived Message could not be parsed. " +
 					"Notification aborted");
 			return null;
 		}
 		
-		return new EnvivedNotificationContents(locationUri, feature, resourceUri, paramsJSON);
+		return new EnvivedNotificationContents(locationUri, feature, resourceUri, params);
 	}
 
 	
-	public String getLocationUri() {
-		return mLocationUri;
+	public String getLocationUrl() {
+		return mLocationUrl;
 	}
 
 	public String getFeature() {
 		return mFeature;
 	}
 
-	public String getResourceUri() {
-		return mResourceUri;
+	public String getResourceUrl() {
+		return mResourceUrl;
 	}
 
 	public JSONObject getParams() {
-		return mParams;
+		try {
+			return new JSONObject(mJSONSerializedParams);
+		} catch (JSONException e) {
+			Log.d(TAG, "ERROR parsing Envived serialized notification parameters to JSON", e);
+			return null;
+		}
 	}
 	
 	

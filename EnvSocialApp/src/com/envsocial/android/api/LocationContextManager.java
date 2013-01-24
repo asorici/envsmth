@@ -31,7 +31,7 @@ public class LocationContextManager implements Serializable {
 		}
 		else {
 			// we have an area - so get the parent environment and then get its id 
-			environmentId = Url.resourceIdFromUri(mLocation.getParentUri());
+			environmentId = Url.resourceIdFromUrl(mLocation.getParentUrl());
 		}
 		
 		Url url = new Url(Url.RESOURCE, CONTEXT_RESOURCE);
@@ -58,7 +58,7 @@ public class LocationContextManager implements Serializable {
 		String userUri = Preferences.getLoggedInUserUri(context);
 		AppClient client = new AppClient(context);
 		
-		String requestUri = Url.appendParameter(mResourceUri, "request", USER_COUNT_REQUEST);
+		String requestUri = Url.appendOrReplaceParameter(mResourceUri, "request", USER_COUNT_REQUEST);
 		HttpResponse response = null;
 		
 		try {

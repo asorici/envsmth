@@ -93,7 +93,6 @@ public class DetailsActivity extends SherlockFragmentActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        //Log.i(TAG, "[INFO] running onCreate in DetailsActivity");
         setContentView(R.layout.details);
         
         mActionBar = getSupportActionBar();
@@ -111,7 +110,6 @@ public class DetailsActivity extends SherlockFragmentActivity {
         // ------------------------------------- checkin ------------------------------------ //
         String checkinUrl = getIntent().getStringExtra(ActionHandler.CHECKIN);
         checkin(checkinUrl);
-        
 	}
 	
 	
@@ -127,6 +125,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
         
         ImageCache.ImageCacheParams cacheParams =
                 new ImageCache.ImageCacheParams(this, ImageCache.IMAGE_CACHE_DIR);
+        // cacheParams.memoryCacheEnabled = false;
         cacheParams.setMemCacheSizePercent(this, 0.0675f); // Set memory cache to 1/16 of mem class
         
         // The ImageFetcher takes care of loading images into ImageViews asynchronously
@@ -178,8 +177,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
         public void onReceive(Context context, Intent intent) {
             String newGCMMessage = intent.getExtras().getString(GCMIntentService.EXTRA_GCM_MESSAGE);
             
-            Toast toast = Toast.makeText(DetailsActivity.this, 
-					newGCMMessage, Toast.LENGTH_LONG);
+            Toast toast = Toast.makeText(DetailsActivity.this, newGCMMessage, Toast.LENGTH_LONG);
 			toast.show();
         }
     };
@@ -331,12 +329,13 @@ public class DetailsActivity extends SherlockFragmentActivity {
 		}
 		
 		else if (item.getTitle().toString().compareTo("Test Update Feature") == 0) {
-			Intent updateService = new Intent(context, EnvivedFeatureUpdateService.class);
+			Intent updateService = new Intent(context, EnvivedFeatureDataRetrievalService.class);
 			
 			String locationUri = mLocation.getLocationUri();
 			EnvivedNotificationContents notificationContents = 
 					new EnvivedNotificationContents(locationUri, Feature.ORDER, null, null);
-			updateService.putExtra(EnvivedFeatureUpdateService.UPDATE_SERVICE_INPUT, notificationContents);
+			updateService.putExtra(EnvivedFeatureDataRetrievalService.DATA_RETRIEVE_SERVICE_INPUT, 
+					notificationContents);
 			
 			context.startService(updateService);
 			
@@ -517,9 +516,9 @@ public class DetailsActivity extends SherlockFragmentActivity {
 			Log.d(TAG, "Checkin URL: " + checkinUrl);
 			
 			ResponseHolder holder = ActionHandler.checkin(DetailsActivity.this, checkinUrl);
+			/*
 			if (!holder.hasError() && holder.getCode() == HttpStatus.SC_OK) {
 				Location location = (Location) holder.getTag();
-				
 				try {
 					location.initFeatures();
 				} catch (EnvSocialContentException e) {
@@ -527,6 +526,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 							EnvSocialResource.FEATURE, e));
 				}
 			}
+			*/
 			
 			return holder;
 		}

@@ -31,7 +31,7 @@ def is_checked_in(user_profile, env_obj, area_obj):
 class AnnotationAuthorization(Authorization):
     def is_authorized(self, request, object=None):
         from client.api import EnvironmentResource, AreaResource, AnnotationResource
-        from coresql.models import UserContext, Environment, Area
+        from coresql.models import Environment, Area
         
         if hasattr(request, 'user') and not request.user.is_anonymous():
             ## check here for annotation requests that the requesting user is actually checked in   
@@ -167,6 +167,8 @@ class FeatureAuthorization(Authorization):
                     env_obj = None
                     area_obj = None
                 
+                #print "FeatureAuthorization environment: ", env_obj
+                #print "FeatureAuthorization area: ", area_obj
                 
                 if env_obj is None and area_obj is None:
                     ## if not, try to retrieve environment and area objects from request filters 
@@ -181,6 +183,7 @@ class FeatureAuthorization(Authorization):
                             area_obj = Area.objects.get(pk=request.GET['area'])
                         except:
                             area_obj = None
+                
                 
                 user_profile = request.user.get_profile()   ## will be an instance of UserProfile => available context
                 return is_checked_in(user_profile, env_obj, area_obj)

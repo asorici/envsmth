@@ -1,12 +1,15 @@
 package com.envsocial.android.utils;
 
+import java.text.ParseException;
 import java.util.List;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.envsocial.android.api.AppClient;
 import com.envsocial.android.api.Location;
@@ -14,6 +17,7 @@ import com.envsocial.android.api.user.User;
 
 
 public final class Preferences {
+	private static final String TAG = "Preferences";
 	
 	private static final String EMAIL = "email";
 	private static final String FIRST_NAME = "first_name";
@@ -21,7 +25,7 @@ public final class Preferences {
 	private static final String USER_URI = "user_uri";
 	private static final String CHECKED_IN_LOCATION = "checked_in_location";
 	private static final String PEOPLE_IN_LOCATION = "people_in_location";
-
+	private static final String FEATURE_LRU_TRACKER = "feature_lru_tracker";
 	
 	public static void login(Context context, String email, String firstName, String lastName, String uri) {
 		setStringPreference(context, EMAIL, email);
@@ -71,7 +75,9 @@ public final class Preferences {
 	
 	public static void checkout(Context context) {
 		Location currentLocation = getCheckedInLocation(context);
+		
 		if (currentLocation != null) {
+			Log.d("CHECKOUT", "doing checkout from " + currentLocation.getName());
 			currentLocation.doClose(context);
 		}
 		
@@ -105,9 +111,51 @@ public final class Preferences {
 		return getCheckedInLocation(context) != null;
 	}
 	
-	public static void setFeatureContentTimestamp(Context context, String feature, String timestamp) {
-		String FEATURE_CONTENT_TIMESTAMP = "ENVIVED_" + feature.toUpperCase() + "_TIMESTAMP";
-		setStringPreference(context, FEATURE_CONTENT_TIMESTAMP, timestamp);
+	
+	public static String getSerializedFeatureData(Context context, String localCacheFileName) {
+		return getStringPreference(context, localCacheFileName);
+	}
+	
+	public static void setSerializedFeatureData(Context context, String localCacheFileName, String serializedFeatureData) {
+		setStringPreference(context, localCacheFileName, serializedFeatureData);
+	}
+	
+	public static void removeSerializedFeatureData(Context context, String localCacheFileName) {
+		removeStringPreference(context, localCacheFileName);
+	}
+	
+	public static boolean featureDataCacheExists(Context context, String localCacheFileName) {
+		return getStringPreference(context, localCacheFileName) != null;
+	}
+	
+	public static FeatureLRUTracker getFeatureLRUTracker(Context context) {
+		String jsonString = getStringPreference(context, FEATURE_LRU_TRACKER);
+		
+		try {
+			if (jsonString != null) {
+				return FeatureLRUTracker.fromJSON(jsonString);
+			}
+			
+			return null;
+		}
+		catch (JSONException ex) {
+			Log.d(TAG, "ERROR reading feature lru tracker from JSON serialized string.", ex);
+			return null;
+		} catch (ParseException ex) {
+			Log.d(TAG, "ERROR reading feature lru tracker from JSON serialized string.", ex);
+			return null;
+		}
+	}
+	
+	
+	public static void setFeatureLRUTracker(Context context, FeatureLRUTracker featureLRUTracker) {
+		try {
+			String jsonString = featureLRUTracker.toJSON();
+			setStringPreference(context, FEATURE_LRU_TRACKER, jsonString);
+		}
+		catch (JSONException ex) {
+			Log.d(TAG, "ERROR json serializing feature lru tracker", ex);
+		}
 	}
 	
 	
@@ -138,6 +186,7 @@ public final class Preferences {
 	public static void setStringPreference(Context context, String name, String value) {
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
 		SharedPreferences.Editor editor = settings.edit();
+		
 		editor.putString(name, value);
 		editor.commit();
 	}

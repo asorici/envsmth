@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>	
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-	android:layout_height="60dip">
+	android:layout_height="80dip">
 	<ImageView 
 		    android:id="@+id/order_item_left_delimiter"
 		    android:contentDescription="left delimiter"
@@ -9,7 +9,7 @@
 			android:layout_height="match_parent"
 			android:src="@drawable/feature_order_catalog_category_border" />
 	
-	<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" 
+	<RelativeLayout  
 	    android:id="@+id/order_item_wrapper"
 	    android:layout_width="0dip"
 	    android:layout_height="match_parent"
@@ -57,18 +57,18 @@
 	
 	        <TextView
 	            android:id="@+id/orderItem"
-	            android:layout_width="wrap_content"
+	            android:layout_width="120dip"
 	            android:layout_height="match_parent"
 	            android:ellipsize="end"
 	            android:gravity="center_vertical|left"
-	            android:lines="2"
+	            android:lines="4"
 	            android:text="@string/lbl_item"
 	            android:textStyle="bold"
 	            android:background="@drawable/feature_order_item_description"/>
 	
 	        <TextView
 	            android:id="@+id/orderItemPrice"
-	            android:layout_width="fill_parent"
+	            android:layout_width="60dip"
 	            android:layout_height="match_parent"
 	            android:layout_toRightOf="@id/orderItem"
 	            android:ellipsize="end"

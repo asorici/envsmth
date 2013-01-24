@@ -4,17 +4,17 @@ public class Url {
 
 	public static final String HTTP = "http://";
 	public static final String HTTPS = "https://";
-	public static final String HOSTNAME = "envived.com:8800";
+	//public static final String HOSTNAME = "envived.com:8800";
 	//public static final String HOSTNAME = "192.168.1.6:8000";
-	//public static final String HOSTNAME = "192.168.100.102:8000";
+	//public static final String HOSTNAME = "192.168.100.102:8080";
 	//public static final String HOSTNAME = "192.168.1.106:8000";
-	//public static final String HOSTNAME = "192.168.1.106:8800";
+	public static final String HOSTNAME = "192.168.1.107:8080";
 	//public static final String HOSTNAME = "141.85.227.108";
 	//public static final String HOSTNAME = "192.168.8.55:8000";
 	//public static final String HOSTNAME = "172.16.2.181:8000";
 	
-	private static final String BASE_URL = "/envived/envsocial/client/v1/";
-	//private static final String BASE_URL = "/envsocial/client/v1/";
+	//private static final String BASE_URL = "/envived/envsocial/client/v1/";
+	private static final String BASE_URL = "/envsocial/client/v1/";
 	private static final String ACTION_RELATIVE_URL = BASE_URL + "actions/";
 	private static final String RESOURCE_RELATIVE_URL = BASE_URL + "resources/";
 	
@@ -85,30 +85,30 @@ public class Url {
 	}
 	
 	private void appendParams(StringBuilder url) {
-		url.append("?");
-		
+		// if no parameters return
 		if (mParams == null || mValues == null) {
 			return;
 		}
 		
 		int len = mParams.length;
-		/*
-		int i;
-		for (i = 0; i < len-1; ++ i) {
-			url.append(mParams[i] + "=" + mValues[i] + "&");
-		}
-		url.append(mParams[i] + "=" + mValues[i]);
-		*/
 		
-		int i;
-		for (i = 0; i < len; ++ i) {
-			url.append("&" + mParams[i] + "=" + mValues[i]);
+		if (url.indexOf("?") >= 0) {
+			// if a first parameter already exists just append the rest
+			for (int i = 0; i < len; i++) {
+				url.append("&" + mParams[i] + "=" + mValues[i]);
+			}
 		}
-		
+		else {
+			url.append("?");
+			for (int i = 0; i < len - 1; i++) {
+				url.append(mParams[i] + "=" + mValues[i] + "&");
+			}
+			url.append(mParams[len - 1] + "=" + mValues[len - 1]);
+		}
 	}
 	
 	
-	public static String fromUri(String uri) {
+	public static String fromRelativeUrl(String uri) {
 		return HTTP + HOSTNAME + uri;
 	}
 	
@@ -122,28 +122,66 @@ public class Url {
 	
 	static String signUrl(String url) {
 		//TODO: proper url signing
-		return Url.appendParameter(url, "clientrequest", "true");
+		return Url.appendOrReplaceParameter(url, "clientrequest", "true");
 	}
 	
-	public static String appendParameter(String uri, String param, String value) {
-		// TODO : consider general case where param might be the first to be added
-		if (uri.contains("?")) {
-			return uri + "&" + param + "=" + value;
+	
+	public static String appendOrReplaceParameter(String url, String param, String value) {
+		if (url.contains("?")) {
+			// url has parameters - so check if param is among them
+			int paramIndex = url.indexOf(param);
+			if (paramIndex == -1) {
+				// param is not included in url, so append it
+				return url + "&" + param + "=" + value;
+			}
+			else {
+				// the value to replace is between the first `=' and `&' chars after 
+				// the occurence of parameter
+				int index1 = paramIndex + param.length();	// is the occurrence of =
+				int index2 = url.indexOf('&', index1 + 1);
+				
+				if (index2 == -1) {
+					// we want to replace the last parameter
+					// get the substring up to the `=' sign and append the new value
+					return url.substring(0, index1 + 1) + value;
+				}
+				else {
+					// get the prefix and suffix substrings and put the new
+					// value in the middle
+					String urlPrefix = url.substring(0, index1 + 1);
+					String urlSuffix = url.substring(index2);
+					return urlPrefix + value + urlSuffix;
+				}
+			}
 		}
 		else {
-			return uri + "?" + param + "=" + value;
+			// url contains no parameters yet so append param as first one
+			return url + "?" + param + "=" + value;
 		}
 	}
 	
-	public static String resourceIdFromUri(String uri) {
+	
+	public static String appendParameter(String url, String param, String value) {
+		if (url.contains("?")) {
+			// url has parameters - so append param to them
+			return url + "&" + param + "=" + value;
+		}
+		else {
+			// url contains no parameters yet so append param as first one
+			return url + "?" + param + "=" + value;
+		}
+	}
+	
+	
+	public static String resourceIdFromUrl(String url) {
 		try {
 			// first remove last character (the slash) from the uri
-			uri = uri.substring(0, uri.length() - 1);
+			url = url.substring(0, url.length() - 1);
 			
-			int slashIndex = uri.lastIndexOf('/');
+			int slashIndex = url.lastIndexOf('/');
 			
 			// now get the remaining string after the last slash - that will be the identifier
-			String identifier = uri.substring(slashIndex + 1, uri.length());
+			String identifier = url.substring(slashIndex + 1, url.length());
 			
 			return identifier;
 		} catch (Exception ex) {

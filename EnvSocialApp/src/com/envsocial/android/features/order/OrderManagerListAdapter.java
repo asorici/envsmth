@@ -273,7 +273,7 @@ public class OrderManagerListAdapter extends BaseExpandableListAdapter implement
 		Map<String, String> locationData = mFilteredOrderLocations.get(groupPosition);
 		String locationUri = locationData.get("location_uri");
 		
-		return Long.parseLong(Url.resourceIdFromUri(locationUri));
+		return Long.parseLong(Url.resourceIdFromUrl(locationUri));
 	}
 
 	@Override
@@ -322,7 +322,7 @@ public class OrderManagerListAdapter extends BaseExpandableListAdapter implement
 		
 		String resourceUri = orderRequestData.get(OrderManagerFragment.RESOURCE_URI);
 		
-		return Long.parseLong(Url.resourceIdFromUri(resourceUri));
+		return Long.parseLong(Url.resourceIdFromUrl(resourceUri));
 	}
 
 	

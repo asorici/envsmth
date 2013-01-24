@@ -137,16 +137,29 @@ class UpdateAnnouncementForm(AnnouncementForm):
 class CheckinForm(forms.Form):
     area = forms.IntegerField(required = False)
     environment = forms.IntegerField(required = False)
+    virtual = forms.BooleanField(required=False)
     
     def clean(self):
         cleaned_data = super(CheckinForm, self).clean()
-        environment = cleaned_data.get("environment")
-        area = cleaned_data.get("area")
-    
-        if environment is None and area is None:
+        environment_id = cleaned_data.get("environment")
+        area_id = cleaned_data.get("area")
+        
+        environment_obj = None
+        try:
+            environment_obj = Environment.objects.get(id=environment_id)
+        except:
+            pass
+        
+        area_obj = None
+        try:
+            area_obj = Area.objects.get(id=area_id)
+        except:
+            pass
+        
+        if environment_obj is None and area_obj is None:
             raise forms.ValidationError("Location data is missing.")
         
-        if environment and area and area.environment != environment:
+        if environment_obj and area_obj and area_obj.environment != environment_obj:
             raise forms.ValidationError("Location data is inconsistent. Please repeat checkin.")
         
         return cleaned_data

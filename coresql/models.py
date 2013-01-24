@@ -8,6 +8,7 @@ from django_facebook.models import FacebookProfileModel
 from model_utils.managers import InheritanceManager
 from coresql.exceptions import AnnotationException
 
+import datetime
 
 CATEGORY_CHOICES = ( 
     ("description", "description"), 
@@ -23,12 +24,17 @@ CATEGORY_CHOICES = (
 class UserProfile(models.Model):
     user = models.OneToOneField(User)
     
-    timestamp = models.DateTimeField(auto_now = True)
+    timestamp = models.DateTimeField()
     is_anonymous = models.BooleanField(default = False)
     c2dm_id = models.CharField(max_length=256, null = True, blank = True)
     
     def __unicode__(self):
         return self.user.username + ": anonymous=" + str(self.is_anonymous)
+    
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamp '''
+        self.timestamp = datetime.datetime.now()
+        super(UserProfile, self).save(*args, **kwargs)
 
 
 def create_user_profile(sender, instance, created, **kwargs):
@@ -46,6 +52,12 @@ class UserSubProfile(models.Model):
         return self.userprofile.user.username + ": anonymous=" + str(self.userprofile.is_anonymous)
     
     @staticmethod
+    def update_user_profile_timestamp(sender, instance, created, **kwargs):
+        ''' update user profile timestamp when sub profile is created or changed '''
+        instance.userprofile.timestamp = datetime.datetime.now()
+        instance.userprofile.save()
+    
+    @staticmethod
     def get_subclass_list():
         subclasses = [o for o in dir(UserSubProfile)
                       if isinstance(getattr(UserSubProfile, o), SingleRelatedObjectDescriptor)\
@@ -58,6 +70,9 @@ class UserSubProfile(models.Model):
     
     def to_serializable(self):
         return None
+
+''' update user profile timestamp when sub profile is created or changed '''
+post_save.connect(UserSubProfile.update_user_profile_timestamp, sender = UserSubProfile)
     
 
 class ResearchProfile(UserSubProfile):
@@ -145,6 +160,7 @@ class Announcement(models.Model):
     
     data = fields.DataField()
     repeatEvery = models.CharField(max_length=50, choices = REPEAT_EVERY_CHOICES, default = "none")
+    followed_by = models.ManyToManyField(UserProfile, null = True, blank = True, related_name = "follows_announcements")
     
     triggers = fields.DateTimeListField()
     timestamp = models.DateTimeField(auto_now = True)
@@ -381,6 +397,7 @@ class UserContext(models.Model):
     user = models.OneToOneField(UserProfile, related_name='context')
     currentEnvironment = models.ForeignKey(Environment, null = True, blank = True)
     currentArea = models.ForeignKey(Area, null = True, blank = True)
+    virtual = models.BooleanField()
 
 
 """
@@ -405,9 +422,12 @@ class Feature(models.Model):
         unique_together = (("environment", "category"), ("area", "category"))
     
     
-    def to_serializable(self):
-        data = {'category' : self.category, 'version' : self.version, 'data': None}
-        return data
+    def to_serializable(self, virtual = False, include_data = False):
+        serialized_feature = {'category' : self.category, 'version' : self.version, 'timestamp': self.timestamp}
+        if include_data:
+            serialized_feature['data'] = None
+        
+        return serialized_feature
     
     def __unicode__(self):
         if self.area:
@@ -417,8 +437,8 @@ class Feature(models.Model):
         else:
             return "feature type(" + self.category + ") but no location assigned -- needs fix"
     
-    def get_feature_data(self, filters):
-        return self.to_serializable()['data']
+    def get_feature_data(self, virtual, filters):
+        return self.to_serializable(virtual = virtual, include_data = True)['data']
     
 
 ####################################### Default Feature Class #############################################
@@ -427,26 +447,28 @@ class DescriptionFeature(Feature):
     newest_info = models.TextField(null = True, blank = True)
     img_url = models.URLField(null = True, blank = True, max_length = 256)
     
-    def to_serializable(self):
-        data = super(DescriptionFeature, self).to_serializable()
-        data_dict = {}
+    def to_serializable(self, virtual = False, include_data = False):
+        serialized_feature = super(DescriptionFeature, self).to_serializable(virtual=virtual, include_data=include_data)
         
-        if self.description:
-            data_dict['description'] = self.description
+        if include_data:
+            data_dict = {}
             
-        if self.newest_info:
-            data_dict['newest_info'] = self.newest_info
+            if self.description:
+                data_dict['description'] = self.description
+                
+            if self.newest_info:
+                data_dict['newest_info'] = self.newest_info
+            
+            if self.img_url:
+                data_dict['img_url'] = self.img_url
+            
+            serialized_feature.update( {'data' : data_dict} )
         
-        if self.img_url:
-            data_dict['img_url'] = self.img_url
-        
-        data.update( {'data' : data_dict} )
-        
-        return data
+        return serialized_feature
     
     
-    def get_feature_data(self, filters):
-        return self.description
+    def get_feature_data(self, virtual, filters):
+        return self.to_serializable(virtual = virtual, include_data = True)['data']
 
 
 ###################################### Program Feature Classes ############################################
@@ -455,47 +477,51 @@ class ProgramFeature(Feature):
     
     description = models.TextField(null = True, blank = True)
     
-    def to_serializable(self):
+    def to_serializable(self, virtual = False, include_data = False):
         from client.api import EnvironmentResource, AreaResource
         
-        data = super(ProgramFeature, self).to_serializable()
-        program_dict = {'data' : {'description' : self.description} }
+        serialized_feature = super(ProgramFeature, self).to_serializable(virtual=virtual, include_data=include_data)
         
-        sessions_list = []
-        entries_list = []
+        if include_data:
+            program_dict = {'data' : {'description' : self.description} }
             
-        sessions = self.sessions.all()
-        for s in sessions:
-            session_dict = {'id' : s.id,
-                            'title' : s.title,
-                            'tag' : s.tag,
-                           }
-            if self.environment:
-                session_dict['location'] = EnvironmentResource().get_resource_uri(self.environment)
-            elif self.area:
-                ## by default we return the data of the area
-                session_dict['location'] = AreaResource().get_resource_uri(self.area)
+            sessions_list = []
+            entries_list = []
+                
+            sessions = self.sessions.all()
+            for s in sessions:
+                session_dict = {'id' : s.id,
+                                'title' : s.title,
+                                'tag' : s.tag,
+                               }
+                if self.environment:
+                    session_dict['location'] = EnvironmentResource().get_resource_uri(self.environment)
+                elif self.area:
+                    ## by default we return the data of the area
+                    session_dict['location'] = AreaResource().get_resource_uri(self.area)
+                
+                sessions_list.append(session_dict)
+                
+                entries = s.entries.all().order_by('startTime')
+                for e in entries:
+                    entries_list.append({'id' : e.id,
+                                        'title' : e.title,
+                                        'speakers' : e.speakers,
+                                        'sessionId' : s.id,
+                                        'startTime' : e.startTime.strftime("%Y-%m-%dT%H:%M:%S"),
+                                        'endTime' : e.endTime.strftime("%Y-%m-%dT%H:%M:%S")})
             
-            sessions_list.append(session_dict)
-            
-            entries = s.entries.all().order_by('startTime')
-            for e in entries:
-                entries_list.append({'id' : e.id,
-                                    'title' : e.title,
-                                    'speakers' : e.speakers,
-                                    'sessionId' : s.id,
-                                    'startTime' : e.startTime.strftime("%Y-%m-%dT%H:%M:%S"),
-                                    'endTime' : e.endTime.strftime("%Y-%m-%dT%H:%M:%S")})
+            program_dict['data']['program'] = { 'description' : self.description, 
+                                                'sessions' : sessions_list, 
+                                                'entries' : entries_list
+                                               }
+           
+            serialized_feature.update(program_dict)
         
-        program_dict['data']['program'] = { 'description' : self.description, 
-                                            'sessions' : sessions_list, 
-                                            'entries' : entries_list
-                                           }
-        data.update(program_dict)
-        
-        return data
+        return serialized_feature
     
-    def get_feature_data(self, filters):
+    
+    def get_feature_data(self, virtual, filters):
         if 'querytype' in filters: 
             if filters['querytype'] in self.QUERY_TYPES:
                 if filters['querytype'] == 'entry':
@@ -525,7 +551,7 @@ class ProgramFeature(Feature):
         else:
             ## return the entire to_serializable data on program features; 
             ## this can be the case when we query for the list of all features on the FeatureResource
-            return self.to_serializable()['data']
+            return self.to_serializable(virtual = virtual, include_data = True)['data']
         
     
     
@@ -556,11 +582,12 @@ This is mainly a hack so as to keep the programming model from the Android Appli
 class PeopleFeature(Feature):
     description = models.TextField(null = True, blank = True)
     
-    def to_serializable(self):
-        data = super(PeopleFeature, self).to_serializable()
-        data.update( {'data' : self.description} )
+    def to_serializable(self, virtual = False, include_data = False):
+        serialized_feature = super(PeopleFeature, self).to_serializable(virtual=virtual, include_data=include_data)
+        if include_data:
+            serialized_feature.update( {'data' : self.description} )
         
-        return data
+        return serialized_feature
 
 ####################################### Order Feature Classes #############################################
 class OrderFeature(Feature):
@@ -578,41 +605,43 @@ class OrderFeature(Feature):
     """
     description = models.TextField(null = True, blank = True)
     
-    def to_serializable(self):
-        data = super(OrderFeature, self).to_serializable()
-        order_dict = {'data' : {'description' : self.description} }
+    def to_serializable(self, virtual = False, include_data = False):
+        serialized_feature = super(OrderFeature, self).to_serializable(virtual=virtual, include_data=include_data)
         
-        categ_list = []
-        for menu_categ in self.menu_categories.all().order_by('name'):
-            menu_categ_dict = {'category' : {'id': menu_categ.id, 
-                                             'name' : menu_categ.name, 
-                                             'type' : menu_categ.categ_type}
-                               }
+        if include_data:
+            order_dict = {'data' : {'description' : self.description} }
             
-            item_list = []
-            for menu_item in menu_categ.menu_items.all().order_by('-num_orders_prev', 'name'):
-                menu_item_dict = {  'id' : menu_item.id,
-                                    'category_id' : menu_item.category_id,
-                                    'name' : menu_item.name,
-                                    'description' : menu_item.description,
-                                    'price' : str(menu_item.price),
-                                 }
-                if menu_categ.num_orders_prev > 0:
-                    menu_item_dict['usage_rank'] = menu_item.num_orders_prev * 10 / menu_categ.num_orders_prev
-                else:
-                    menu_item_dict['usage_rank'] = 0
+            categ_list = []
+            for menu_categ in self.menu_categories.all().order_by('name'):
+                menu_categ_dict = {'category' : {'id': menu_categ.id, 
+                                                 'name' : menu_categ.name, 
+                                                 'type' : menu_categ.categ_type}
+                                   }
                 
-                item_list.append(menu_item_dict)
+                item_list = []
+                for menu_item in menu_categ.menu_items.all().order_by('-num_orders_prev', 'name'):
+                    menu_item_dict = {  'id' : menu_item.id,
+                                        'category_id' : menu_item.category_id,
+                                        'name' : menu_item.name,
+                                        'description' : menu_item.description,
+                                        'price' : str(menu_item.price),
+                                     }
+                    if menu_categ.num_orders_prev > 0:
+                        menu_item_dict['usage_rank'] = menu_item.num_orders_prev * 10 / menu_categ.num_orders_prev
+                    else:
+                        menu_item_dict['usage_rank'] = 0
+                    
+                    item_list.append(menu_item_dict)
+                
+                menu_categ_dict['items'] = item_list
+                
+                categ_list.append(menu_categ_dict)
             
-            menu_categ_dict['items'] = item_list
-            
-            categ_list.append(menu_categ_dict)
+            order_dict['data']['order_menu'] = categ_list             
+            serialized_feature.update(order_dict)
         
-        order_dict['data']['order_menu'] = categ_list 
-        
-        data.update(order_dict)
-        
-        return data
+        return serialized_feature
+
 
         
 class MenuCategory(models.Model):

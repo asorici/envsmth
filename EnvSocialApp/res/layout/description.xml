@@ -10,12 +10,10 @@
 	
     <ImageView android:id="@+id/description_image"
         android:contentDescription="Location Logo Image"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="10dip"
-        android:layout_marginLeft="10dip"
-        android:layout_marginBottom="10dip"
-        android:scaleType="centerInside"
+        android:layout_width="256dip"
+        android:layout_height="256dip"
+        android:layout_margin="10dip"
+        android:scaleType="fitXY"
         android:layout_gravity="top|center" />
     
     <!-- About Us label -->
@@ -79,7 +77,8 @@
 		        android:layout_height="65dip"
 		        android:layout_gravity="fill_horizontal|fill_vertical"
 		        android:gravity="fill_horizontal|center_vertical"
-		        android:textColor="@color/envived_order_text_dark_green"/>
+		        android:textColor="@color/envived_order_text_dark_green"
+		        android:text="Indeterminate number of checked in users."/>
 		</LinearLayout>
 		<ImageView 
 	        android:contentDescription="delimiter"

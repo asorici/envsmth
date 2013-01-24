@@ -34,9 +34,9 @@ public abstract class FeatureUpdateNotification extends EnvivedNotification {
 
 		// Add extras
 		launcher.putExtra(GCMIntentService.NOTIFICATION, true);
-		launcher.putExtra(EnvivedNotificationContents.LOCATION_URI, mNotificationContents.getLocationUri());
+		launcher.putExtra(EnvivedNotificationContents.LOCATION_URI, mNotificationContents.getLocationUrl());
 		launcher.putExtra(EnvivedNotificationContents.FEATURE, mNotificationContents.getFeature());
-		launcher.putExtra(EnvivedNotificationContents.RESOURCE_URI, mNotificationContents.getResourceUri());
+		launcher.putExtra(EnvivedNotificationContents.RESOURCE_URI, mNotificationContents.getResourceUrl());
 		launcher.putExtra(EnvivedNotificationContents.PARAMS, mNotificationContents.getParams().toString());
 	}
 

@@ -2,15 +2,15 @@ from django.conf import settings
 
 class QRCodeManager(object):
     #HOST = "192.168.1.6:8000"
-    #HOST = "192.168.100.102:8000"
+    HOST = "192.168.100.102:8080"
     #HOST = "192.168.1.106:8000"
-    HOST = "192.168.1.106:8800"
+    #HOST = "192.168.1.107:8080"
     #HOST = "192.168.100.108:8000"
     #HOST = "192.168.1.105:8000"
-    
+    #HOST = "envived.com:8800/envived"
     
     @staticmethod
-    def generate_qr_code(area = None, environment = None):
+    def generate_qr_code(area = None, environment = None, virtual = False):
         from django.core.urlresolvers import reverse
         checkin_url_path = reverse("checkin")
         
@@ -19,14 +19,20 @@ class QRCodeManager(object):
         
         elif not area is None:
             ## we first check to see if there is an area object
-            data_url = checkin_url_path + "?area=" + str(area.id)
+            data_url = checkin_url_path + "?area=" + str(area.id) + "&virtual=" + str(virtual)
             img_seed_name = "a" + str(area.id)
+            if virtual:
+                img_seed_name += "_v"
+            
             return QRCodeManager._gen_code_img(data_url, img_seed_name)
         
         elif not environment is None:
             ## then we check to see if there is an environment object
-            data_url = checkin_url_path + "?environment=" + str(environment.id)
+            data_url = checkin_url_path + "?environment=" + str(environment.id) + "&virtual=" + str(virtual)
             img_seed_name = "e" + str(environment.id)
+            if virtual:
+                img_seed_name += "_v"
+            
             return QRCodeManager._gen_code_img(data_url, img_seed_name)
     
     @staticmethod

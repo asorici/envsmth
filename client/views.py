@@ -1,6 +1,7 @@
 from client.decorators import allow_anonymous_profile, secure_required
 from coresql.forms import CheckinForm, LoginForm, ClientRegistrationForm
 from coresql.models import Environment, Area, UserContext, ResearchProfile
+from tastypie.exceptions import ImmediateHttpResponse
 
 #@secure_required
 def register(request):
@@ -81,7 +82,6 @@ def logout(request):
             
             #user_profile.context.save()
             user_profile.save()
-            
     except UserContext.DoesNotExist:
         ## graceful error handling, if no context exists don't freak out, just ignore
         pass
@@ -107,11 +107,14 @@ def checkin(request):
     
     ## run check to see if all required fields are present
     #check_form = CheckinForm(request.POST)
+    
     check_form = CheckinForm(request.REQUEST)
     if check_form.is_valid():
-        ## access area id from check_f.cleaned_data
+        ## access location id and virtual flag from check_form.cleaned_data
         area_id = check_form.cleaned_data['area']
         env_id = check_form.cleaned_data['environment']
+        virtual = check_form.cleaned_data['virtual']
+        
         area = None 
         env = None
         area_env = None     ## keep a double
@@ -138,18 +141,20 @@ def checkin(request):
         if area:
             area_env = area.environment
         
-        ## update UserContext entry
+        ## update UserContext entry if we have a physical checkin
         try:
             context = UserContext.objects.get(user=user_profile)
             context.currentArea = area
             context.currentEnvironment = area_env
+            context.virtual = virtual
             context.save()
         except UserContext.DoesNotExist:
             ## an entry does not yet exist so assign one now
-            context = UserContext(user=user_profile, currentArea=area, currentEnvironment=area_env)
+            context = UserContext(user=user_profile, currentArea=area, 
+                                  currentEnvironment=area_env, virtual = virtual)
             context.save()
         
-        return checkin_succeeded(request, user_profile, area = area, env = env)
+        return checkin_succeeded(request, user_profile, area = area, env = env, virtual = virtual)
     
     else:
         return checkin_failed(request, data = check_form.errors)
@@ -240,11 +245,14 @@ def login_failed(request, data = None):
     return view_response(request, response, 401)
 
 
-def checkin_succeeded(request, user, area = None, env = None):
+def checkin_succeeded(request, user, area = None, env = None, virtual = False):
     from client.api import AreaResource, EnvironmentResource, UserResource
     
     ## default is to just return an 200 OK http response
     response = {"success": True, "code": 200, "data" : {}}
+    
+    ## add the value of the virtual checkin flag
+    response['data'].update({'virtual': virtual})
     
     ## add the user URI as data payload - will be used for all notifications
     user_uri = UserResource().get_resource_uri(user)
@@ -256,9 +264,11 @@ def checkin_succeeded(request, user, area = None, env = None):
         ar_item = ar.obj_get(pk=area.id)
         ar_bundle = ar.build_bundle(obj = ar_item, request=request)
         
-        #area_data = {"location_type" : "area", "location_data" : ar.full_dehydrate(ar_bundle).data}
-        area_data = ar.full_dehydrate(ar_bundle).data
-        response['data'].update(area_data)
+        try:
+            area_data = ar.full_dehydrate(ar_bundle).data
+            response['data'].update(area_data)
+        except ImmediateHttpResponse, error:
+            return error.response
         
     elif env:
         ## return data about the area resource
@@ -266,8 +276,11 @@ def checkin_succeeded(request, user, area = None, env = None):
         envr_item = envr.obj_get(pk=env.id)
         envr_bundle = envr.build_bundle(obj = envr_item, request=request)
         
-        env_data = envr.full_dehydrate(envr_bundle).data
-        response['data'].update(env_data)
+        try:
+            env_data = envr.full_dehydrate(envr_bundle).data
+            response['data'].update(env_data)
+        except ImmediateHttpResponse, error:
+            return error.response
     
     return view_response(request, response, 200)
 

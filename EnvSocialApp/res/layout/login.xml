@@ -16,12 +16,14 @@
         android:textSize="20sp"
         android:textStyle="bold" />
     
-    <EditText android:id="@+id/txt_email"
+    <EditText
+        android:id="@+id/txt_email"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
-        android:hint="@string/lbl_email" />
+        android:hint="@string/lbl_email"
+        android:inputType="textEmailAddress" />
     
     <EditText android:id="@+id/txt_password"
         android:layout_width="fill_parent"

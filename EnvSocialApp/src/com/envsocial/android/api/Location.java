@@ -1,7 +1,9 @@
 package com.envsocial.android.api;
 
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +18,7 @@ import android.util.Log;
 
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
+import com.envsocial.android.utils.Utils;
 
 public class Location implements Serializable {
 	
@@ -28,6 +31,7 @@ public class Location implements Serializable {
 	private static final int TYPE_AREA = 1;
 	
 	private String mJSONString;
+	private boolean mVirtualAccess = false;
 	
 	private String mId;
 	private String mResourceUri;
@@ -64,18 +68,20 @@ public class Location implements Serializable {
 	private static Location mFullInstance = null;
 	private static String prevLocationString = null;
 	
+	
 	public Location(String name, String uri) {
 		mName = name;
 		mResourceUri = uri;
 	}
 	
 	
-	//public Location(JSONObject data) throws JSONException {
 	private Location (String jsonString) throws JSONException {
-		//mJSONString = data.toString();
 		mJSONString = jsonString;
 		JSONObject data = new JSONObject(jsonString);
-
+		
+		// Get location access flag: virtual or physical
+		mVirtualAccess = data.optBoolean("virtual", false);
+		
 		// Get location type
 		String type = data.getString("location_type");
 		if (type.compareTo(ENVIRONMENT) == 0) {
@@ -105,14 +111,24 @@ public class Location implements Serializable {
 			JSONObject item = array.getJSONObject(i);
 			String category = item.getString("category");
 			int version = item.optInt("version", 1);
+			
+			String timestampString = item.optString("timestamp", null);
+			Calendar timestamp = null;
+			if (timestampString != null) {
+				try {
+					timestamp = Utils.stringToCalendar(timestampString, Feature.TIMESTAMP_FORMAT);
+				} catch (ParseException e) {
+					Log.d("Location", "Feature timestamp parsing error.", e);
+				}
+			}
+			
 			String environmentUri = item.optString("environment", null);
 			String areaUri = item.optString("area", null);
 			String resourceUri = item.optString("resource_uri", null);
 			String featureData = item.optString("data", null);
 			
-			
 			try {
-				Feature feat = Feature.getInstance(category, version, resourceUri, environmentUri, areaUri, featureData);
+				Feature feat = Feature.getInstance(category, version, timestamp, resourceUri, environmentUri, areaUri, featureData, mVirtualAccess);
 				mFeatures.put(category, feat);
 			} catch (IllegalArgumentException ex) {
 				Log.d("Location", ex.getMessage());
@@ -148,11 +164,13 @@ public class Location implements Serializable {
 			mAreaType = locationData.getString("areaType");
 			mLevel = locationData.getInt("level");
 			
-			JSONObject admin = locationData.getJSONObject("admin");
-			mAdminUri = admin.getString("resource_uri");
-			mAdminFirstName = admin.getString("first_name");
-			mAdminLastName = admin.getString("last_name");
-			mAdminEmail = admin.optString("email", null);
+			JSONObject admin = locationData.optJSONObject("admin");
+			if (admin != null) {
+				mAdminUri = admin.getString("resource_uri");
+				mAdminFirstName = admin.getString("first_name");
+				mAdminLastName = admin.getString("last_name");
+				mAdminEmail = admin.optString("email", null);
+			}
 		}
 		
 		// lastly initialize the context manager
@@ -175,6 +193,7 @@ public class Location implements Serializable {
 		
 		return mFullInstance;
 	}
+	
 	
 	public void initFeatures() throws EnvSocialContentException {
 		for (String category : mFeatures.keySet()) {
@@ -212,7 +231,13 @@ public class Location implements Serializable {
 		}
 	}
 	
+	public boolean hasVirtualAccess() {
+		return mVirtualAccess;
+	}
 	
+	public void setVirtualAccess(boolean access) {
+		mVirtualAccess = access;
+	}
 	
 	public String getId() {
 		return mId;
@@ -253,6 +278,10 @@ public class Location implements Serializable {
 		return mFeatures.get(category);
 	}
 	
+	public void setFeature(String category, Feature feature) {
+		mFeatures.put(category, feature);
+	}
+	
 	public boolean hasFeature(String category) {
 		return mFeatures.get(category) != null;
 	}
@@ -265,7 +294,7 @@ public class Location implements Serializable {
 		return mTags;
 	}
 	
-	public String getParentUri() {
+	public String getParentUrl() {
 		return mParentUri;
 	}
 	
