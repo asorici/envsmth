@@ -77,6 +77,9 @@ public class DescriptionFragment extends SherlockFragment {
 				Log.d(TAG, "ERROR initializing description feature.", e);
 			}
  		}
+ 		else {
+ 			Log.d(TAG, "Description feature already initialized in onCreate !!!");
+ 		}
 	}
 	
 	

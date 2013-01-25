@@ -261,6 +261,26 @@ public class OrderCatalogPagerAdapter extends PagerAdapter
 	}
 	
 	
+	public void initFeature(OrderFeature retrievedOrderFeature) {
+		// then see if the new feature can be initialized - db stuff
+		try {
+			retrievedOrderFeature.init();
+			mParentFragment.setOrderFeature(retrievedOrderFeature);
+		} catch (EnvSocialContentException ex) {
+			Log.d(TAG,"[DEBUG] >> OrderFeature update failed. Content could not be parsed.", ex);
+		}
+		
+		int pageCt = getCount();
+		for (int page = 0; page < pageCt; page++) {
+			OrderCatalogCursorAdapter catalogAdapter = mCatalogListAdapterMap.get(page);
+			String type = mCatalogTitleMap.get(page);
+			
+			if (catalogAdapter != null) {
+				catalogAdapter.updateFeature(retrievedOrderFeature.getOrderCategoryCursor(type));
+			}
+		}
+	}
+	
 	public void updateFeature(OrderFeature updatedOrderFeature) {
 		// first close all cursors
 		doCleanup();
