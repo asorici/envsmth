@@ -67,8 +67,9 @@ public class OrderFeature extends Feature {
 		if (dbHelper == null) {
 			dbHelper = new OrderDbHelper(Envived.getContext(), databaseName, this, version);
 		}
-
-		if (dbHelper != null) {
+		
+		// insert data if it was newly retrieved
+		if (dbHelper != null && retrievedData != null) {
 			dbHelper.init();
 		}
 	}

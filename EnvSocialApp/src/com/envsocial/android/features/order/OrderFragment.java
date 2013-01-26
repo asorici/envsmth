@@ -5,29 +5,35 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.view.Menu;
@@ -74,7 +80,7 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 	private Bundle mPagerStateBundle;
 	private List<Map<String, Object>> mCurrentOrderSelections;
 	
-	
+	private ProgressDialog mFeatureLoadingDialog;
 	private OrderFeatureDataReceiver mFeatureDataReceiver;
 	
 	@Override
@@ -114,10 +120,85 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 	    
 		mBtnTab = (Button) v.findViewById(R.id.btn_tab);
 		mBtnTab.setOnClickListener(this);
-	    
+		
 	    return v;
 	}
+	
+	private ProgressDialog createFeatureLoadingDialog(Context context) {
+		ProgressDialog pd = new ProgressDialog(new ContextThemeWrapper(context, R.style.ProgressDialogWhiteText));
+		pd.setIndeterminate(true);
+		pd.setMessage("Retrieving Data ...");
+		pd.setCancelable(true);
+		pd.setCanceledOnTouchOutside(false);
+		
+		return pd;
+	}
+	
+	
+	@Override
+	public void onStart() {
+		super.onStart();
+		Log.d(TAG, " --- onStart called in OrderFragment");
+		if (!mOrderFeature.isInitialized()) {
+			try {
+				mOrderFeature.init();
+			} catch (EnvSocialContentException e) {
+				Log.d(TAG, "[ERROR] >> Could not initialize order feature. ", e);
+			}
+		}
+		
+		// start feature loading progress dialog if feature data is not yet initialized
+		// (which means that is was not cached, but is being retrieved from the server)
+		if (!mOrderFeature.isInitialized()) {
+			mFeatureLoadingDialog = createFeatureLoadingDialog(getActivity());
 
+			// create TimerTask to cancel the wait... progress dialog after 5
+			// seconds
+			final Handler cancelLoadingDialogHandler = new Handler();
+			final Timer cancelLoadingDialogTimer = new Timer();
+			cancelLoadingDialogTimer.schedule(new TimerTask() {
+				@Override
+				public void run() {
+					cancelLoadingDialogHandler.post(new Runnable() {
+						@Override
+						public void run() {
+							if (!mOrderFeature.isInitialized()
+									&& mFeatureLoadingDialog.isShowing()) {
+								mFeatureLoadingDialog.dismiss();
+								Toast toast = Toast.makeText(getActivity(),
+										"Slow network connection.",
+										Toast.LENGTH_LONG);
+								toast.show();
+							}
+						}
+					});
+				}
+			}, 10000);
+
+			mFeatureLoadingDialog.show();
+		}
+		
+		
+		// (re)initialize pager adapter
+		mCatalogPagerAdapter = new OrderCatalogPagerAdapter(this);
+		if (mPagerStateBundle != null) {
+			mCatalogPagerAdapter.onRestoreInstanceState(mPagerStateBundle);
+		}
+		mCatalogPager.setAdapter(mCatalogPagerAdapter);
+		
+		//Bind the title indicator to the adapter
+		mCatalogPagerAdapter.setTitlePageIndicator(mTitlePageIndicator);
+		mTitlePageIndicator.setViewPager(mCatalogPager);
+	}
+	
+	
+	@Override
+	public void onResume() {
+		Log.d(TAG, " --- onResume called in OrderFragment");
+		active = true;
+		super.onResume();
+	}
+	
 	
 	@Override
 	public void onPause() {
@@ -158,41 +239,6 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 		mCatalogPagerAdapter.doCleanup();
 		getActivity().unregisterReceiver(mFeatureDataReceiver);
 	}
-	
-	
-	@Override
-	public void onResume() {
-		Log.d(TAG, " --- onResume called in OrderFragment");
-		active = true;
-		super.onResume();
-	}
-	
-	
-	@Override
-	public void onStart() {
-		super.onStart();
-		Log.d(TAG, " --- onStart called in OrderFragment");
-		if (!mOrderFeature.isInitialized()) {
-			try {
-				mOrderFeature.init();
-			} catch (EnvSocialContentException e) {
-				Log.d(TAG, "[ERROR] >> Could not initialize order feature. ", e);
-			}
-		}
-		
-		// (re)initialize pager adapter
-		mCatalogPagerAdapter = new OrderCatalogPagerAdapter(this);
-		if (mPagerStateBundle != null) {
-			mCatalogPagerAdapter.onRestoreInstanceState(mPagerStateBundle);
-		}
-		mCatalogPager.setAdapter(mCatalogPagerAdapter);
-		
-		//Bind the title indicator to the adapter
-		mCatalogPagerAdapter.setTitlePageIndicator(mTitlePageIndicator);
-		mTitlePageIndicator.setViewPager(mCatalogPager);
-		
-	}
-	
 	
 	
 	@Override
@@ -360,60 +406,77 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 			
 			if (featureCategory.equals(Feature.ORDER)) {
 				// check if the fragment is currently active
-				if (active && mOrderFeature.isInitialized()) {
-					AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-					LayoutInflater inflater = getActivity().getLayoutInflater();
-
-					TextView titleDialogView = (TextView) inflater.inflate(
-							R.layout.catalog_update_dialog_title, null, false);
-					titleDialogView.setText("Allow menu content update?");
-
-					String dialogMessage = "An update for the menu in "
-							+ mLocation.getName()
-							+ " "
-							+ "has been issued. Press YES if you want to do the update. "
-							+ "If you want to keep your current activity, choose NO. "
-							+ "You can later update the menu by checking out and then checking in again.";
-
-					TextView bodyDialogView = (TextView) inflater.inflate(
-							R.layout.catalog_update_dialog_body, null, false);
-					bodyDialogView.setText(dialogMessage);
-
-					builder.setCustomTitle(titleDialogView);
-					builder.setView(bodyDialogView);
-
-					builder.setPositiveButton("Yes",
-							new Dialog.OnClickListener() {
-								@Override
-								public void onClick(DialogInterface dialog,
-										int which) {
-									dialog.cancel();
-									
-									OrderFeature updatedOrderFeature = (OrderFeature) extras
-											.getSerializable("feature_content");
-									
-									// notify the adapter to do the update
-									mCatalogPagerAdapter.updateFeature(updatedOrderFeature);
-								}
-							});
-
-					builder.setNegativeButton("No",
-							new Dialog.OnClickListener() {
-								@Override
-								public void onClick(DialogInterface dialog,
-										int which) {
-									dialog.cancel();
-								}
-
-							});
-
-					builder.show();
-
-				} else {
+				if (mOrderFeature.isInitialized()) {
+					if (active) {
+						AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+						LayoutInflater inflater = getActivity().getLayoutInflater();
+	
+						TextView titleDialogView = (TextView) inflater.inflate(
+								R.layout.catalog_update_dialog_title, null, false);
+						titleDialogView.setText("Allow menu content update?");
+	
+						String dialogMessage = "An update for the menu in "
+								+ mLocation.getName()
+								+ " "
+								+ "has been issued. Press YES if you want to do the update. "
+								+ "If you want to keep your current activity, choose NO. "
+								+ "You can later update the menu by checking out and then checking in again.";
+	
+						TextView bodyDialogView = (TextView) inflater.inflate(
+								R.layout.catalog_update_dialog_body, null, false);
+						bodyDialogView.setText(dialogMessage);
+	
+						builder.setCustomTitle(titleDialogView);
+						builder.setView(bodyDialogView);
+	
+						builder.setPositiveButton("Yes",
+								new Dialog.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog,
+											int which) {
+										dialog.cancel();
+										
+										OrderFeature updatedOrderFeature = (OrderFeature) extras
+												.getSerializable("feature_content");
+										
+										// notify the adapter to do the update
+										mCatalogPagerAdapter.updateFeature(updatedOrderFeature);
+									}
+								});
+	
+						builder.setNegativeButton("No",
+								new Dialog.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog,
+											int which) {
+										dialog.cancel();
+									}
+	
+								});
+	
+						builder.show();
+	
+					} 
+					else {
+						OrderFeature updatedOrderFeature = (OrderFeature) extras.getSerializable("feature_content");
+						
+						// notify the adapter directly
+						mCatalogPagerAdapter.updateFeature(updatedOrderFeature);
+					}
+				}
+				else {
 					OrderFeature updatedOrderFeature = (OrderFeature) extras.getSerializable("feature_content");
 					
 					// notify the adapter directly
-					mCatalogPagerAdapter.updateFeature(updatedOrderFeature);
+					mCatalogPagerAdapter.initFeature(updatedOrderFeature);
+					
+					// dismiss the waiting feature loader dialog if it is still running
+					if (mFeatureLoadingDialog != null && mFeatureLoadingDialog.isShowing()) {
+						mFeatureLoadingDialog.cancel();
+					}
+					
+					Toast toast = Toast.makeText(getActivity(), "Feature data loading complete.", Toast.LENGTH_LONG);
+					toast.show();
 				}
 				
 				abortBroadcast();

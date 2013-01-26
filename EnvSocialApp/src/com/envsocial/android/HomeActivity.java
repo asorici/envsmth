@@ -49,8 +49,13 @@ public class HomeActivity extends SherlockFragmentActivity
 		// look in the shared preferences to see if we have a FeatureLRUTracker
         FeatureLRUTracker featureLRUTracker = Preferences.getFeatureLRUTracker(getApplicationContext());
         if (featureLRUTracker == null) {
+        	Log.d(TAG, "CREATING NEW FEATURE LRU TRACKER");
+        	
         	// if non exists create one with the default number of entries
         	featureLRUTracker = new FeatureLRUTracker();
+        }
+        else {
+        	Log.d(TAG, "FEATURE LRU TRACKER LOADED FROM SHARED PREF.");
         }
         
         // make it gloabally accessible in the application
@@ -332,7 +337,6 @@ public class HomeActivity extends SherlockFragmentActivity
 		@Override
 		protected ResponseHolder doInBackground(Void...args) {
 			Context context = getApplicationContext();
-			Log.d(TAG, "Performing CheckOutTask");
 			ResponseHolder response = ActionHandler.checkout(context);
 			if (!response.hasError() && !Preferences.isLoggedIn(context)) {
 				// unregister from our server notifications

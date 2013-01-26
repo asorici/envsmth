@@ -81,13 +81,14 @@ public class EnvSocialAppActivity extends Activity implements OnClickListener {
     	super.onRestart();
     	Log.d(TAG, "--- onRestart in EnvSocialAppActivity !!!!!!!!!!!!!!");
     	
-    	
+    	/*
     	if (Preferences.isCheckedIn(getApplicationContext())) {
     		// the flow is such that this method should be called when ending the
     		// HomeActivity as an anonymous user without checking out. Since we don't
     		// like that we're going to perform checkout here.
     		new CheckoutTask().execute();
     	}
+    	*/
     }
     
     @Override

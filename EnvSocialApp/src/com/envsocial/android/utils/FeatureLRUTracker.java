@@ -16,9 +16,9 @@ public class FeatureLRUTracker extends LruCache<String, FeatureLRUEntry> {
 	private static final String MAX_ENTRIES_LABEL = "max_entries";
 	private static final String FEAUTURE_LIST_LABEL = "entries";
 	
-	public static final String FEATURE_CATEGORY = "feature_db_name";
+	public static final String FEATURE_CATEGORY = "feature_category";
 	public static final String FEATURE_DATABASE_NAME = "feature_db_name";
-	public static final String FEATURE_TIMESTAMP = "feature_db_name";
+	public static final String FEATURE_TIMESTAMP = "feature_timestamp";
 	public static final String FEATURE_LOCATION_URL = "feature_location_url";
 	public static final String FEATURE_VIRTUAL_ACCESS = "feature_virtual_access";
 	

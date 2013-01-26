@@ -201,6 +201,7 @@ public class ActionHandler {
 		
 		ResponseHolder holder = ResponseHolder.parseResponse(response);		
 		if (!holder.hasError()) {
+			Log.d("ActionHandler", "holder error code: " + holder.getCode() + "; " + holder.getResponseBody());
 			if (holder.getCode() == HttpStatus.SC_OK) {
 				Preferences.checkout(context);
 			}
