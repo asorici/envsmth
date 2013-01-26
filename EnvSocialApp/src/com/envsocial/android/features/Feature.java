@@ -22,7 +22,6 @@ import com.envsocial.android.api.Location;
 import com.envsocial.android.api.Url;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.description.DescriptionFeature;
-import com.envsocial.android.features.order.OrderDbHelper;
 import com.envsocial.android.features.order.OrderFeature;
 import com.envsocial.android.features.people.PeopleFeature;
 import com.envsocial.android.features.program.ProgramFeature;
@@ -67,7 +66,7 @@ public abstract class Feature implements Serializable {
 	 */
 	protected String retrievedData;
 	
-	private boolean initialized = false;
+	private transient boolean initialized = false;
 	
 	protected Feature(String category, int version, Calendar timestamp, String resourceUrl, 
 			String environmentUrl, String areaUrl, String data, boolean virtualAccess) {
@@ -83,12 +82,46 @@ public abstract class Feature implements Serializable {
 	
 	public void init() throws EnvSocialContentException {
 		if (hasData()) {
-			featureInit();
+			String featureCacheFileName = getLocalCacheFileName(category, environmentUrl, areaUrl, version);
 			
-			Log.i(TAG, "USING CACHED DATA");
+			if (retrievedData == null) {
+				// check that data is not out-of-date
+				FeatureLRUTracker featureLruTracker = Envived.getFeatureLRUTracker();
+				FeatureLRUEntry featureLruEntry = featureLruTracker.get(featureCacheFileName);
+				
+				if (featureLruEntry != null) {
+					Log.d(TAG, "FEATURE META DATA IN CACHE for: " + category);
+					
+					if (featureLruEntry.getFeatureTimestamp().before(timestamp)) {
+						Log.d(TAG, "REFRESHING DATA for feature: " + category + ". Will start SERVER RETRIEVE.");
+						
+						// cached data must be refreshed
+						// first remove current entry from lru tracker and "close" current feature data
+						featureLruTracker.remove(featureCacheFileName);
+						doClose(Envived.getContext());
+						
+						// afterwards start new data retrieval service
+						startFeatureDataRetrievalService();
+					}
+					else {
+						Log.d(TAG, "USING CACHED DATA for feature: " + category);
+						featureInit();
+					}
+				}
+				else {
+					Log.d(TAG, "FEATURE META DATA IS NOT IN CACHE, but data exists for: " + category);
+				}
+			}
+			else {
+				Log.d(TAG, "USING SERVER RETRIEVED DATA for feature: " + category);
+				featureInit();
+				
+				// after initialization allow retrieved serialized data to be garbage collected
+				retrievedData = null;
+			}
+			
 			
 			// if feature data has been parsed correctly mark it as an entry in the feature lru tracker
-			String featureCacheFileName = getLocalCacheFileName(category, environmentUrl, areaUrl, version);
 			String locationUrl = environmentUrl != null ? environmentUrl : areaUrl;
 			FeatureLRUEntry featureLruEntry = 
 					new FeatureLRUEntry(category, featureCacheFileName, locationUrl, virtualAccess, timestamp);
@@ -99,42 +132,49 @@ public abstract class Feature implements Serializable {
 			initialized = true;
 		}
 		else {
-			Log.i(TAG, "RETRIEVING DATA ANEW.");
+			Log.d(TAG, "RETRIEVING DATA ANEW for feature: " + category);
 			
 			// start data retrieval service
-			Context context = Envived.getContext();
-			String locationUri = (environmentUrl != null) ? environmentUrl : areaUrl;
-			JSONObject paramsJSON = new JSONObject();
-			
-			try {
-				paramsJSON.put("type", Feature.RETRIEVE_CONTENT_NOTIFICATION);
-			} catch (JSONException e) {
-				Log.d(TAG, "ERROR constructing paramsJSON object for feature data retrieval request", e);
-				
-				// should never actually happen, but if it does, abort the process
-				return;
-			}
-			
-			EnvivedNotificationContents notificationContents = 
-				new EnvivedNotificationContents(locationUri, category, resourceUrl, paramsJSON.toString());
-			
-			Intent updateService = new Intent(context, EnvivedFeatureDataRetrievalService.class);
-			updateService.putExtra(EnvivedFeatureDataRetrievalService.DATA_RETRIEVE_SERVICE_INPUT, 
-					notificationContents);
-			
-			context.startService(updateService);
+			startFeatureDataRetrievalService();
 		}
+	}
+	
+	
+	private void startFeatureDataRetrievalService() {
+		Context context = Envived.getContext();
+		String locationUri = (environmentUrl != null) ? environmentUrl : areaUrl;
+		JSONObject paramsJSON = new JSONObject();
+
+		try {
+			paramsJSON.put("type", Feature.RETRIEVE_CONTENT_NOTIFICATION);
+		} catch (JSONException e) {
+			Log.d(TAG, "ERROR constructing paramsJSON object for feature data retrieval request", e);
+
+			// should never actually happen, but if it does, abort the process
+			return;
+		}
+
+		EnvivedNotificationContents notificationContents = new EnvivedNotificationContents(
+				locationUri, category, resourceUrl, paramsJSON.toString());
+
+		Intent updateService = new Intent(context, EnvivedFeatureDataRetrievalService.class);
+		updateService.putExtra(
+				EnvivedFeatureDataRetrievalService.DATA_RETRIEVE_SERVICE_INPUT,
+				notificationContents);
+
+		context.startService(updateService);
 	}
 	
 	
 	public void doUpdate() throws EnvSocialContentException {
 		if (hasData()) {
 			featureUpdate();
+			
+			// after update allow retrieved serialized data to be garbage collected
+			retrievedData = null;
+			
+			initialized = true;
 		}
-		else {
-			// TODO start data retrieval process
-		}
-		initialized = true;
 	}
 	
 	
@@ -153,7 +193,7 @@ public abstract class Feature implements Serializable {
 				environmentUrl, areaUrl, version);
 		
 		if (featureLruTracker.get(localCacheFileName) == null) {
-			Log.i(TAG, "CACHING FEATURE DATA: NO DB OR PREFERENCE DELETE");
+			Log.d(TAG, "---- NO FEATURE DATA CACHING: DB OR PREFERENCE DELETE ----");
 			
 			// if it is no longer in the cache then remove the database file entirely
 			if (hasLocalDatabaseSupport()) {
@@ -162,6 +202,9 @@ public abstract class Feature implements Serializable {
 			else {
 				Preferences.removeSerializedFeatureData(context, localCacheFileName);
 			}
+		}
+		else {
+			Log.d(TAG, "---- FEATURE DATA IS CACHED: NO DB OR PREFERENCE DELETE ----");
 		}
 		
 		initialized = false;
@@ -192,6 +235,10 @@ public abstract class Feature implements Serializable {
 		return retrievedData;
 	}
 	
+	public void setSerializedData(String serializedData) {
+		retrievedData = serializedData;
+	}
+	
 	/**
 	 * Specifies if this feature has a local cache of it's relevant data.
 	 * If the data is not present, it has to be retrieved from the server.
@@ -199,16 +246,33 @@ public abstract class Feature implements Serializable {
 	 */
 	public boolean hasData() {
 		if (retrievedData != null) {
+			Log.d(TAG, "DATA RETRIEVED FROM SERVER exists for feature: " + category);
 			return true;
 		}
 		else {
 			// search for an existing local cache (database) of this feature's data.
 			String localCacheFileName = getLocalCacheFileName(category, environmentUrl, areaUrl, version);
 			if (hasLocalDatabaseSupport()) {
-				return databaseExists(Envived.getContext(), localCacheFileName);
+				boolean exists = databaseExists(Envived.getContext(), localCacheFileName);
+				if (exists) {
+					Log.d(TAG, "DATABASE LOCAL FILE: " + localCacheFileName + " exists");
+				}
+				else {
+					Log.d(TAG, "DATABASE LOCAL FILE: " + localCacheFileName + " does NOT exist");
+				}
+				
+				return exists;
 			}
 			else {
-				return Preferences.featureDataCacheExists(Envived.getContext(), localCacheFileName);
+				boolean exists = Preferences.featureDataCacheExists(Envived.getContext(), localCacheFileName);
+				if (exists) {
+					Log.d(TAG, "PREFERENCES LOCAL KEY: " + localCacheFileName + " exists");
+				}
+				else {
+					Log.d(TAG, "PREFERENCES LOCAL KEY: " + localCacheFileName + " does NOT exist");
+				}
+				
+				return exists;
 			}
 		}
 	}

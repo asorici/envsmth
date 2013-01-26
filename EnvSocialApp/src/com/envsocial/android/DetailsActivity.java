@@ -116,7 +116,6 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	private void initImageFetcher() {
 		// Fetch screen height and width, to use as our max size when loading images as this
         // activity runs full screen
-		
 		final DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         final int height = displayMetrics.heightPixels;

@@ -113,6 +113,9 @@ public class OrderDbHelper extends FeatureDbHelper {
 		// calling insertMenu here
 		Log.d(TAG, "[DEBUG] >> ----------- Init " + getDatabaseName() + ". ------------");
 		insertMenu();
+		
+		// now allow for the serialized data to be garbage collected.
+		// feature.setSerializedData(null);
 	}
 	
 	@Override
@@ -123,6 +126,9 @@ public class OrderDbHelper extends FeatureDbHelper {
 		
 		// do update menu insertion here
 		insertMenu();
+		
+		// now allow for the serialized data to be garbage collected.
+		// feature.setSerializedData(null);
 	}
 	
 	public void insertMenu() throws EnvSocialContentException {
@@ -131,89 +137,92 @@ public class OrderDbHelper extends FeatureDbHelper {
 			
 			// the JSON encoded data is in the data field
 			String encodedJsonData = feature.getSerializedData();
-			try {
-				// Grab menu
-				JSONArray orderMenu = (JSONArray) new JSONObject(encodedJsonData).getJSONArray("order_menu");
-				
-				// define a values container to be used on insertion
-				ContentValues values = new ContentValues();
-				
-				// Parse categories
-				int nCategories = orderMenu.length();
-				for (int i = 0; i < nCategories; ++ i) {
-					JSONObject elem = orderMenu.getJSONObject(i);
-	
-					// Extract category data and insert it
-					JSONObject categoryObject = elem.getJSONObject(OrderFeature.CATEGORY);
+			
+			if (encodedJsonData != null) {
+				try {
+					// Grab menu
+					JSONArray orderMenu = (JSONArray) new JSONObject(encodedJsonData).getJSONArray("order_menu");
 					
-					int categoryId = categoryObject.getInt(OrderFeature.CATEGORY_ID);
-					String categoryName = categoryObject.getString(OrderFeature.CATEGORY_NAME);
-					String categoryType = categoryObject.getString(OrderFeature.CATEGORY_TYPE);
+					// define a values container to be used on insertion
+					ContentValues values = new ContentValues();
 					
-					// fill values container
-					values.put(COL_CATEGORY_ID, categoryId);
-					values.put(COL_CATEGORY_NAME, categoryName);
-					values.put(COL_CATEGORY_TYPE, categoryType);
-					
-					database.insert(MENU_CATEGORY_TABLE, COL_CATEGORY_ID, values);
-					values.clear();
-	
-					// insert items for current category
-					JSONArray itemsArray = elem.getJSONArray("items");
-					
-					try {
-						database.beginTransaction();
-						
-						int nItems = itemsArray.length();
-						for (int j = 0; j < nItems; ++ j) {
-							// extract item data to map
-							JSONObject item = itemsArray.getJSONObject(j);
+					// Parse categories
+					int nCategories = orderMenu.length();
+					for (int i = 0; i < nCategories; ++ i) {
+						JSONObject elem = orderMenu.getJSONObject(i);
 		
-							int itemId = item.getInt(OrderFeature.ITEM_ID);
-							int itemCategoryId = item.getInt(OrderFeature.ITEM_CATEGORY_ID);
-							String itemName = item.getString(OrderFeature.ITEM_NAME);
-							String itemDescription = item.optString(OrderFeature.ITEM_DESCRIPTION, 
-									"No description available");
-							//String itemPrice =  item.getString(OrderFeature.ITEM_PRICE);
-							double itemPrice = item.getDouble(OrderFeature.ITEM_PRICE);
-							int itemUsageRank = item.getInt(OrderFeature.ITEM_USAGE_RANK);
+						// Extract category data and insert it
+						JSONObject categoryObject = elem.getJSONObject(OrderFeature.CATEGORY);
+						
+						int categoryId = categoryObject.getInt(OrderFeature.CATEGORY_ID);
+						String categoryName = categoryObject.getString(OrderFeature.CATEGORY_NAME);
+						String categoryType = categoryObject.getString(OrderFeature.CATEGORY_TYPE);
+						
+						// fill values container
+						values.put(COL_CATEGORY_ID, categoryId);
+						values.put(COL_CATEGORY_NAME, categoryName);
+						values.put(COL_CATEGORY_TYPE, categoryType);
+						
+						database.insert(MENU_CATEGORY_TABLE, COL_CATEGORY_ID, values);
+						values.clear();
+		
+						// insert items for current category
+						JSONArray itemsArray = elem.getJSONArray("items");
+						
+						try {
+							database.beginTransaction();
 							
-							// insert in the item table
-							values.put(COL_ITEM_ID, itemId);
-							values.put(COL_ITEM_CATEGORY_ID, itemCategoryId);
-							values.put(COL_ITEM_NAME, itemName);
-							values.put(COL_ITEM_DESCRIPTION, itemDescription);
-							values.put(COL_ITEM_PRICE, itemPrice);
-							values.put(COL_ITEM_USAGE_RANK, itemUsageRank);
+							int nItems = itemsArray.length();
+							for (int j = 0; j < nItems; ++ j) {
+								// extract item data to map
+								JSONObject item = itemsArray.getJSONObject(j);
+			
+								int itemId = item.getInt(OrderFeature.ITEM_ID);
+								int itemCategoryId = item.getInt(OrderFeature.ITEM_CATEGORY_ID);
+								String itemName = item.getString(OrderFeature.ITEM_NAME);
+								String itemDescription = item.optString(OrderFeature.ITEM_DESCRIPTION, 
+										"No description available");
+								//String itemPrice =  item.getString(OrderFeature.ITEM_PRICE);
+								double itemPrice = item.getDouble(OrderFeature.ITEM_PRICE);
+								int itemUsageRank = item.getInt(OrderFeature.ITEM_USAGE_RANK);
+								
+								// insert in the item table
+								values.put(COL_ITEM_ID, itemId);
+								values.put(COL_ITEM_CATEGORY_ID, itemCategoryId);
+								values.put(COL_ITEM_NAME, itemName);
+								values.put(COL_ITEM_DESCRIPTION, itemDescription);
+								values.put(COL_ITEM_PRICE, itemPrice);
+								values.put(COL_ITEM_USAGE_RANK, itemUsageRank);
+								
+								database.insert(MENU_ITEM_TABLE, COL_ITEM_ID, values);
+								values.clear();
+								
+								// insert in FST table
+								values.put(COL_ORDER_FTS_ID, "" + itemId);
+								values.put(COL_ORDER_FTS_ITEM, itemName);
+								values.put(COL_ORDER_FTS_CATEGORY, categoryName);
+								values.put(COL_ORDER_FTS_PRICE, "" + itemPrice);
+								values.put(COL_ORDER_FTS_DESCRIPTION, itemDescription);
+								
+								database.insert(MENU_ORDER_TABLE_FTS, COL_ORDER_FTS_ID, values);
+								values.clear();
+								
+							}
 							
-							database.insert(MENU_ITEM_TABLE, COL_ITEM_ID, values);
-							values.clear();
-							
-							// insert in FST table
-							values.put(COL_ORDER_FTS_ID, "" + itemId);
-							values.put(COL_ORDER_FTS_ITEM, itemName);
-							values.put(COL_ORDER_FTS_CATEGORY, categoryName);
-							values.put(COL_ORDER_FTS_PRICE, "" + itemPrice);
-							values.put(COL_ORDER_FTS_DESCRIPTION, itemDescription);
-							
-							database.insert(MENU_ORDER_TABLE_FTS, COL_ORDER_FTS_ID, values);
-							values.clear();
-							
+							database.setTransactionSuccessful();
+						} finally {
+							database.endTransaction();
 						}
 						
-						database.setTransactionSuccessful();
-					} finally {
-						database.endTransaction();
 					}
-					
+				} catch (JSONException e) {
+					cleanupTables();
+					e.printStackTrace();
+					throw new EnvSocialContentException(encodedJsonData, EnvSocialResource.FEATURE, e);
 				}
-			} catch (JSONException e) {
-				cleanupTables();
-				e.printStackTrace();
-				throw new EnvSocialContentException(encodedJsonData, EnvSocialResource.FEATURE, e);
+				
+				dbStatus = TABLES_POPULATED;
 			}
-			
-			dbStatus = TABLES_POPULATED;
 		}
 	}
 
