@@ -128,7 +128,7 @@ public class DescriptionFragment extends SherlockFragment {
         super.onActivityCreated(savedInstanceState);
         
         if (DetailsActivity.class.isInstance(getActivity())) {
-            mImageFetcher = ((DetailsActivity) getActivity()).getImageFetcher();
+//TODO            mImageFetcher = ((DetailsActivity) getActivity()).getImageFetcher();
         }
         
         bindDescriptionViewData();

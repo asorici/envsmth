@@ -293,7 +293,7 @@ public class OrderFragment extends SherlockFragment implements OnClickListener, 
 			FragmentTransaction ft = fm.beginTransaction();
 			
 			OrderTabFragment tabFragment = OrderTabFragment.newInstance(mLocation, orderTabSelections);
-			ft.replace(R.id.details_containter, tabFragment, Feature.ORDER);
+			ft.replace(R.id.details_container, tabFragment, Feature.ORDER);
 			ft.addToBackStack(Feature.ORDER);
 			
 			ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
