@@ -124,6 +124,9 @@ class Layout(models.Model):
     level = models.IntegerField(default = 0)
     mapURL = models.URLField(null = True, blank = True)
     timestamp = models.DateTimeField(auto_now = True)
+    
+    def __unicode__(self):
+        return self.environment.name + " level(" + str(self.level) + ")" 
 
 
 class Area(models.Model):
@@ -258,7 +261,7 @@ class DescriptionAnnotation(Annotation):
 ##################################### PresentationAnnotation Class ########################################
 class ProgramAnnotation(Annotation):
     text = models.TextField()
-    entry = models.ForeignKey('Entry', related_name = "annotations")
+    presentation = models.ForeignKey('Presentation', related_name = "annotations")
     
     def __init__(self, *args, **kwargs):
         data = kwargs.pop('data', None)
@@ -266,16 +269,16 @@ class ProgramAnnotation(Annotation):
         super(ProgramAnnotation, self).__init__(*args, **kwargs)
         
         if not data is None:
-            if 'text' in data and 'entry_id' in data:
+            if 'text' in data and 'presentation_id' in data:
                 self.text = data['text']
                 
-                entry_id = data['entry_id']
+                presentation_id = data['presentation_id']
                 try:
-                    self.entry = Entry.objects.get(id = entry_id)
-                except Entry.DoesNotExist:
-                    raise AnnotationException("ProgramAnnotation missing valid program entry_id")
+                    self.presentation = Presentation.objects.get(id = presentation_id)
+                except Presentation.DoesNotExist:
+                    raise AnnotationException("ProgramAnnotation missing valid program presentation_id")
             else:
-                raise AnnotationException("ProgramAnnotation missing text or entry data")
+                raise AnnotationException("ProgramAnnotation missing text or presentation data")
     
     
     def get_annotation_data(self):
@@ -290,11 +293,11 @@ class ProgramAnnotation(Annotation):
         specific_filters = {}
         
         ## just this single case for now
-        if "entry_id" in filters:
+        if "presentation_id" in filters:
             try:
-                entry = Entry.objects.get(id = filters['entry_id'])
-                specific_filters['id__in'] = [ann.id for ann in ProgramAnnotation.objects.filter(entry = entry)]
-            except Entry.DoesNotExist:
+                presentation = Presentation.objects.get(id = filters['presentation_id'])
+                specific_filters['id__in'] = [ann.id for ann in ProgramAnnotation.objects.filter(presentation = presentation)]
+            except Presentation.DoesNotExist:
                 pass
             except Exception:
                 pass 
@@ -411,7 +414,12 @@ class Feature(models.Model):
     is_general = models.BooleanField(default = False)
     #data = fields.DataField(null = True, blank = True)
     version = models.SmallIntegerField(default = 1)
-    timestamp = models.DateTimeField(auto_now = True)
+    timestamp = models.DateTimeField()
+    
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamp '''
+        self.timestamp = datetime.datetime.now()
+        super(Feature, self).save(*args, **kwargs)
     
     
     # use the inheritance manager to get access directly to subclasses of Feature when w
@@ -473,7 +481,7 @@ class DescriptionFeature(Feature):
 
 ###################################### Program Feature Classes ############################################
 class ProgramFeature(Feature):
-    QUERY_TYPES = ('entry', 'search')
+    QUERY_TYPES = ('presentation', 'speaker', 'search')
     
     description = models.TextField(null = True, blank = True)
     
@@ -486,14 +494,16 @@ class ProgramFeature(Feature):
             program_dict = {'data' : {'description' : self.description} }
             
             sessions_list = []
-            entries_list = []
-                
+            presentation_list = []
+            speaker_list = []
+            
             sessions = self.sessions.all()
             for s in sessions:
                 session_dict = {'id' : s.id,
                                 'title' : s.title,
                                 'tag' : s.tag,
                                }
+                
                 if self.environment:
                     session_dict['location'] = EnvironmentResource().get_resource_uri(self.environment)
                 elif self.area:
@@ -502,48 +512,96 @@ class ProgramFeature(Feature):
                 
                 sessions_list.append(session_dict)
                 
-                entries = s.entries.all().order_by('startTime')
-                for e in entries:
-                    entries_list.append({'id' : e.id,
-                                        'title' : e.title,
-                                        'speakers' : e.speakers,
+                presentations = s.presentations.all().order_by('startTime')
+                for pres in presentations:
+                    presentation_dict = {'id' : pres.id,
+                                        'title' : pres.title,
                                         'sessionId' : s.id,
-                                        'startTime' : e.startTime.strftime("%Y-%m-%dT%H:%M:%S"),
-                                        'endTime' : e.endTime.strftime("%Y-%m-%dT%H:%M:%S")})
+                                        'startTime' : pres.startTime.strftime("%Y-%m-%dT%H:%M:%S"),
+                                        'endTime' : pres.endTime.strftime("%Y-%m-%dT%H:%M:%S")
+                                        }
+                    if pres.abstract:
+                        presentation_dict['abstract'] = pres.abstract
+                    
+                    presentation_list.append(presentation_dict)
+                    
+                    speakers = pres.speakers.all().order_by('last_name')
+                    for speaker in speakers:
+                        speaker_dict = {'id': speaker.id,
+                                        'first_name': speaker.first_name,
+                                        'last_name': speaker.last_name,
+                                        'affiliation': speaker.affiliation,
+                                        'position': speaker.position
+                                        }
+                        
+                        if speaker.biography:
+                            speaker_dict['biography'] = speaker.biography
+                            
+                        if speaker.email:
+                            speaker_dict['email'] = speaker.email
+                            
+                        if speaker.online_profile_link:
+                            speaker_dict['online_profile_link'] = speaker.online_profile_link
+                        
+                        speaker_list.append(speaker_dict)
             
-            program_dict['data']['program'] = { 'description' : self.description, 
-                                                'sessions' : sessions_list, 
-                                                'entries' : entries_list
+            program_dict['data']['program'] =  {'sessions' : sessions_list, 
+                                                'presentations' : presentation_list,
+                                                'speakers': speaker_list
                                                }
-           
+            
             serialized_feature.update(program_dict)
         
         return serialized_feature
     
     
     def get_feature_data(self, virtual, filters):
-        if 'querytype' in filters: 
+        if 'querytype' in filters:
             if filters['querytype'] in self.QUERY_TYPES:
-                if filters['querytype'] == 'entry':
-                    entry_id = filters.get('entry_id')
-                    if not entry_id:
+                if filters['querytype'] == 'presentation':
+                    presentation_id = filters.get('presentation_id')
+                    if not presentation_id:
                         return None
                     
-                    entry = Entry.objects.get(id = entry_id)
-                    entry_dict = {  'id' : entry.id,
-                                    'title' : entry.title,
-                                    'speakers' : entry.speakers,
-                                    'sessionId' : entry.session.id,
-                                    'sessionTitle' : entry.session.title,
-                                    'startTime' : entry.startTime.strftime("%Y-%m-%dT%H:%M:%S"),
-                                    'endTime' : entry.endTime.strftime("%Y-%m-%dT%H:%M:%S"),
-                                    'abstract' : "Abstract not available."
+                    presentation = Presentation.objects.get(id = presentation_id)
+                    presentation_dict = {'id' : presentation.id,
+                                    'title' : presentation.title,
+                                    'speakers' : presentation.speakers,
+                                    'sessionId' : presentation.session.id,
+                                    'sessionTitle' : presentation.session.title,
+                                    'startTime' : presentation.startTime.strftime("%Y-%m-%dT%H:%M:%S"),
+                                    'endTime' : presentation.endTime.strftime("%Y-%m-%dT%H:%M:%S"),
                                  }
                     
-                    if entry.abstract:
-                        entry_dict['abstract'] = entry.abstract
+                    if presentation.abstract:
+                        presentation_dict['abstract'] = presentation.abstract
                         
-                    return entry_dict
+                    return presentation_dict
+                
+                elif filters['querytype'] == 'speaker':
+                    speaker_id = filters.get('speaker_id')
+                    if not speaker_id:
+                        return None
+                    
+                    speaker = Speaker.objects.get(id = speaker_id)
+                    speaker_dict = {'id': speaker.id,
+                                        'first_name': speaker.first_name,
+                                        'last_name': speaker.last_name,
+                                        'affiliation': speaker.affiliation,
+                                        'position': speaker.position
+                                        }
+                    
+                    if speaker.biography:
+                        speaker_dict['biography'] = speaker.biography
+                            
+                    if speaker.email:
+                        speaker_dict['email'] = speaker.email
+                            
+                    if speaker.online_profile_link:
+                        speaker_dict['online_profile_link'] = speaker.online_profile_link
+                        
+                    return speaker_dict
+                    
             else:
                 ## return None if the querytype is un-defined
                 return None
@@ -560,20 +618,52 @@ class Session(models.Model):
     tag = models.CharField(max_length = 8)
     program = models.ForeignKey(ProgramFeature, related_name = "sessions")
     
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamp for associated program feature'''
+        self.program.timestamp = datetime.datetime.now()
+        self.program.save()
+        super(Session, self).save(*args, **kwargs)
+    
     def __unicode__(self):
-        return self.title
+        return self.title + " @ " + str(self.program)
+    
 
-class Entry(models.Model):
-    session = models.ForeignKey(Session, related_name = "entries")
-    #speakers = models.ManyToManyField(UserProfile)
-    speakers = models.CharField(max_length = 256)
+class Presentation(models.Model):
+    session = models.ForeignKey(Session, related_name = "presentations")
+    speakers = models.ManyToManyField("Speaker", related_name = "presentations")
+    
     title = models.CharField(max_length = 256)
     startTime = models.DateTimeField()
     endTime = models.DateTimeField()
+    
     abstract = models.TextField(null = True, blank = True)
+    tags = fields.TagListField(null = True, blank = True)
+    
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamp for associated program feature'''
+        self.session.program.timestamp = datetime.datetime.now()
+        self.session.program.save()
+        super(Presentation, self).save(*args, **kwargs)
     
     def __unicode__(self):
         return self.title + " >> " + self.session.title
+
+        
+class Speaker(models.Model):
+    first_name = models.CharField(max_length = 64)
+    last_name = models.CharField(max_length = 64)
+    affiliation = models.CharField(max_length = 128)
+    position = models.CharField(max_length = 64)
+    
+    biography = models.TextField(null = True, blank = True)
+    email = models.EmailField(null = True, blank = True)
+    online_profile_link = models.URLField(null = True, blank = True)
+    
+    class Meta:
+        unique_together = ("first_name", "last_name")
+        
+    def __unicode__(self):
+        return self.first_name + " " + self.last_name + " (" + self.position + ", " + self.affiliation + ")"
 
 ###################################### People Feature Classes ############################################
 """
