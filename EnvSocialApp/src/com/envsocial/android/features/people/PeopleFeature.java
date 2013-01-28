@@ -4,6 +4,7 @@ import java.util.Calendar;
 
 import android.content.Context;
 
+import com.envsocial.android.R;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
 import com.envsocial.android.utils.FeatureDbHelper;
@@ -48,5 +49,17 @@ public class PeopleFeature extends Feature {
 
 	@Override
 	protected void featureClose(Context context) {}
+
+
+	@Override
+	public void setDisplayThumbnail() {
+		displayThumbnail = R.drawable.details_icon_schedule; // no people thumbnail yet
+	}
+
+
+	@Override
+	public void setDisplayName() {
+		displayName = "People";
+	}
 
 }

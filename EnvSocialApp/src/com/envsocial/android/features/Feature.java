@@ -59,6 +59,8 @@ public abstract class Feature implements Serializable {
 	protected String environmentUrl;
 	protected String areaUrl;
 	protected boolean virtualAccess;
+	protected int displayThumbnail;
+	protected String displayName;
 	
 	/**
 	 * This field will only be populated after a Data Retrieval request is made to the server. The retrieved data is then either
@@ -78,6 +80,10 @@ public abstract class Feature implements Serializable {
 		this.areaUrl = areaUrl;
 		this.retrievedData = data;
 		this.virtualAccess = virtualAccess;
+		this.displayThumbnail = com.envsocial.android.R.drawable.ic_envived_white;
+		this.displayName = "Feature";
+		setDisplayName();
+		setDisplayThumbnail();
 	}
 	
 	public void init() throws EnvSocialContentException {
@@ -233,6 +239,14 @@ public abstract class Feature implements Serializable {
 
 	public String getSerializedData() {
 		return retrievedData;
+	}
+	
+	public int getDisplayThumbnail() {
+		return displayThumbnail;
+	}
+	
+	public String getDisplayName() {
+		return displayName;
 	}
 	
 	public void setSerializedData(String serializedData) {
@@ -410,6 +424,10 @@ public abstract class Feature implements Serializable {
 	protected abstract void featureClose(Context context);
 	
 	public abstract boolean hasLocalQuerySupport();
+	
+	public abstract void setDisplayThumbnail();
+	
+	public abstract void setDisplayName();
 	
 	public abstract FeatureDbHelper getLocalDatabaseSupport();
 	

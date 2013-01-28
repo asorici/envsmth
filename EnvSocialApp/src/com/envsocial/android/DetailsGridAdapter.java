@@ -4,15 +4,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.envsocial.android.features.Feature;
-
 import android.content.Context;
-import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.envsocial.android.features.Feature;
 
 public class DetailsGridAdapter extends BaseAdapter {
 	
@@ -20,22 +21,19 @@ public class DetailsGridAdapter extends BaseAdapter {
 	private HashMap<String, Integer> mThumbnails;
 	Map<String, Feature> mFeatures;
 	private ArrayList<Integer> mThumbIds;
+	private ArrayList<String> mNames;
 	private Context mContext;
 	
 	public DetailsGridAdapter(Context c, Map<String, Feature> features) {
 		this.mContext = c;
 		this.mFeatures = features;
 		this.mThumbIds = new ArrayList<Integer>();
+		this.mNames = new ArrayList<String>();
 		for (String featureName : features.keySet()) {
-
-			if (featureName.equals("description")) {
-				mThumbIds.add(R.drawable.details_icon_description);
-			} else if (featureName.equals("order")) {
-				mThumbIds.add(R.drawable.details_icon_order);
-			} else if (featureName.equals("program")) {
-				mThumbIds.add(R.drawable.details_icon_schedule);
-			}
+			Feature currentFeature = mFeatures.get(featureName);
 			
+			mThumbIds.add(currentFeature.getDisplayThumbnail());		
+			mNames.add(currentFeature.getDisplayName());
 		}
 	}
 
@@ -56,11 +54,16 @@ public class DetailsGridAdapter extends BaseAdapter {
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		ImageView imageView = new ImageView(mContext);
+		LayoutInflater inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		View row=inflater.inflate(R.layout.details_grid_cell, parent, false);
+		
+		ImageView imageView = (ImageView)row.findViewById(R.id.details_grid_cell_image);
 		imageView.setImageResource(mThumbIds.get(position));
-        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        imageView.setLayoutParams(new GridView.LayoutParams(70, 70));
-		return imageView;
+        
+        TextView textView = (TextView)row.findViewById(R.id.details_grid_cell_text);
+        textView.setText(mNames.get(position));
+        
+        return row;
 	}
 
 }

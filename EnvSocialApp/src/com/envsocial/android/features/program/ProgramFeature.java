@@ -17,6 +17,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import com.envsocial.android.Envived;
+import com.envsocial.android.R;
 import com.envsocial.android.api.AppClient;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.api.Url;
@@ -170,5 +171,17 @@ public class ProgramFeature extends Feature {
 		}
 		
 		return null;
+	}
+
+
+	@Override
+	public void setDisplayThumbnail() {
+		displayThumbnail = R.drawable.details_icon_schedule_white;
+	}
+
+
+	@Override
+	public void setDisplayName() {
+		displayName = "Program";
 	}
 }

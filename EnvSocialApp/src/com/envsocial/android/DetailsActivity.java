@@ -22,6 +22,9 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.Gravity;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -37,6 +40,7 @@ import com.envsocial.android.api.Location;
 import com.envsocial.android.api.exceptions.EnvSocialComException;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
+import com.envsocial.android.features.description.DescriptionActivity;
 import com.envsocial.android.utils.EnvivedNotificationContents;
 import com.envsocial.android.utils.NotificationRegistrationDialog;
 import com.envsocial.android.utils.ResponseHolder;
@@ -87,7 +91,7 @@ public class DetailsActivity extends Activity {
 	private LinearLayout mMainView;
 	private GridView mGridView;
 	private RegisterEnvivedNotificationsTask mGCMRegisterTask;
-	private ImageFetcher mImageFetcher;
+	static private ImageFetcher mImageFetcher;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -364,7 +368,7 @@ public class DetailsActivity extends Activity {
 	/**
      * Called by the ENVIVED Feature fragments to load images via the one ImageFetcher
      */
-	public ImageFetcher getImageFetcher() {
+	public static ImageFetcher getImageFetcher() {
         return mImageFetcher;
     }
 	
@@ -376,18 +380,42 @@ public class DetailsActivity extends Activity {
 	
 	private void initializeGrid() {
 		
-		mGridView.setNumColumns(GridView.AUTO_FIT);
+		final Map<String, Feature> features = mLocation.getFeatures();
+		
+		if (features.size() <= 4)
+			mGridView.setNumColumns(2);
+		else 
+			mGridView.setNumColumns(3);
+		
 		mGridView.setColumnWidth(90);
 		mGridView.setHorizontalSpacing(10);
-		mGridView.setVerticalSpacing(10);
+		mGridView.setVerticalSpacing(100);
 		mGridView.setGravity(Gravity.CENTER);
 		mGridView.setStretchMode(GridView.STRETCH_COLUMN_WIDTH);
-		
-		Map<String, Feature> features = mLocation.getFeatures();
 		
 		mGridView.setAdapter(new DetailsGridAdapter(getApplicationContext(), features));
 		
 		mMainView.addView(mGridView);
+		
+		mGridView.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View v, int position,
+					long id) {
+				
+				Log.d(TAG, "feature: " + new ArrayList(features.keySet()).get((int)position));
+				
+				Intent i = null;
+				
+				if (new ArrayList(features.keySet()).get((int)position).equals("description")) {
+					i = new Intent(getApplicationContext(), DescriptionActivity.class);
+				}
+				
+				i.putExtra("location", mLocation);
+				
+				startActivity(i);
+			}
+		});
 	}
 	
 	
@@ -650,5 +678,4 @@ public class DetailsActivity extends Activity {
         	mGCMRegisterTask = null;
         }
 	}
-	
 }

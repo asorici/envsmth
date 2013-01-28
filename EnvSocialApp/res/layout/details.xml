@@ -3,6 +3,8 @@
     android:id="@+id/details_container"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical" >
+    android:orientation="vertical" 
+    android:gravity="center"
+    android:layout_gravity="center">
     
 </LinearLayout>
