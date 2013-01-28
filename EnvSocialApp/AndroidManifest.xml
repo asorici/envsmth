@@ -85,6 +85,7 @@
         	<meta-data android:name="android.app.default_searchable"
             		   android:value=".DetailsSearchableActivity" />
         </activity>
+        <activity android:name=".features.description.DescriptionActivity" />
             
         <activity android:name=".features.program.EntryDetailsActivity" />
         

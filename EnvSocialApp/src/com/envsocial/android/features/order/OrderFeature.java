@@ -6,6 +6,7 @@ import android.content.Context;
 import android.database.Cursor;
 
 import com.envsocial.android.Envived;
+import com.envsocial.android.R;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
 import com.envsocial.android.utils.EnvivedNotificationDispatcher;
@@ -153,5 +154,17 @@ public class OrderFeature extends Feature {
 		}
 		
 		return null;
+	}
+
+
+	@Override
+	public void setDisplayThumbnail() {
+		displayThumbnail = R.drawable.details_icon_order_white;
+	}
+
+
+	@Override
+	public void setDisplayName() {
+		displayName = "Order";
 	}
 }

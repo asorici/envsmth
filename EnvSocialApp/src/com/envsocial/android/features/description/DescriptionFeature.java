@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import android.content.Context;
 
 import com.envsocial.android.Envived;
+import com.envsocial.android.R;
 import com.envsocial.android.api.EnvSocialResource;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
@@ -113,4 +114,16 @@ public class DescriptionFeature extends Feature {
 
 	@Override
 	protected void featureClose(Context context) {}
+
+
+	@Override
+	public void setDisplayThumbnail() {
+		displayThumbnail = R.drawable.details_icon_description_white;
+	}
+
+
+	@Override
+	public void setDisplayName() {
+		displayName = "Description";
+	}
 }

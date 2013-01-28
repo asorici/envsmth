@@ -1,7 +1,9 @@
 package com.envsocial.android;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.HttpStatus;
 
@@ -19,6 +21,12 @@ import android.support.v4.app.FragmentTransaction;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.GridView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.ActionBar;
@@ -28,19 +36,13 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.envsocial.android.api.ActionHandler;
-import com.envsocial.android.api.EnvSocialResource;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.api.exceptions.EnvSocialComException;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
-import com.envsocial.android.features.description.DescriptionFragment;
-import com.envsocial.android.features.order.OrderFragment;
-import com.envsocial.android.features.order.OrderManagerFragment;
-import com.envsocial.android.features.people.PeopleFragment;
-import com.envsocial.android.features.program.ProgramFragment;
+import com.envsocial.android.features.description.DescriptionActivity;
 import com.envsocial.android.utils.EnvivedNotificationContents;
 import com.envsocial.android.utils.NotificationRegistrationDialog;
-import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
 import com.envsocial.android.utils.imagemanager.ImageCache;
 import com.envsocial.android.utils.imagemanager.ImageFetcher;
@@ -48,7 +50,7 @@ import com.facebook.Session;
 import com.google.android.gcm.GCMRegistrar;
 
 
-public class DetailsActivity extends SherlockFragmentActivity {
+public class DetailsActivity extends Activity {
 	private static final String TAG = "DetailsActivity";
 	
 	public static final String ORDER_MANAGEMENT_FEATURE = "order_management";
@@ -86,8 +88,10 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	private Tab mOrderManagementTab;
 	private Tab mPeopleTab;
 	
+	private LinearLayout mMainView;
+	private GridView mGridView;
 	private RegisterEnvivedNotificationsTask mGCMRegisterTask;
-	private ImageFetcher mImageFetcher;
+	static private ImageFetcher mImageFetcher;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -95,8 +99,12 @@ public class DetailsActivity extends SherlockFragmentActivity {
         
         setContentView(R.layout.details);
         
-        mActionBar = getSupportActionBar();
-        mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+        mMainView = (LinearLayout)findViewById(R.id.details_container);
+        
+        mGridView = new GridView(getApplicationContext());
+        
+        //mActionBar = getSupportActionBar();
+        //mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         
         // --------------------------- image cache initialization -------------------------- //
         initImageFetcher();
@@ -129,7 +137,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
         
         // The ImageFetcher takes care of loading images into ImageViews asynchronously
         mImageFetcher = new ImageFetcher(this, longest);
-        mImageFetcher.addImageCache(getSupportFragmentManager(), cacheParams);
+        //mImageFetcher.addImageCache(getSupportFragmentManager(), cacheParams);
         mImageFetcher.setLoadingImage(R.drawable.user_group);
         mImageFetcher.setImageFadeIn(false);
 	}
@@ -158,7 +166,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
         if (regId == null || "".equals(regId)) {
         	Log.d(TAG, "need to register for notifications");
         	NotificationRegistrationDialog dialog = NotificationRegistrationDialog.newInstance();
-        	dialog.show(getSupportFragmentManager(), "dialog");
+        	//dialog.show(getSupportFragmentManager(), "dialog");
         }
         
         // check if we are also registered with the server
@@ -262,7 +270,6 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	}
 	
 	
-	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// add the search button
 		MenuItem item = menu.add(getText(R.string.menu_search));
@@ -280,7 +287,6 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	}
 	
 	
-	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		final Context context = getApplicationContext();
 		
@@ -362,7 +368,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	/**
      * Called by the ENVIVED Feature fragments to load images via the one ImageFetcher
      */
-	public ImageFetcher getImageFetcher() {
+	public static ImageFetcher getImageFetcher() {
         return mImageFetcher;
     }
 	
@@ -372,8 +378,48 @@ public class DetailsActivity extends SherlockFragmentActivity {
 		new CheckinTask(checkinUrl).execute();
 	}
 	
+	private void initializeGrid() {
+		
+		final Map<String, Feature> features = mLocation.getFeatures();
+		
+		if (features.size() <= 4)
+			mGridView.setNumColumns(2);
+		else 
+			mGridView.setNumColumns(3);
+		
+		mGridView.setColumnWidth(90);
+		mGridView.setHorizontalSpacing(10);
+		mGridView.setVerticalSpacing(100);
+		mGridView.setGravity(Gravity.CENTER);
+		mGridView.setStretchMode(GridView.STRETCH_COLUMN_WIDTH);
+		
+		mGridView.setAdapter(new DetailsGridAdapter(getApplicationContext(), features));
+		
+		mMainView.addView(mGridView);
+		
+		mGridView.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View v, int position,
+					long id) {
+				
+				Log.d(TAG, "feature: " + new ArrayList(features.keySet()).get((int)position));
+				
+				Intent i = null;
+				
+				if (new ArrayList(features.keySet()).get((int)position).equals("description")) {
+					i = new Intent(getApplicationContext(), DescriptionActivity.class);
+				}
+				
+				i.putExtra("location", mLocation);
+				
+				startActivity(i);
+			}
+		});
+	}
 	
-	private void addFeatureTabs() {
+	
+	/*private void addFeatureTabs() {
         // Add tabs based on features
         ActionBar actionBar = getSupportActionBar();
         
@@ -418,7 +464,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
         					this, Feature.PEOPLE, PeopleFragment.class, mLocation));
         	actionBar.addTab(mPeopleTab);
         }
-	}
+	}*/
 	
 	
 	private class TabListener<T extends SherlockFragment> implements ActionBar.TabListener {
@@ -450,7 +496,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 				bundle.putSerializable(ActionHandler.CHECKIN, mLocation);
 				mFragment.setArguments(bundle);
 				
-				ft.add(R.id.details_containter, mFragment, mTag);
+				ft.add(R.id.details_container, mFragment, mTag);
 			} else {
 				// If the fragment exists, attach it in order to show it
 				ft.attach(mFragment);
@@ -539,10 +585,12 @@ public class DetailsActivity extends SherlockFragmentActivity {
 					mLocation = (Location) holder.getTag();
 
 					// TODO: fix padding issue in action bar style xml
-					mActionBar.setTitle(mLocation.getName());
+					//mActionBar.setTitle(mLocation.getName());
 
 					// We have location by now, so add tabs
-					addFeatureTabs();
+					//addFeatureTabs();
+					
+					initializeGrid();
 					String feature = getIntent().getStringExtra(EnvivedNotificationContents.FEATURE);
 					if (feature != null) {
 						mActionBar.selectTab(mOrderManagementTab);
@@ -630,5 +678,4 @@ public class DetailsActivity extends SherlockFragmentActivity {
         	mGCMRegisterTask = null;
         }
 	}
-	
 }

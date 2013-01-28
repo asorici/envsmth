@@ -6,6 +6,10 @@ import android.content.Context;
 import android.database.Cursor;
 
 import com.envsocial.android.Envived;
+import com.envsocial.android.R;
+import com.envsocial.android.api.AppClient;
+import com.envsocial.android.api.Location;
+import com.envsocial.android.api.Url;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
 import com.envsocial.android.utils.EnvivedNotificationDispatcher;
@@ -26,6 +30,7 @@ public class ProgramFeature extends Feature {
 	public ProgramFeature(String category, int version, Calendar timestamp, String resourceUri, 
 			String environmentUri, String areaUri, String data, boolean virtualAccess) throws EnvSocialContentException {
 		super(category, version, timestamp, resourceUri, environmentUri, areaUri, data, virtualAccess);
+
 	}
 	
 	
@@ -170,5 +175,17 @@ public class ProgramFeature extends Feature {
 		}
 		
 		return null;
+	}
+
+
+	@Override
+	public void setDisplayThumbnail() {
+		displayThumbnail = R.drawable.details_icon_schedule_white;
+	}
+
+
+	@Override
+	public void setDisplayName() {
+		displayName = "Program";
 	}
 }

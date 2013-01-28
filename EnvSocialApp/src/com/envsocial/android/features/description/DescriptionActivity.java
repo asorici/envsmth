@@ -7,6 +7,7 @@ import org.apache.http.HttpStatus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -26,7 +27,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.actionbarsherlock.app.SherlockFragment;
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.envsocial.android.DetailsActivity;
 import com.envsocial.android.EnvivedFeatureDataRetrievalService;
 import com.envsocial.android.R;
@@ -39,7 +41,7 @@ import com.envsocial.android.utils.ResponseHolder;
 import com.envsocial.android.utils.imagemanager.ImageFetcher;
 import com.envsocial.android.utils.imagemanager.ImageWorker;
 
-public class DescriptionFragment extends SherlockFragment {
+public class DescriptionActivity extends SherlockFragmentActivity {
 	private static final String TAG = "DescriptionFragment";
 	private static boolean active = false;
 	
@@ -60,14 +62,24 @@ public class DescriptionFragment extends SherlockFragment {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
-	    mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
+	    
+	    setContentView(R.layout.description);
+	    
+	    Bundle extras = getIntent().getExtras();
+	       
+	    if (extras == null)
+	    	Log.d(TAG, "extras is null");
+	    if (getIntent() == null)
+	    	Log.d(TAG, "getIntent is null");
+	    mLocation = (Location)extras.get("location");
+	    
 	    mDescriptionFeature = (DescriptionFeature) mLocation.getFeature(Feature.DESCRIPTION);
 	
 	    // register the order feature update receiver here
 	 	mFeatureDataReceiver = new DescriptionFeatureDataReceiver();
 	 	IntentFilter filter = new IntentFilter();
  		filter.addAction(EnvivedFeatureDataRetrievalService.ACTION_FEATURE_RETRIEVE_DATA);
- 		getActivity().registerReceiver(mFeatureDataReceiver, filter, 
+ 		this.registerReceiver(mFeatureDataReceiver, filter, 
  						EnvivedFeatureDataRetrievalService.FEATURE_RETRIEVE_DATA_PERMISSION, null);
  		
  		if (!mDescriptionFeature.isInitialized()) {
@@ -80,61 +92,34 @@ public class DescriptionFragment extends SherlockFragment {
  		else {
  			Log.d(TAG, "Description feature already initialized in onCreate !!!");
  		}
+ 		
+ 		mLogoImageView = (ImageView) findViewById(R.id.description_image);
+ 		mDescriptionDetailsView = (TextView) findViewById(R.id.description_details);
+ 		mDescriptionPeopleCount = (TextView) findViewById(R.id.description_people_count);
+ 		mDescriptionNewInfoView = (TextView) findViewById(R.id.description_new_info);
+ 		
+ 		if (!mDescriptionFeature.isInitialized()) {
+ 			mFeatureLoadingDialog = createFeatureLoadingDialog(getApplicationContext());
+ 			
+ 			final Handler cancelLoadingDialogHandler = new Handler();
+ 			final Timer cancelLoadingDialogTimer = new Timer();
+ 			cancelLoadingDialogTimer.schedule(new TimerTask() {
+ 				@Override
+ 				public void run() {
+ 					if (!mDescriptionFeature.isInitialized() && mFeatureLoadingDialog.isShowing()) {
+ 						mFeatureLoadingDialog.dismiss();
+ 						Toast toast = Toast.makeText(getApplicationContext(), "Slow network connection.", Toast.LENGTH_LONG);
+ 						toast.show();
+ 					}
+ 				}
+ 			}, 5000);
+ 			mFeatureLoadingDialog.show();
+ 		}
+ 		
+ 		mImageFetcher = DetailsActivity.getImageFetcher();
+ 		bindDescriptionViewData();
 	}
-	
-	
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		
-		// Inflate layout for this fragment.
-		View v = inflater.inflate(R.layout.description, container, false);
-		mLogoImageView = (ImageView) v.findViewById(R.id.description_image);
-		mDescriptionDetailsView = (TextView) v.findViewById(R.id.description_details);
-		mDescriptionPeopleCount = (TextView) v.findViewById(R.id.description_people_count);
-		mDescriptionNewInfoView = (TextView) v.findViewById(R.id.description_new_info);
-		
-		// start feature loading progress dialog if feature data is not yet initialized
-		if (!mDescriptionFeature.isInitialized()) {
-			mFeatureLoadingDialog = createFeatureLoadingDialog(getActivity());
-			
-			// create TimerTask to cancel the wait... progress dialog after 5 seconds
-			final Handler cancelLoadingDialogHandler = new Handler();
-			final Timer cancelLoadingDialogTimer = new Timer();
-			cancelLoadingDialogTimer.schedule(new TimerTask() {
-				@Override
-				public void run() {
-					cancelLoadingDialogHandler.post(new Runnable() {
-						@Override
-						public void run() {
-							if (!mDescriptionFeature.isInitialized() && mFeatureLoadingDialog.isShowing()) {
-								mFeatureLoadingDialog.dismiss();
-								Toast toast = Toast.makeText(getActivity(), "Slow network connection.", Toast.LENGTH_LONG);
-								toast.show();
-							}
-						}
-					});
-				}
-			}, 5000);
-			
-			mFeatureLoadingDialog.show();
-		}
-		
-	    return v;
-	}
-	
 
-	@Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        
-        if (DetailsActivity.class.isInstance(getActivity())) {
-            mImageFetcher = ((DetailsActivity) getActivity()).getImageFetcher();
-        }
-        
-        bindDescriptionViewData();
-    }
-	
-	
 	private ProgressDialog createFeatureLoadingDialog(Context context) {
 		ProgressDialog pd = new ProgressDialog(new ContextThemeWrapper(context, R.style.ProgressDialogWhiteText));
 		pd.setIndeterminate(true);
@@ -204,7 +189,7 @@ public class DescriptionFragment extends SherlockFragment {
             mLogoImageView.setImageDrawable(null);
         }
 		
-		getActivity().unregisterReceiver(mFeatureDataReceiver);
+		this.unregisterReceiver(mFeatureDataReceiver);
 	}
 	
 	
@@ -217,7 +202,7 @@ public class DescriptionFragment extends SherlockFragment {
 			LocationContextManager locationContextMgr = currentLocation.getContextManager();
 			
 			if (locationContextMgr != null) {
-				return locationContextMgr.getUserCount(getActivity());
+				return locationContextMgr.getUserCount(getApplicationContext());
 			}
 			
 			return null;
@@ -227,7 +212,7 @@ public class DescriptionFragment extends SherlockFragment {
 		protected void onPostExecute(ResponseHolder holder) {
 			if (holder != null && !holder.hasError()) {
 				if (holder.getCode() == HttpStatus.SC_OK) {
-					Context context = getActivity();
+					Context context = getApplicationContext();
 					
 					try {
 						JSONObject dataJSON = holder.getJsonContent();
@@ -302,7 +287,7 @@ public class DescriptionFragment extends SherlockFragment {
 						mFeatureLoadingDialog.cancel();
 					}
 					
-					Toast toast = Toast.makeText(getActivity(), "Feature data loading complete.", Toast.LENGTH_LONG);
+					Toast toast = Toast.makeText(getApplicationContext(), "Feature data loading complete.", Toast.LENGTH_LONG);
 					toast.show();
 				}
 				
