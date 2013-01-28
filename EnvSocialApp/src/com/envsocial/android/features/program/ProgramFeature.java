@@ -1,37 +1,25 @@
 package com.envsocial.android.features.program;
 
-import java.io.IOException;
 import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import com.envsocial.android.Envived;
-import com.envsocial.android.api.AppClient;
-import com.envsocial.android.api.Location;
-import com.envsocial.android.api.Url;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
+import com.envsocial.android.utils.EnvivedNotificationDispatcher;
+import com.envsocial.android.utils.EnvivedNotificationHandler;
 import com.envsocial.android.utils.FeatureDbHelper;
-import com.envsocial.android.utils.ResponseHolder;
 
 public class ProgramFeature extends Feature {
 	private static final long serialVersionUID = 1L;
-
+	
+	private EnvivedNotificationHandler notificationHandler;
 	private static final String TAG = "ProgramFeature";
 	
-	public static final String ENTRY_QUERY_TYPE = "entry";
-	public static final String ENTRY = "program_entry";
+	public static final String PRESENTATION_QUERY_TYPE = "presentation";
+	public static final String PRESENTATION = "program_presentation";
 	
 	private ProgramDbHelper dbHelper;
 	
@@ -43,8 +31,15 @@ public class ProgramFeature extends Feature {
 	
 	@Override
 	protected void featureInit() throws EnvSocialContentException {
+		// register order notification handler
+		notificationHandler = new ProgramFeatureNotificationHandler();
+		EnvivedNotificationDispatcher.registerNotificationHandler(notificationHandler);
+		
+		// instantiate local database
+		String databaseName = getLocalCacheFileName(category, environmentUrl, areaUrl, version);
+		
 		if (dbHelper == null) {
-			dbHelper = new ProgramDbHelper(Envived.getContext(), this, version);
+			dbHelper = new ProgramDbHelper(Envived.getContext(), databaseName, this, version);
 		}
 		
 		if (dbHelper != null) {
@@ -54,8 +49,11 @@ public class ProgramFeature extends Feature {
 
 	@Override
 	protected void featureUpdate() throws EnvSocialContentException {
+		// instantiate local database
+		String databaseName = getLocalCacheFileName(category, environmentUrl, areaUrl, version);
+		
 		if (dbHelper == null) {
-			dbHelper = new ProgramDbHelper(Envived.getContext(), this, version);
+			dbHelper = new ProgramDbHelper(Envived.getContext(), databaseName, this, version);
 		}
 		
 		dbHelper.update();
@@ -72,9 +70,10 @@ public class ProgramFeature extends Feature {
 	@Override
 	protected void featureClose(Context context) {
 		// first do cleanup
-		doCleanup(context);
+		featureCleanup(context);
 		
-		context.deleteDatabase(ProgramDbHelper.DATABASE_NAME);
+		// unregister notification handler
+		EnvivedNotificationDispatcher.unregisterNotificationHandler(notificationHandler);
 	}
 	
 	
@@ -87,6 +86,7 @@ public class ProgramFeature extends Feature {
 	 * @param entryId
 	 * @return a dictionary of the program entriy's details
 	 */
+	/*
 	public static Map<String,String> getProgramEntryById(Context context, Location location, String entryId) {
 		Map<String,String> entry = new HashMap<String,String>();
 		
@@ -103,7 +103,7 @@ public class ProgramFeature extends Feature {
 		Url url = new Url(Url.RESOURCE, Feature.TAG);
 		url.setParameters(
 			new String[] { type, "category", "querytype", "entry_id"}, 
-			new String[] { locationId, Feature.PROGRAM, ProgramFeature.ENTRY_QUERY_TYPE, entryId}
+			new String[] { locationId, Feature.PROGRAM, ProgramFeature.PRESENTATION_QUERY_TYPE, entryId}
 		);
 		
 		//System.out.println("[DEBUG] >> API query for entry: " + url.toString());
@@ -146,7 +146,7 @@ public class ProgramFeature extends Feature {
 		
 		return null;
 	}
-
+	*/
 
 	@Override
 	public boolean hasLocalDatabaseSupport() {

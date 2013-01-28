@@ -61,8 +61,7 @@ public class OrderFeature extends Feature {
 		EnvivedNotificationDispatcher.registerNotificationHandler(notificationHandler);
 
 		// instantiate local database
-		String databaseName = getLocalCacheFileName(category, 
-				environmentUrl, areaUrl, version);
+		String databaseName = getLocalCacheFileName(category, environmentUrl, areaUrl, version);
 
 		if (dbHelper == null) {
 			dbHelper = new OrderDbHelper(Envived.getContext(), databaseName, this, version);

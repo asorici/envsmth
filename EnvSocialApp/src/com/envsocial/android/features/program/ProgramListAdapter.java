@@ -82,7 +82,7 @@ public class ProgramListAdapter extends BaseAdapter {
 	private void bind(ViewHolder holder, int position) {
 		Map<String,String> entry = getItem(position);
 		List<Map<String,String>> overlapping = 
-			mProgramDb.getOverlappingEntries(entry.get(ProgramDbHelper.COL_ENTRY_ID));
+			mProgramDb.getOverlappingEntries(entry.get(ProgramDbHelper.COL_PRESENTATION_ID));
 //		System.out.println("[DEBUG] >> Overlapping etries: " + overlapping);
 		
 		holder.bind(entry, overlapping, sessions);
@@ -193,18 +193,18 @@ public class ProgramListAdapter extends BaseAdapter {
 		
 		
 		public void bind(Map<String,String> entry, Map<String,Map<String,String>> sessions) {
-			String id = entry.get(ProgramDbHelper.COL_ENTRY_ID);
+			String id = entry.get(ProgramDbHelper.COL_PRESENTATION_ID);
 			layout.setTag(id);
 			time.setText(
 					formatTime(
-						entry.get(ProgramDbHelper.COL_ENTRY_START_TIME), 
-						entry.get(ProgramDbHelper.COL_ENTRY_END_TIME)
+						entry.get(ProgramDbHelper.COL_PRESENTATION_START_TIME), 
+						entry.get(ProgramDbHelper.COL_PRESENTATION_END_TIME)
 					)
 				);
-			Map<String,String> ses = sessions.get(entry.get(ProgramDbHelper.COL_ENTRY_SESSIONID));
+			Map<String,String> ses = sessions.get(entry.get(ProgramDbHelper.COL_PRESENTATION_SESSIONID));
 			session.setText(ses.get(ProgramDbHelper.COL_SESSION_TITLE));
-			title.setText(entry.get(ProgramDbHelper.COL_ENTRY_TITLE));
-			speakers.setText(entry.get(ProgramDbHelper.COL_ENTRY_SPEAKERS));
+			title.setText(entry.get(ProgramDbHelper.COL_PRESENTATION_TITLE));
+			speakers.setText(entry.get(ProgramDbHelper.COL_PRESENTATION_SPEAKERS));
 		}
 		
 		private String formatTime(String startTime, String endTime) {
@@ -294,7 +294,7 @@ public class ProgramListAdapter extends BaseAdapter {
 									.getTag();
 			
 			Intent intent = new Intent(mContext, EntryDetailsActivity.class);
-			intent.putExtra(ProgramDbHelper.COL_ENTRY_ID, id);
+			intent.putExtra(ProgramDbHelper.COL_PRESENTATION_ID, id);
 			mContext.startActivity(intent);
 			
 			return true;

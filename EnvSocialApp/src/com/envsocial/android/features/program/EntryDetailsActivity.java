@@ -64,7 +64,7 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 		
 		getSupportActionBar().setDisplayShowTitleEnabled(false);
 		
-		mEntryId = getIntent().getExtras().getString(ProgramDbHelper.COL_ENTRY_ID);
+		mEntryId = getIntent().getExtras().getString(ProgramDbHelper.COL_PRESENTATION_ID);
 		mLocation = Preferences.getCheckedInLocation(this);
 		
 		setContentView(R.layout.entry_details);
@@ -197,11 +197,11 @@ public class EntryDetailsActivity extends SherlockFragmentActivity implements On
 	
 	
 	private void bind(Map<String,String> entry) {
-		mTitle.setText(entry.get(ProgramDbHelper.COL_ENTRY_TITLE));
-		mSession.setText(entry.get(ProgramDbHelper.COL_ENTRY_SESSIONID));
-		mDatetime.setText(entry.get(ProgramDbHelper.COL_ENTRY_START_TIME));
-		mSpeakers.setText(entry.get(ProgramDbHelper.COL_ENTRY_SPEAKERS));
-		mAbstract.setText(entry.get(ProgramDbHelper.COL_ENTRY_ABSTRACT));
+		mTitle.setText(entry.get(ProgramDbHelper.COL_PRESENTATION_TITLE));
+		mSession.setText(entry.get(ProgramDbHelper.COL_PRESENTATION_SESSIONID));
+		mDatetime.setText(entry.get(ProgramDbHelper.COL_PRESENTATION_START_TIME));
+		mSpeakers.setText(entry.get(ProgramDbHelper.COL_PRESENTATION_SPEAKERS));
+		mAbstract.setText(entry.get(ProgramDbHelper.COL_PRESENTATION_ABSTRACT));
 	}
 
 	
