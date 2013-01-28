@@ -119,7 +119,7 @@ public class DescriptionActivity extends SherlockFragmentActivity {
  		mImageFetcher = DetailsActivity.getImageFetcher();
  		bindDescriptionViewData();
 	}
-	
+
 	private ProgressDialog createFeatureLoadingDialog(Context context) {
 		ProgressDialog pd = new ProgressDialog(new ContextThemeWrapper(context, R.style.ProgressDialogWhiteText));
 		pd.setIndeterminate(true);

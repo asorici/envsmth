@@ -39,6 +39,7 @@ public class ProgramFeature extends Feature {
 	public ProgramFeature(String category, int version, Calendar timestamp, String resourceUri, 
 			String environmentUri, String areaUri, String data, boolean virtualAccess) throws EnvSocialContentException {
 		super(category, version, timestamp, resourceUri, environmentUri, areaUri, data, virtualAccess);
+
 	}
 	
 	
