@@ -4,7 +4,9 @@
     android:id="@+id/description_product_details_website_layout"
 	android:layout_width="fill_parent"
 	android:layout_height="wrap_content"
-	android:orientation="horizontal">
+	android:orientation="horizontal"
+	android:layout_marginTop="10dip"
+	android:layout_marginBottom="10dip">
 	
     <TextView 
 	    android:layout_width="80dip"

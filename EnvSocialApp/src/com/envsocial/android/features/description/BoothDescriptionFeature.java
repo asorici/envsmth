@@ -130,7 +130,7 @@ public class BoothDescriptionFeature extends Feature {
 	
 	public Cursor getProductData(int productId) {
 		if (dbHelper != null) {
-			return dbHelper.getAllProducts(productId);
+			return dbHelper.getProductData(productId);
 		}
 		
 		return null;
