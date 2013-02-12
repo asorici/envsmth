@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:orientation="vertical"
+	android:padding="5dip">
+	
+    <!-- Display the location - name of the exhibitant -->
+    <TextView
+       	android:layout_width="match_parent"
+       	android:layout_height="wrap_content"
+		android:layout_marginBottom="5dip"
+		
+		android:textStyle="bold"
+		android:textSize="16sp"
+		android:padding="5dip"
+		android:gravity="left"
+		
+		android:textColor="@color/envived_order_text_white"
+		android:text="Exhibitant"
+		android:background="@drawable/feature_details_label"
+    />
+  		
+  	<TextView
+  	    android:id="@+id/description_details_location"
+  	    android:layout_width="match_parent"
+       	android:layout_height="wrap_content"
+		android:layout_marginBottom="20dip"
+		
+		android:textStyle="bold"
+		android:textSize="14sp"
+		android:padding="5dip"
+		android:gravity="left"
+		android:background="@drawable/feature_browse_locations_row"
+		android:textColor="@color/envived_order_text_dark_green"
+  	/>
+    
+    <TextView
+       	android:layout_width="match_parent"
+       	android:layout_height="wrap_content"
+		android:layout_marginBottom="5dip"
+		
+		android:textStyle="bold"
+		android:textSize="16sp"
+		android:padding="5dip"
+		android:gravity="left"
+		
+		android:textColor="@color/envived_order_text_white"
+		android:text="List of Projects"
+		android:background="@drawable/feature_details_label"
+   	/>
+    
+    <TextView
+  	    android:layout_width="match_parent"
+       	android:layout_height="wrap_content"
+		android:layout_marginBottom="5dip"
+		
+		android:textStyle="bold"
+		android:textSize="14sp"
+		android:padding="5dip"
+		android:gravity="left"
+		android:background="@color/envived_button_white"
+		android:textColor="@color/envived_order_text_dark_green"
+		android:text="Click on the list below to find details on the projects."
+  	/>
+    
+    <ListView 
+        android:id="@+id/description_product_list"
+        android:layout_width="0dip"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_gravity="center_horizontal"
+        
+        android:divider="@color/envived_order_text_dark_green"
+        android:dividerHeight="2dip"
+		
+		android:focusableInTouchMode="true"   
+		android:background="@color/envived_button_white"
+		android:listSelector="@drawable/feature_browse_locations_row"
+    	android:cacheColorHint="@android:color/transparent"
+    />
+    
+</LinearLayout>
+	

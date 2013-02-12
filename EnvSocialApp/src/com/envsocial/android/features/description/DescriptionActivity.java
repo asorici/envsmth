@@ -1,53 +1,35 @@
 package com.envsocial.android.features.description;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 import org.apache.http.HttpStatus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.Activity;
-import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
-import android.view.ContextThemeWrapper;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.app.SherlockFragmentActivity;
-import com.envsocial.android.DetailsActivity;
-import com.envsocial.android.EnvivedFeatureDataRetrievalService;
+import com.envsocial.android.Envived;
 import com.envsocial.android.R;
-import com.envsocial.android.api.ActionHandler;
+import com.envsocial.android.api.EnvSocialResource;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.api.LocationContextManager;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
+import com.envsocial.android.features.EnvivedFeatureActivity;
 import com.envsocial.android.features.Feature;
 import com.envsocial.android.utils.ResponseHolder;
+import com.envsocial.android.utils.imagemanager.ImageCache;
 import com.envsocial.android.utils.imagemanager.ImageFetcher;
 import com.envsocial.android.utils.imagemanager.ImageWorker;
 
-public class DescriptionActivity extends SherlockFragmentActivity {
-	private static final String TAG = "DescriptionFragment";
-	private static boolean active = false;
+public class DescriptionActivity extends EnvivedFeatureActivity {
+	private static final String TAG = "DescriptionActivity";
 	
-	private Location mLocation;
 	private DescriptionFeature mDescriptionFeature;
-	private DescriptionFeatureDataReceiver mFeatureDataReceiver;
 	
 	private TextView mDescriptionDetailsView;
 	private TextView mDescriptionNewInfoView;
@@ -57,7 +39,6 @@ public class DescriptionActivity extends SherlockFragmentActivity {
 	private ImageFetcher mImageFetcher;
 	private CheckedInCountTask mPeopleCountTask;
 	
-	private ProgressDialog mFeatureLoadingDialog;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -65,70 +46,15 @@ public class DescriptionActivity extends SherlockFragmentActivity {
 	    
 	    setContentView(R.layout.description);
 	    
-	    Bundle extras = getIntent().getExtras();
-	       
-	    if (extras == null)
-	    	Log.d(TAG, "extras is null");
-	    if (getIntent() == null)
-	    	Log.d(TAG, "getIntent is null");
-	    mLocation = (Location)extras.get("location");
-	    
-	    mDescriptionFeature = (DescriptionFeature) mLocation.getFeature(Feature.DESCRIPTION);
-	
-	    // register the order feature update receiver here
-	 	mFeatureDataReceiver = new DescriptionFeatureDataReceiver();
-	 	IntentFilter filter = new IntentFilter();
- 		filter.addAction(EnvivedFeatureDataRetrievalService.ACTION_FEATURE_RETRIEVE_DATA);
- 		this.registerReceiver(mFeatureDataReceiver, filter, 
- 						EnvivedFeatureDataRetrievalService.FEATURE_RETRIEVE_DATA_PERMISSION, null);
- 		
- 		if (!mDescriptionFeature.isInitialized()) {
- 			try {
-				mDescriptionFeature.init();
-			} catch (EnvSocialContentException e) {
-				Log.d(TAG, "ERROR initializing description feature.", e);
-			}
- 		}
- 		else {
- 			Log.d(TAG, "Description feature already initialized in onCreate !!!");
- 		}
- 		
  		mLogoImageView = (ImageView) findViewById(R.id.description_image);
  		mDescriptionDetailsView = (TextView) findViewById(R.id.description_details);
  		mDescriptionPeopleCount = (TextView) findViewById(R.id.description_people_count);
  		mDescriptionNewInfoView = (TextView) findViewById(R.id.description_new_info);
  		
- 		if (!mDescriptionFeature.isInitialized()) {
- 			mFeatureLoadingDialog = createFeatureLoadingDialog(getApplicationContext());
- 			
- 			final Handler cancelLoadingDialogHandler = new Handler();
- 			final Timer cancelLoadingDialogTimer = new Timer();
- 			cancelLoadingDialogTimer.schedule(new TimerTask() {
- 				@Override
- 				public void run() {
- 					if (!mDescriptionFeature.isInitialized() && mFeatureLoadingDialog.isShowing()) {
- 						mFeatureLoadingDialog.dismiss();
- 						Toast toast = Toast.makeText(getApplicationContext(), "Slow network connection.", Toast.LENGTH_LONG);
- 						toast.show();
- 					}
- 				}
- 			}, 5000);
- 			mFeatureLoadingDialog.show();
- 		}
- 		
- 		mImageFetcher = DetailsActivity.getImageFetcher();
- 		bindDescriptionViewData();
+ 		initImageFetcher();
+ 		// bindDescriptionViewData();
 	}
 
-	private ProgressDialog createFeatureLoadingDialog(Context context) {
-		ProgressDialog pd = new ProgressDialog(new ContextThemeWrapper(context, R.style.ProgressDialogWhiteText));
-		pd.setIndeterminate(true);
-		pd.setMessage("Retrieving Data ...");
-		pd.setCancelable(true);
-		pd.setCanceledOnTouchOutside(false);
-		
-		return pd;
-	}
 	
 	private void bindDescriptionViewData() {
 		mDescriptionDetailsView.setText(mDescriptionFeature.getDescriptionText());
@@ -143,25 +69,40 @@ public class DescriptionActivity extends SherlockFragmentActivity {
         }
         else {
         	// TODO - smart loading to take into account image display sizes
-        	Bitmap logoBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.user_group);
+        	Bitmap logoBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.placeholder);
         	if (logoBitmap != null) {
         		mLogoImageView.setImageBitmap(logoBitmap);
         	}
-        }
-        
+        }    
 	}
+	
+	
+	private void initImageFetcher() {
+		ImageCache.ImageCacheParams cacheParams = new ImageCache.ImageCacheParams(
+				getApplicationContext(), ImageCache.IMAGE_CACHE_DIR);
+		
+		cacheParams.setMemCacheSizePercent(this, 0.0675f); 	// Set memory cache
+															// to 1/16 of memclass
+
+		// The ImageFetcher takes care of loading images into ImageViews asynchronously
+		mImageFetcher = Envived.getImageFetcherInstance(getSupportFragmentManager(),
+				cacheParams, R.drawable.placeholder);
+	}
+	
 	
 	@Override
 	public void onPause() {
-		active = false;
 		super.onPause();
+		
+		mImageFetcher.setExitTasksEarly(true);
+        mImageFetcher.flushCache();
 	}
 	
 	
 	@Override
 	public void onResume() {
-		active = true;
 		super.onResume();
+		mImageFetcher.setExitTasksEarly(false);
 	}
 	
 	@Override
@@ -172,6 +113,12 @@ public class DescriptionActivity extends SherlockFragmentActivity {
 		mPeopleCountTask = new CheckedInCountTask(); 
 		mPeopleCountTask.execute(mLocation);
 		mPeopleCountTask = null;
+		
+		// check if due to delayed onDestroy (can happen from Notification relaunch) 
+		// the image fetcher has closed the cache after it was opened again
+		if (mImageFetcher == null || !mImageFetcher.cashOpen()) {
+			initImageFetcher();
+		}
 	}
 	
 	@Override
@@ -183,13 +130,14 @@ public class DescriptionActivity extends SherlockFragmentActivity {
 			mPeopleCountTask = null;
 		}
 		
+		// close image fetcher cache
+		mImageFetcher.closeCache();
+		
 		if (mLogoImageView != null) {
             // Cancel any pending image work
             ImageWorker.cancelWork(mLogoImageView);
             mLogoImageView.setImageDrawable(null);
         }
-		
-		this.unregisterReceiver(mFeatureDataReceiver);
 	}
 	
 	
@@ -236,64 +184,43 @@ public class DescriptionActivity extends SherlockFragmentActivity {
 		}
 	}
 	
-	
-	private class DescriptionFeatureDataReceiver extends BroadcastReceiver {
 
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			// get the intent extras
-			final Bundle extras = intent.getExtras();
-			
-			// get the feature category for which an update was performed
-			String featureCategory = extras.getString("feature_category");
-			
-			Log.d(TAG, "Received update description notification with category: " + featureCategory);
-			
-			if (featureCategory.equals(Feature.DESCRIPTION)) {
-				if (mDescriptionFeature.isInitialized()) {
-					// the feature is already initialized, so update it with retrieved data 
-					DescriptionFeature updatedDescriptionFeature = (DescriptionFeature) extras.getSerializable("feature_content");
-					
-					try {
-						updatedDescriptionFeature.doUpdate();
-						
-						mDescriptionFeature = updatedDescriptionFeature;
-						mLocation.setFeature(featureCategory, mDescriptionFeature);
-						
-						// update view
-						bindDescriptionViewData();
-					} catch (EnvSocialContentException e) {
-						Log.d(TAG, "ERROR updating Description Feature", e);
-					}
-				}
-				else {
-					// the feature retrieved data for the first time, so initialize it
-					DescriptionFeature newDescriptionFeature = (DescriptionFeature) extras.getSerializable("feature_content");
-					
-					try {
-						newDescriptionFeature.init();
-						
-						mDescriptionFeature = newDescriptionFeature;
-						mLocation.setFeature(featureCategory, mDescriptionFeature);
-						
-						// update view
-						bindDescriptionViewData();
-					} catch (EnvSocialContentException e) {
-						Log.d(TAG, "ERROR initializing Description Feature", e);
-					}
-					
-					// dismiss the waiting feature loader dialog if it is still running
-					if (mFeatureLoadingDialog != null && mFeatureLoadingDialog.isShowing()) {
-						mFeatureLoadingDialog.cancel();
-					}
-					
-					Toast toast = Toast.makeText(getApplicationContext(), "Feature data loading complete.", Toast.LENGTH_LONG);
-					toast.show();
-				}
-				
-				abortBroadcast();
-			}
+
+	@Override
+	protected Feature getLocationFeature(Location location) throws EnvSocialContentException {
+		// return the Description feature associated with the given location
+		
+		Feature descriptionFeature = location.getFeature(Feature.DESCRIPTION);
+		if (descriptionFeature == null) {
+			EnvSocialResource locationResource = 
+					location.isEnvironment() ? EnvSocialResource.ENVIRONMENT : EnvSocialResource.AREA;
+			throw new EnvSocialContentException(location.serialize(), locationResource, null);
 		}
 		
+		return descriptionFeature;
+	}
+
+	@Override
+	protected void onFeatureDataInitialized(Feature newFeature, boolean success) {
+		if (success) {
+			mDescriptionFeature = (DescriptionFeature) newFeature;
+			bindDescriptionViewData();
+		}
+	}
+
+	@Override
+	protected void onFeatureDataUpdated(Feature updatedFeature, boolean success) {
+		if (success) {
+			mDescriptionFeature = (DescriptionFeature) updatedFeature;
+			bindDescriptionViewData();
+		}
+	}
+
+	@Override
+	protected String getActiveUpdateDialogMessage() {
+		return "The details of this location have been modified. This update will refresh your view " +
+				"of the data. Please select YES if you wish to perform the update. Select NO if, you " +
+				"want to keep your current browsing session. The update will be performed next time you " +
+				"start this activity.";
 	}
 }

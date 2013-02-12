@@ -11,7 +11,6 @@ import org.json.JSONObject;
 import android.support.v4.util.LruCache;
 
 public class FeatureLRUTracker extends LruCache<String, FeatureLRUEntry> {
-	
 	private static final String TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss";
 	private static final String MAX_ENTRIES_LABEL = "max_entries";
 	private static final String FEAUTURE_LIST_LABEL = "entries";

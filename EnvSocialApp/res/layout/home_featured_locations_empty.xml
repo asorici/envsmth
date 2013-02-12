@@ -1,0 +1,9 @@
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/home_featured_locations_empty"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:textColor="@color/white"
+    android:textSize="14sp"
+    android:text="No featured locations available."
+/>

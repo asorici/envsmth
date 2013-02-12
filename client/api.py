@@ -213,9 +213,11 @@ class EnvironmentResource(ModelResource):
     
     
     def dehydrate(self, bundle):
-        """
-        append layout url if a level filter exists in the request 
-        """
+        """ Delete the img_thumbnail_url if it is null """
+        if bundle.obj.img_thumbnail_url is None:
+            del bundle.data['img_thumbnail_url']
+        
+        """ append layout url if a level filter exists in the request """
         if "level" in bundle.request.GET:
             level = int(bundle.request.GET["level"])
             bundle.data["layout_url"] = bundle.obj.layouts.get(level=level).mapURL
@@ -329,6 +331,10 @@ class AreaResource(ModelResource):
         if bundle.obj.admin is None:
             del bundle.data['admin']
         
+        """ Delete the img_thumbnail_url if it is null """
+        if bundle.obj.img_thumbnail_url is None:
+            del bundle.data['img_thumbnail_url']
+        
         """ append level data from the layout reference of the Area obj """
         bundle.data['level'] = bundle.obj.layout.level
         
@@ -353,7 +359,7 @@ class FeatureResource(ModelResource):
     data = fields.DictField()
     
     class Meta:
-        queryset = Feature.objects.all().select_subclasses()
+        queryset = Feature.objects.select_subclasses()
         resource_name = 'feature'
         allowed_methods = ['get']
         excludes = ['id', 'is_general']
@@ -942,7 +948,7 @@ class ClientApi(Api):
         
         from django.conf.urls.defaults import url, include, patterns
         from tastypie.utils import trailing_slash
-        from client.views import checkin, checkout, login, logout, register
+        from client.views import checkin, checkout, login, logout, register, create_anonymous, delete_anonymous
         
         pattern_list = [
             url(r"^(?P<api_name>%s)%s$" % (self.api_name, trailing_slash()), self.wrap_view('top_level'), name="api_%s_top_level" % self.api_name),
@@ -954,6 +960,8 @@ class ClientApi(Api):
 
         ## then add the actions
         pattern_list.extend([
+            url(r"^%s/actions/create_anonymous/$" % self.api_name, create_anonymous, name="create_anonymous"),
+            url(r"^%s/actions/delete_anonymous/$" % self.api_name, delete_anonymous, name="delete_anonymous"),
             url(r"^%s/actions/register/$" % self.api_name, register, name="register"),
             url(r"^%s/actions/login/$" % self.api_name, login, name="login"),
             url(r"^%s/actions/logout/$" % self.api_name, logout, name="logout"),

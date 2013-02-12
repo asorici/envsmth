@@ -61,7 +61,7 @@
     <!-- Labels -->
     <string name="lbl_login">Log in</string>
     <string name="lbl_register">Create Your Envived Account</string>
-    <string name="lbl_current_checkin">You are currently checked in at:</string>
+    <string name="lbl_current_checkin">Current checkin</string>
     <string name="lbl_no_checkin_location">No location selected.</string>
     
     <string name="lbl_email">Email</string>
@@ -99,7 +99,15 @@
     
     <string name="msg_internal_error">Oops. Internal Error.</string>
     <string name="msg_malformed_checkin_url">The scanned QR Code is not an Envived QR code.</string>
+    <string name="msg_create_anonymous_error">Could not proceed to anonymous user view. Please try loging in.</string>
+    <string name="msg_delete_anonymous_error">Could not delete anonymous user. Please try again later.</string>
     <string name="msg_bad_checkin_response">Service checkin problem or wrong URI. Please try again later.</string>
+    <string name="msg_checkout_successful_location">You are now checked out from %1$s.</string>
+    <string name="msg_checkout_successful">You are now checked out.</string>
+    <string name="msg_checkout_error_location">Error checking out from %1$s. Please try again later.</string>
+    <string name="msg_checkout_error">Error checking out. Please try again later.</string>
+    <string name="msg_bad_login_response">Service login problem. Please try again later.</string>
+    <string name="msg_logout_error">Error performing sign out. Please try again later.</string>
     <string name="msg_bad_login_response">Service login problem. Please try again later.</string>
     <string name="msg_bad_register_response">Service registration problem. Please try again later.</string>
     
@@ -146,6 +154,9 @@
     <string name="msg_get_entry_details_err">Service error retrieving program entry detail.</string>
     
     <string name="msg_share_order_fb_err">Unable to post message to wall. Please try again later.</string>
+    
+    <!-- location browsing feature -->
+    <string name="locations_checked_in_count">%1$s people checked in.</string>
     
     <!-- Feature Notifications -->
     <string name="incoming_order_request">New order request</string>

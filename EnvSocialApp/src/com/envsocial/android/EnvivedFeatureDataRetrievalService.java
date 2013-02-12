@@ -6,9 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.envsocial.android.api.Location;
-import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
-import com.envsocial.android.features.description.DescriptionFeature;
 import com.envsocial.android.utils.EnvivedNotificationContents;
 import com.envsocial.android.utils.Preferences;
 
@@ -26,20 +24,33 @@ public class EnvivedFeatureDataRetrievalService extends IntentService {
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
-		Location currentLocation = Preferences.getCheckedInLocation(getApplicationContext());
+		String userUrl = Preferences.getUserUri(getApplicationContext());
+		Location location = Preferences.getCheckedInLocation(getApplicationContext());
 		
-		// if we have a checked in location; this is more of a safety check, we should not have
-		// feature content updates issued to devices not checked in anywhere
+		EnvivedNotificationContents notificationContents = 
+			(EnvivedNotificationContents)intent.getSerializableExtra(DATA_RETRIEVE_SERVICE_INPUT);
+		String featureLocationUrl = notificationContents.getLocationUrl();
 		
-		if (currentLocation != null) {
+		/* 
+		 * if we are updating a feature that is attached to the physical 
+		 * checked in location, then set the virtualAccess to false
+		 */
+		boolean virtualAccess = true;
+		if (location != null && location.getLocationUri().equals(featureLocationUrl)) {
+			virtualAccess = false;
+		}
+		
+		// if we have a user uri; this safety check is passed by both anonymous and real users, 
+		// since both get a userUri; it is also passed by virtual checkin since a userUri is retained 
+		// then as well
+		if (userUrl != null) {
 			// get the contents from the GCM message
-			EnvivedNotificationContents notificationContents = 
-					(EnvivedNotificationContents)intent.getSerializableExtra(DATA_RETRIEVE_SERVICE_INPUT);
+			
 			String featureCategory = notificationContents.getFeature();
 			String featureResourceUrl = notificationContents.getResourceUrl();
 			
 			Feature updatedFeature = Feature.getFromServer(getApplicationContext(), 
-												currentLocation, featureCategory, featureResourceUrl);
+												featureCategory, featureResourceUrl, virtualAccess);
 			
 			if (updatedFeature != null) {
 				// we have successfully obtained the new feature contents

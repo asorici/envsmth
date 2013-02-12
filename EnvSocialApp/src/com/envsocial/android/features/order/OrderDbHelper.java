@@ -56,7 +56,7 @@ public class OrderDbHelper extends FeatureDbHelper {
 
 	@Override
 	public void onDbCreate(SQLiteDatabase db) {
-		Log.d(TAG, "[DEBUG] >> ----------- Database " + getDatabaseName() + " is being created. ------------");
+		Log.d(TAG, "[DEBUG] >> ----------- Database " + getDBName() + " is being created. ------------");
 		
 		// create menu category table
 		db.execSQL("CREATE TABLE " + MENU_CATEGORY_TABLE + "(" + 
@@ -88,8 +88,6 @@ public class OrderDbHelper extends FeatureDbHelper {
 				", " + COL_ORDER_FTS_CATEGORY +
 				", " + COL_ORDER_FTS_PRICE +
 				", " + COL_ORDER_FTS_DESCRIPTION + " " +");");
-		
-		dbStatus = TABLES_CREATED;
 	}
 
 	@Override
@@ -97,25 +95,22 @@ public class OrderDbHelper extends FeatureDbHelper {
 		db.execSQL("DROP TABLE IF EXISTS " + MENU_CATEGORY_TABLE);
 		db.execSQL("DROP TABLE IF EXISTS " + MENU_ITEM_TABLE);
 		db.execSQL("DROP TABLE IF EXISTS " + MENU_ORDER_TABLE_FTS);
-		dbStatus = TABLES_INEXISTENT;
-		
-		onCreate(db);
 	}
 	
 	
 	@Override
-	public void onOpen(SQLiteDatabase db) {
-		Log.d(TAG, "[DEBUG] >> ----------- Database " + getDatabaseName() + " is being opened. ------------");
+	public void onDbOpen(SQLiteDatabase db) {
+		Log.d(TAG, "[DEBUG] >> ----------- Database " + getDBName() + " is being opened. ------------");
 	}
 	
 	@Override
-	public void init() throws EnvSocialContentException {
-		// calling insertMenu here
-		Log.d(TAG, "[DEBUG] >> ----------- Init " + getDatabaseName() + ". ------------");
-		insertMenu();
+	public void init(boolean insert) throws EnvSocialContentException {
+		Log.d(TAG, "[DEBUG] >> ----------- Init " + getDBName() + ". ------------");
 		
-		// now allow for the serialized data to be garbage collected.
-		// feature.setSerializedData(null);
+		// if new data is to be inserted - call insertMenu here
+		if (insert) {
+			insertMenu();
+		}
 	}
 	
 	@Override
@@ -132,7 +127,7 @@ public class OrderDbHelper extends FeatureDbHelper {
 	}
 	
 	public void insertMenu() throws EnvSocialContentException {
-		if (dbStatus == TABLES_CREATED) {
+		if (dbStatus == DB_CREATED) {
 			Log.d(TAG, "[DEBUG] >> ----------- INSERTING MENU DATA ------------");
 			
 			// the JSON encoded data is in the data field
@@ -221,7 +216,7 @@ public class OrderDbHelper extends FeatureDbHelper {
 					throw new EnvSocialContentException(encodedJsonData, EnvSocialResource.FEATURE, e);
 				}
 				
-				dbStatus = TABLES_POPULATED;
+				dbStatus = DB_POPULATED;
 			}
 		}
 	}
@@ -231,7 +226,7 @@ public class OrderDbHelper extends FeatureDbHelper {
 		database.delete(MENU_ITEM_TABLE, null, null);
 		database.delete(MENU_ORDER_TABLE_FTS, null, null);
 		
-		dbStatus = TABLES_CREATED;
+		dbStatus = DB_CREATED;
 	}
 	
 	/**

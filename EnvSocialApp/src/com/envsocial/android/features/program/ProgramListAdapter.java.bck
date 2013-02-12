@@ -44,10 +44,10 @@ public class ProgramListAdapter extends BaseAdapter {
 		
 		sessions = programDb.getAllSessions();
 		
-		days = programDb.getDays();
+		days = programDb.getDistinctDays();
 		entries = new ArrayList<List<Map<String,String>>>();
 		for (String d : days) {
-			entries.add(programDb.getEntriesByDay(d));
+			entries.add(programDb.getPresentationsByDay(d));
 		}
 	}
 	
@@ -82,7 +82,7 @@ public class ProgramListAdapter extends BaseAdapter {
 	private void bind(ViewHolder holder, int position) {
 		Map<String,String> entry = getItem(position);
 		List<Map<String,String>> overlapping = 
-			mProgramDb.getOverlappingEntries(entry.get(ProgramDbHelper.COL_PRESENTATION_ID));
+			mProgramDb.getOverlappingPresentations(entry.get(ProgramDbHelper.COL_PRESENTATION_ID));
 //		System.out.println("[DEBUG] >> Overlapping etries: " + overlapping);
 		
 		holder.bind(entry, overlapping, sessions);
@@ -293,7 +293,7 @@ public class ProgramListAdapter extends BaseAdapter {
 									.getCurrentView()
 									.getTag();
 			
-			Intent intent = new Intent(mContext, EntryDetailsActivity.class);
+			Intent intent = new Intent(mContext, PresentationDetailsActivity.class);
 			intent.putExtra(ProgramDbHelper.COL_PRESENTATION_ID, id);
 			mContext.startActivity(intent);
 			

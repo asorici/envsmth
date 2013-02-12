@@ -63,7 +63,7 @@ public class Annotation {
 	
 	public ResponseHolder post(Context context) {
 		AppClient client = new AppClient(context);
-		String userUri = Preferences.getLoggedInUserUri(context);
+		String userUri = Preferences.getUserUri(context);
 		
 		// build annotation request uri taking into account the type of access that is made
 		boolean virtualAccess = mLocation.hasVirtualAccess();
@@ -273,7 +273,7 @@ public class Annotation {
 			boolean retrieveAll) throws EnvSocialComException, EnvSocialContentException {
 		
 		// get data of the user executing this action
-		String userUri = Preferences.getLoggedInUserUri(context);
+		String userUri = Preferences.getUserUri(context);
 		AppClient client = new AppClient(context);
 		
 		// append virtual access flag to the request url
@@ -313,7 +313,7 @@ public class Annotation {
 				String next = meta.getString("next");
 
 				if (next != null && !next.equalsIgnoreCase("null")) {
-					next = Url.fromRelativeUrl(next);
+					next = Url.getFullPath(next);
 					annotations.addAll(getAnnotationsList(context, next, location, true));
 				}
 			}
@@ -375,7 +375,7 @@ public class Annotation {
 	
 	
 	public static int deleteAnnotation(Context context, String uri) throws Exception {
-		String url = Url.fromRelativeUrl(uri);
+		String url = Url.getFullPath(uri);
 		AppClient client = new AppClient(context);
 		
 		return client.makeDeleteRequest(url).getStatusLine().getStatusCode();

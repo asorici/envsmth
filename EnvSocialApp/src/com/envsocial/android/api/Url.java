@@ -1,22 +1,26 @@
 package com.envsocial.android.api;
 
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class Url {
 
 	public static final String HTTP = "http://";
 	public static final String HTTPS = "https://";
-	public static final String HOSTNAME = "envived.com:8800";
-	//public static final String HOSTNAME = "192.168.1.6:8000";
-	//public static final String HOSTNAME = "192.168.100.102:8080";
-	//public static final String HOSTNAME = "192.168.1.106:8000";
-	//public static final String HOSTNAME = "192.168.1.107:8080";
-	//public static final String HOSTNAME = "141.85.227.108";
-	//public static final String HOSTNAME = "192.168.8.55:8000";
-	//public static final String HOSTNAME = "172.16.2.181:8000";
+	//public static final String HOSTNAME = "envived.com:8800";
+	public static final String HOSTNAME = "192.168.100.102:8080";
+	//public static final String HOSTNAME = "192.168.1.108:8080";
 	
-	private static final String BASE_URL = "/envived/envsocial/client/v1/";
-	//private static final String BASE_URL = "/envsocial/client/v1/";
+	//private static final String BASE_URL = "/envived/envsocial/client/v1/";
+	private static final String BASE_URL = "/envsocial/client/v1/";
 	private static final String ACTION_RELATIVE_URL = BASE_URL + "actions/";
 	private static final String RESOURCE_RELATIVE_URL = BASE_URL + "resources/";
+	
+	private static final Pattern ENVIVED_RESOURCE_GENERAL_URL_PATTERN = 
+			Pattern.compile(RESOURCE_RELATIVE_URL + "(\\w+)" + "/");
+	private static final Pattern ENVIVED_RESOURCE_SPECIFIC_URL_PATTERN = 
+			Pattern.compile(RESOURCE_RELATIVE_URL + "(\\w+)" + "/" + "(\\d+)" + "/");
 	
 	public static final int ACTION = 0;
 	public static final int RESOURCE = 1;
@@ -44,8 +48,32 @@ public class Url {
 		mId = null;
 	}
 	
+	public int getUrlType() {
+		return mType;
+	}
+	
+	public String getUrlItem() {
+		return mItem;
+	}
+	
+	public String getItemId() {
+		return mId;
+	}
+	
 	public void setItemId(String id) {
 		mId = id;
+	}
+	
+	public boolean hasPhysicalAccess() {
+		if (mParams != null && mValues != null) {
+			for (int i = 0; i < mParams.length; i++) {
+				if (mParams[i].equalsIgnoreCase("virtual")) {
+					return Boolean.parseBoolean(mValues[i]);
+				}
+			}
+		}
+		
+		return false;
 	}
 	
 	public void setParameters(String[] params, String[] values) {
@@ -61,12 +89,14 @@ public class Url {
 			url.append(mProtocol);
 			url.append(HOSTNAME);
 		}
+		
 		// Add relative url
 		if (mType == ACTION) {
 			url.append(ACTION_RELATIVE_URL);
 		} else {
 			url.append(RESOURCE_RELATIVE_URL);
 		}
+		
 		// Add item and id if any
 		if (mItem != null) {
 			appendPathElement(url, mItem);
@@ -108,8 +138,8 @@ public class Url {
 	}
 	
 	
-	public static String fromRelativeUrl(String uri) {
-		return HTTP + HOSTNAME + uri;
+	public static String getFullPath(String relativeUrl) {
+		return HTTP + HOSTNAME + relativeUrl;
 	}
 	
 	public static String actionUrl(String action) {
@@ -187,5 +217,51 @@ public class Url {
 		} catch (Exception ex) {
 			return null;
 		}
+	}
+	
+	/**
+	 * Returns a new Envived Url object given the supplied {@code resourceUrl} string.
+	 * @param resourceUrl
+	 * @return the Envived Url object or null if {@code resourceUrl} is not an Envived resource url.
+	 */
+	public static Url fromResourceUrl(String resourceUrl) {
+		Matcher generalMatcher = ENVIVED_RESOURCE_GENERAL_URL_PATTERN.matcher(resourceUrl);
+		Matcher specificMatcher = ENVIVED_RESOURCE_SPECIFIC_URL_PATTERN.matcher(resourceUrl);
+		
+		if (specificMatcher.matches()) {
+			String item = specificMatcher.group(1);
+			String itemId = specificMatcher.group(2);
+
+			Url url = new Url(Url.RESOURCE, item);
+			url.setItemId(itemId);
+
+			return url;
+		}
+		else if (generalMatcher.matches()) {
+			String item = specificMatcher.group(1);
+			return new Url(Url.RESOURCE, item);
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Determines if the supplied {@code url} string contains a query parameter which makes the
+	 * access <i>real</i> (enabled by a scanned QRcode). The access is virtual (limited) by default. 
+	 * The url will be deemed as having a physical access if the url contains the sequence 
+	 * <code>virtual=false</code> or <code>virtual=f</code> 
+	 * @param url
+	 * @return  true if the <code>url</code> contains a <code>virtual=false</code> query 
+	 * and false otherwise 
+	 */
+	public static boolean hasPhysicalAccess(String url) {
+		int queryIndex = url.indexOf('?');
+		
+		if (queryIndex != -1) {
+			String urlQueries = url.substring(queryIndex + 1).toLowerCase(Locale.US);
+			return urlQueries.contains("virtual=false") || urlQueries.contains("virtual=f");
+		}
+		
+		return false;
 	}
 }

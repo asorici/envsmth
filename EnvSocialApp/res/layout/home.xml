@@ -1,42 +1,136 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="vertical"
-    android:id="@+id/view_home">
+    android:layout_height="wrap_content"
+    android:paddingLeft="5dip"
+    android:paddingRight="5dip"
     
-    <Button android:id="@+id/btn_checkin"
+    android:orientation="vertical">
+    
+    <LinearLayout 
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="10dip"
-        android:layout_marginRight="10dip"
-        android:layout_marginTop="10dip"
-        android:paddingTop="10dip"
-        android:paddingBottom="10dip"
-        android:text="@string/btn_checkin"
-        android:textStyle="bold"
-        style="@style/Widget.Envived.OrderButton" />
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dip" >
-    	
-    	<TextView
-        	android:layout_width="fill_parent"
-        	android:layout_height="wrap_content"
-			android:textStyle="bold"
-			android:textSize="16sp"
-			android:gravity="center"
-			android:textColor="@color/envived_order_text_white"
-			android:text="@string/lbl_current_checkin"
-			android:layout_marginBottom="20dip"
-        />
-    	
-    	<TextView
-    	    android:id="@+id/checked_in_location_name"
-        	style="@style/CheckinTextView"
-        />
-         
+    	android:layout_height="wrap_content"
+    	android:orientation="vertical"
+    	android:id="@+id/view_home">
+    
+        <LinearLayout 
+	        android:layout_width="match_parent"
+	        android:layout_height="64dip"
+	        android:orientation="horizontal"
+	        android:layout_margin="10dip">
+	        	<ImageView 
+	        	    android:layout_width="64dip"
+	        	    android:layout_height="match_parent"
+	        	    android:src="@drawable/qr_code_white"
+	        	    android:contentDescription="QRcode image"
+	        	    android:scaleType="centerInside"
+	        	    android:layout_marginRight="10dip"
+	        	    />
+	        	
+	    		<Button android:id="@+id/btn_checkin"
+			        android:layout_width="0dip"
+			        android:layout_weight="1"
+			        android:layout_height="48dip"
+			       	android:layout_marginLeft="10dip"
+			       	android:layout_gravity="center_vertical|center_horizontal"
+			       	android:gravity="center"
+			       	
+			        android:paddingTop="10dip"
+			        android:paddingBottom="10dip"
+			        android:text="@string/btn_checkin"
+			        android:textStyle="bold"
+			        android:textColor="@color/envived_order_text_dark_green"
+			        style="@style/Widget.Envived.Button" />    
+	    </LinearLayout>
+	    
+	    <LinearLayout
+	        android:orientation="vertical"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_marginTop="20dip"
+	        android:layout_marginBottom="20dip">
+	    	
+	    	<TextView
+	        	android:layout_width="fill_parent"
+	        	android:layout_height="wrap_content"
+				android:layout_marginBottom="5dip"
+				
+				android:textStyle="bold"
+				android:textSize="16sp"
+				android:padding="5dip"
+				android:gravity="left"
+				
+				android:textColor="@color/envived_order_text_white"
+				android:text="@string/lbl_current_checkin"
+				android:background="@drawable/feature_details_label"
+	        />
+	    	
+	    	<TextView
+	    	    android:id="@+id/checked_in_location_name"
+	        	style="@style/CheckinTextView"
+	        />
+	    </LinearLayout>
+	    
+	    
+	    <LinearLayout
+	        android:orientation="vertical"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_marginTop="20dip"
+	        android:layout_marginBottom="20dip">
+	    	
+	        <TextView
+	        	android:layout_width="fill_parent"
+	        	android:layout_height="wrap_content"
+				android:layout_marginBottom="5dip"
+				
+				android:textStyle="bold"
+				android:textSize="16sp"
+				android:padding="5dip"
+				android:gravity="left"
+				
+				android:textColor="@color/envived_order_text_white"
+				android:text="Featured Locations"
+				android:background="@drawable/feature_details_label"
+	        />
+	        
+	        <LinearLayout
+	            android:id="@+id/home_featured_locations"
+		        android:orientation="vertical"
+		        android:layout_width="fill_parent"
+		        android:layout_height="wrap_content"
+		    />
+	    </LinearLayout>
+	    
+	    
+	    <LinearLayout
+	        android:orientation="vertical"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_marginTop="20dip"
+	        android:layout_marginBottom="20dip">
+	    	
+	        <TextView
+	        	android:layout_width="fill_parent"
+	        	android:layout_height="wrap_content"
+				android:layout_marginBottom="5dip"
+				
+				android:textStyle="bold"
+				android:textSize="16sp"
+				android:padding="5dip"
+				android:gravity="left"
+				
+				android:textColor="@color/envived_order_text_white"
+				android:text="Checkin History"
+				android:background="@drawable/feature_details_label"
+	        />
+	        
+	        <LinearLayout
+	            android:id="@+id/home_location_history"
+		        android:orientation="vertical"
+		        android:layout_width="fill_parent"
+		        android:layout_height="wrap_content"
+		    />
+        </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+</ScrollView>

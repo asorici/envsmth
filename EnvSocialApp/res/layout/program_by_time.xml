@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/program_by_time_layout"
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_marginLeft="5dip" 
+    android:layout_marginRight="5dip">
+    
+	<ListView android:id="@+id/program_by_time"
+	    android:layout_width="match_parent"
+	    android:layout_height="0dip"
+	    android:layout_weight="1"
+	    android:layout_gravity="top"
+	    android:layout_marginBottom="5dip" 
+	    android:focusableInTouchMode="true"
+	    
+	    android:listSelector="@drawable/feature_order_item_description"
+		android:cacheColorHint="@android:color/transparent"
+	    
+	    android:divider="@android:color/transparent"
+	    android:dividerHeight="2dip"/>
+	
+	<HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:layout_gravity="bottom">
+		<LinearLayout android:id="@+id/dayScroll"
+		    android:layout_height="wrap_content"
+		    android:layout_width="fill_parent"
+		    android:orientation="horizontal"
+		/>
+    </HorizontalScrollView>
+</LinearLayout>

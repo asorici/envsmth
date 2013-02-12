@@ -32,13 +32,41 @@ class AnnotationAuthorization(Authorization):
     def is_authorized(self, request, object=None):
         from client.api import EnvironmentResource, AreaResource, AnnotationResource
         from coresql.models import Environment, Area
+        from coresql.utils import str2bool
         
         if hasattr(request, 'user') and not request.user.is_anonymous():
-            ## check here for annotation requests that the requesting user is actually checked in   
             env_obj = None
             area_obj = None
             
-            if request.method.upper() == "POST":
+            
+            if request.method.upper() == "GET":
+                if 'environment' in request.GET:
+                    try:
+                        env_obj = Environment.objects.get(pk=request.GET['environment'])
+                    except:
+                        env_obj = None
+                        
+                if 'area' in request.GET:
+                    try:
+                        area_obj = Area.objects.get(pk=request.GET['area'])
+                    except:
+                        area_obj = None
+                
+                ''' For GET requests we check if there is a virtual access flag set in the request.
+                    If the flag is not set, the default behavior is to assume physical check-in '''
+                if 'virtual' in request.GET:
+                    try:
+                        virtual = str2bool(request.GET['virtual'])
+                        if virtual and (area_obj or env_obj):
+                            ''' if the virtual flag is set to TRUE, then allow access, otherwise, check that 
+                            the user is actually checked-in where he says he is '''
+                            return True
+                    except ValueError:
+                        return False
+                    
+             
+            elif request.method.upper() == "POST":
+                ''' for the rest of the methods check that the requesting user is actually checked in '''
                 serdes = Serializer()
                 deserialized = None
                 try:
@@ -63,18 +91,6 @@ class AnnotationAuthorization(Authorization):
                     except:
                         area_obj = None
             
-            elif request.method.upper() == "GET":
-                if 'environment' in request.GET:
-                    try:
-                        env_obj = Environment.objects.get(pk=request.GET['environment'])
-                    except:
-                        env_obj = None
-                        
-                if 'area' in request.GET:
-                    try:
-                        area_obj = Area.objects.get(pk=request.GET['area'])
-                    except:
-                        area_obj = None
             
             elif request.method.upper() in ["DELETE", "PUT"]:
                 ann_res_uri = request.path
@@ -151,13 +167,15 @@ class FeatureAuthorization(Authorization):
     def is_authorized(self, request, object=None):
         from client.api import FeatureResource
         from coresql.models import Environment, Area
+        from coresql.utils import str2bool
         
         if request.method.upper() == "GET":
             if hasattr(request, 'user') and not request.user.is_anonymous():
                 env_obj = None
                 area_obj = None
                 
-                ## try first to obtain info from the feature_obj itself if this is a detail request
+                
+                ''' try first to obtain info from the feature_obj itself if this is a detail request '''
                 feature_res_uri = request.path
                 try:
                     feature_obj = FeatureResource().get_via_uri(feature_res_uri, request=request)
@@ -167,11 +185,12 @@ class FeatureAuthorization(Authorization):
                     env_obj = None
                     area_obj = None
                 
+                
                 #print "FeatureAuthorization environment: ", env_obj
                 #print "FeatureAuthorization area: ", area_obj
                 
                 if env_obj is None and area_obj is None:
-                    ## if not, try to retrieve environment and area objects from request filters 
+                    ''' if not, try to retrieve environment and area objects from request filters ''' 
                     if 'environment' in request.GET:
                         try:
                             env_obj = Environment.objects.get(pk=request.GET['environment'])
@@ -183,6 +202,19 @@ class FeatureAuthorization(Authorization):
                             area_obj = Area.objects.get(pk=request.GET['area'])
                         except:
                             area_obj = None
+                
+                
+                ''' We check if there is a virtual access flag set in the request. 
+                    If the flag is not set, the default behavior is to assume physical check-in '''
+                if 'virtual' in request.GET:
+                    try:
+                        virtual = str2bool(request.GET['virtual'])
+                        if virtual and (area_obj or env_obj):
+                            ''' if the virtual flag is set to TRUE, then allow access, otherwise, check that 
+                            the user is actually checked-in where he says he is '''
+                            return True
+                    except ValueError:
+                        return False
                 
                 
                 user_profile = request.user.get_profile()   ## will be an instance of UserProfile => available context

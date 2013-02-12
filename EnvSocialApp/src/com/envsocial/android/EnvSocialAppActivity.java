@@ -1,5 +1,7 @@
 package com.envsocial.android;
 
+import org.apache.http.HttpStatus;
+
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -10,11 +12,13 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ContextThemeWrapper;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.exceptions.EnvSocialComException;
@@ -31,12 +35,14 @@ public class EnvSocialAppActivity extends Activity implements OnClickListener {
 	private Button mBtnRegister;
 	private Button mBtnLogin;
 	
+	private CreateDeleteAnonymousTask mHandleAnonymousTask;
+	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        if (Preferences.getSessionId(this) != null) {
+        if (Preferences.getUserUri(this) != null && Preferences.getSessionId(this) != null) {
         	// If we already have a session, forward to HomeActivity
         	Intent intent = new Intent(this, HomeActivity.class);
         	Bundle bundle = getIntent().getExtras();
@@ -45,6 +51,7 @@ public class EnvSocialAppActivity extends Activity implements OnClickListener {
         	}
         	intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         	startActivity(intent);
+        	
         	if (Preferences.isLoggedIn(this)) {
         		// If the user is logged in, finish to remove from stack
         		finish();
@@ -77,7 +84,7 @@ public class EnvSocialAppActivity extends Activity implements OnClickListener {
     
     
     @Override
-    public void onRestart() {
+    protected void onRestart() {
     	super.onRestart();
     	Log.d(TAG, "--- onRestart in EnvSocialAppActivity !!!!!!!!!!!!!!");
     	
@@ -92,29 +99,28 @@ public class EnvSocialAppActivity extends Activity implements OnClickListener {
     }
     
     @Override
-    public void onStart() {
-    	super.onStart();
-    	Log.d(TAG, "--- onStart in EnvSocialAppActivity !!!!!!!!!!!!!!");
+    protected void onDestroy() {
+    	super.onDestroy();
+    	
+    	if (mHandleAnonymousTask != null) {
+    		mHandleAnonymousTask.cancel(true);
+    		mHandleAnonymousTask = null;
+    	}
     }
     
-    
-    @Override
-    public void onStop() {
-    	super.onStop();
-    	Log.d(TAG, "--- onStop in EnvSocialAppActivity !!!!!!!!!!!!!!");
-    }
-    
-    
-    @Override
-	public void onPause() {
-		super.onPause();
-		Log.d(TAG, "--- onPause in EnvSocialAppActivity !!!!!!!!!!!!!");
-	}
     
     public void onClick(View v) {
     	if (v == mBtnAnonymous) {
     		// Use app as anonymous, a temporary user account will be created
-    		startActivity(new Intent(this, HomeActivity.class));
+    		if (Preferences.getUserUri(getApplicationContext()) == null) {
+	    		mHandleAnonymousTask = new CreateDeleteAnonymousTask();
+	    		mHandleAnonymousTask.execute(CreateDeleteAnonymousTask.CREATE_ANONYMOUS);
+    		}
+    		else {
+    			// if a user uri already exists go directly to the HomeActivity
+				startActivity(new Intent(this, HomeActivity.class));
+    		}
+    		
     	} else if (v == mBtnRegister) {
     		// Register
     		startActivityForResult(new Intent(this, RegisterActivity.class), 0);
@@ -213,6 +219,74 @@ public class EnvSocialAppActivity extends Activity implements OnClickListener {
 				// checkout anyway before going back to the main activity
 				Preferences.checkout(getApplicationContext());
 			}
+		}
+	}
+    
+    
+    private class CreateDeleteAnonymousTask extends AsyncTask<Integer, Void, ResponseHolder> {
+		public static final int CREATE_ANONYMOUS = 0;
+		public static final int DELETE_ANONYMOUS = 1;
+		
+    	private ProgressDialog mLoadingDialog;
+		
+		@Override
+		protected void onPreExecute() {
+			mLoadingDialog = new ProgressDialog(new ContextThemeWrapper(EnvSocialAppActivity.this, R.style.ProgressDialogWhiteText));
+			mLoadingDialog.setIndeterminate(true);
+			mLoadingDialog.setMessage("Please wait ...");
+			mLoadingDialog.setCancelable(true);
+			mLoadingDialog.setCanceledOnTouchOutside(false);
+			
+			mLoadingDialog.show();
+		}
+		
+		@Override
+		protected ResponseHolder doInBackground(Integer ...args) {
+			Context context = getApplicationContext();
+			int action = args[0]; 
+			
+			ResponseHolder response = null;
+			
+			if (action == CREATE_ANONYMOUS) {
+				response = ActionHandler.create_anonymous(context);
+			}
+			else {
+				response = ActionHandler.delete_anonymous(context);
+			}
+			
+			return response;
+		}
+		
+		@Override
+		protected void onPostExecute(ResponseHolder holder) {
+			mLoadingDialog.cancel();
+			
+			if (holder.hasError()) {
+				
+				try {
+					throw holder.getError();
+				} catch (EnvSocialComException e) {
+					Log.d(TAG, e.getMessage(), e);
+				} catch (EnvSocialContentException e) {
+					Log.d(TAG, e.getMessage(), e);
+				} catch (Exception e) {
+					Log.d(TAG, e.toString(), e);
+				}
+				
+				Toast toast = Toast.makeText(getApplicationContext(), R.string.msg_create_anonymous_error, Toast.LENGTH_LONG);
+				toast.show();
+			}
+			else {
+				if (holder.getCode() != HttpStatus.SC_OK) {
+					Toast toast = Toast.makeText(getApplicationContext(), R.string.msg_create_anonymous_error, Toast.LENGTH_LONG);
+					toast.show();
+				}
+				else {
+					// after the anonymous user has been created proceed to the HomeSActivity
+					startActivity(new Intent(EnvSocialAppActivity.this, HomeActivity.class));
+				}
+			}
+			
 		}
 	}
 }

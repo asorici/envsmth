@@ -55,7 +55,7 @@ public class LocationContextManager implements Serializable {
 	// ================================ the different possible context requests ================================= //
 	
 	public ResponseHolder getUserCount(Context context) {
-		String userUri = Preferences.getLoggedInUserUri(context);
+		String userUri = Preferences.getUserUri(context);
 		AppClient client = new AppClient(context);
 		
 		String requestUri = Url.appendOrReplaceParameter(mResourceUri, "request", USER_COUNT_REQUEST);

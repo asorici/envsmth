@@ -85,9 +85,16 @@
         	<meta-data android:name="android.app.default_searchable"
             		   android:value=".DetailsSearchableActivity" />
         </activity>
+        
+        <activity android:name=".BrowseLocationsActivity" />
+        
         <activity android:name=".features.description.DescriptionActivity" />
-            
-        <activity android:name=".features.program.EntryDetailsActivity" />
+        
+        <activity android:name=".features.program.ProgramActivity" />
+        
+        
+        <activity android:name=".features.program.PresentationDetailsActivity" />
+        <activity android:name=".features.program.SpeakerDetailsActivity" />
         
         <activity
             android:name=".features.order.ResolvedOrderRequestDialogActivity"

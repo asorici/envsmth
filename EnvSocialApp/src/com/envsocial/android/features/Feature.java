@@ -21,6 +21,7 @@ import com.envsocial.android.api.AppClient;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.api.Url;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
+import com.envsocial.android.features.description.BoothDescriptionFeature;
 import com.envsocial.android.features.description.DescriptionFeature;
 import com.envsocial.android.features.order.OrderFeature;
 import com.envsocial.android.features.people.PeopleFeature;
@@ -41,10 +42,11 @@ public abstract class Feature implements Serializable {
 	public static final String ENVIRONMENT_TAG = "_environment_";
 	public static final String AREA_TAG = "_area_";
 	
-	public static final String DESCRIPTION 	= 	"description";
-	public static final String ORDER 		= 	"order";
-	public static final String PEOPLE 		= 	"people";
-	public static final String PROGRAM 		= 	"program";
+	public static final String DESCRIPTION 			= 	"description";
+	public static final String BOOTH_DESCRIPTION 	= 	"booth_description";
+	public static final String ORDER 				= 	"order";
+	public static final String PEOPLE 				= 	"people";
+	public static final String PROGRAM 				= 	"program";
 	
 	public static final String TAG 				= 	"Feature";
 	public static final String SEARCH_FEATURE 	= 	"Search_Feature";
@@ -59,8 +61,7 @@ public abstract class Feature implements Serializable {
 	protected String environmentUrl;
 	protected String areaUrl;
 	protected boolean virtualAccess;
-	protected int displayThumbnail;
-	protected String displayName;
+	
 	
 	/**
 	 * This field will only be populated after a Data Retrieval request is made to the server. The retrieved data is then either
@@ -68,6 +69,11 @@ public abstract class Feature implements Serializable {
 	 */
 	protected String retrievedData;
 	
+	/**
+	 * Feature initialization will have to be performed every time an instance is created for this feature.
+	 * This also mandates paying attention to a correct init / close cycle, so that no connections to DB
+	 * accidentally remain open.
+	 */
 	private transient boolean initialized = false;
 	
 	protected Feature(String category, int version, Calendar timestamp, String resourceUrl, 
@@ -80,10 +86,9 @@ public abstract class Feature implements Serializable {
 		this.areaUrl = areaUrl;
 		this.retrievedData = data;
 		this.virtualAccess = virtualAccess;
-		this.displayThumbnail = com.envsocial.android.R.drawable.ic_envived_white;
-		this.displayName = "Feature";
-		setDisplayName();
-		setDisplayThumbnail();
+		
+		//this.displayThumbnail = com.envsocial.android.R.drawable.ic_envived_white;
+		//this.displayName = "Feature";
 	}
 	
 	public void init() throws EnvSocialContentException {
@@ -111,16 +116,17 @@ public abstract class Feature implements Serializable {
 					}
 					else {
 						Log.d(TAG, "USING CACHED DATA for feature: " + category);
-						featureInit();
+						featureInit(false);
 					}
 				}
 				else {
 					Log.d(TAG, "FEATURE META DATA IS NOT IN CACHE, but data exists for: " + category);
+					featureInit(false);
 				}
 			}
 			else {
 				Log.d(TAG, "USING SERVER RETRIEVED DATA for feature: " + category);
-				featureInit();
+				featureInit(true);
 				
 				// after initialization allow retrieved serialized data to be garbage collected
 				retrievedData = null;
@@ -241,13 +247,6 @@ public abstract class Feature implements Serializable {
 		return retrievedData;
 	}
 	
-	public int getDisplayThumbnail() {
-		return displayThumbnail;
-	}
-	
-	public String getDisplayName() {
-		return displayName;
-	}
 	
 	public void setSerializedData(String serializedData) {
 		retrievedData = serializedData;
@@ -313,17 +312,18 @@ public abstract class Feature implements Serializable {
 		return info;
 	}
 	
-	public static Feature getFromServer(Context context, Location location, String category, 
-			String featureResourceUrl) {
+	
+	public static Feature getFromServer(Context context, String category, 
+			String featureResourceUrl, boolean virtualAccess) {
 		AppClient client = new AppClient(context);
-		String locationType = (location.isEnvironment()) ? Location.ENVIRONMENT : Location.AREA;
+		
 		
 		Url url = new Url(Url.RESOURCE, "feature");
 		url.setItemId(Url.resourceIdFromUrl(featureResourceUrl));
 		
 		url.setParameters(
-			new String[] { locationType, "virtual", "category" }, 
-			new String[] { "" + location.getId(), Boolean.toString(location.hasVirtualAccess()), category }
+			new String[] { "virtual", "category" }, 
+			new String[] { Boolean.toString(virtualAccess), category }
 		);
 		
 		
@@ -358,7 +358,7 @@ public abstract class Feature implements Serializable {
 					}
 					
 					return getInstance(remoteCategory, remoteVersion, remoteTimestamp, resourceUri, 
-							environmentUri, areaUri, data, location.hasVirtualAccess());
+							environmentUri, areaUri, data, virtualAccess);
 				}
 			}
 			else {
@@ -386,6 +386,9 @@ public abstract class Feature implements Serializable {
 		}
 		else if (category.equals(DESCRIPTION)) {
 			return new DescriptionFeature(category, version, timestamp, resourceUri, environmentUri, areaUri, data, virtualAccess);
+		}
+		else if (category.equals(BOOTH_DESCRIPTION)) {
+			return new BoothDescriptionFeature(category, version, timestamp, resourceUri, environmentUri, areaUri, data, virtualAccess);
 		}
 		else if (category.equals(ORDER)) {
 			return new OrderFeature(category, version, timestamp, resourceUri, environmentUri, areaUri, data, virtualAccess);
@@ -415,7 +418,7 @@ public abstract class Feature implements Serializable {
 	}
 	
 	
-	protected abstract void featureInit() throws EnvSocialContentException;
+	protected abstract void featureInit(boolean insert) throws EnvSocialContentException;
 	
 	protected abstract void featureUpdate() throws EnvSocialContentException;
 	
@@ -425,9 +428,9 @@ public abstract class Feature implements Serializable {
 	
 	public abstract boolean hasLocalQuerySupport();
 	
-	public abstract void setDisplayThumbnail();
+	public abstract int getDisplayThumbnail();
 	
-	public abstract void setDisplayName();
+	public abstract String getDisplayName();
 	
 	public abstract FeatureDbHelper getLocalDatabaseSupport();
 	

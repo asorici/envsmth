@@ -12,25 +12,43 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.envsocial.android.api.Location;
 import com.envsocial.android.features.Feature;
 
 public class DetailsGridAdapter extends BaseAdapter {
-	
 	private static final String TAG = "DetailsGridAdapter";
-	private HashMap<String, Integer> mThumbnails;
-	Map<String, Feature> mFeatures;
-	private ArrayList<Integer> mThumbIds;
-	private ArrayList<String> mNames;
+	
+	private Map<String, Feature> mFeatures;
+	private Location mLocation;
 	private Context mContext;
 	
-	public DetailsGridAdapter(Context c, Map<String, Feature> features) {
-		this.mContext = c;
-		this.mFeatures = features;
+	private HashMap<String, Integer> mThumbnails;
+	private ArrayList<Integer> mThumbIds;
+	private ArrayList<String> mNames;
+	private ArrayList<String> mFeatureCategories;
+	
+	public DetailsGridAdapter(Context context, Location location) {
+		this.mContext = context;
+		this.mLocation = location;
+		this.mFeatures = mLocation.getFeatures();
+		
 		this.mThumbIds = new ArrayList<Integer>();
 		this.mNames = new ArrayList<String>();
-		for (String featureName : features.keySet()) {
+		this.mFeatureCategories = new ArrayList<String>();
+		
+		// first add the area browser if location is an environment
+		if (location.isEnvironment()) {
+			mFeatureCategories.add(Location.AREA);
+			mThumbIds.add(R.drawable.details_icon_areas_white);
+			mNames.add("Browse locations");
+		}
+		
+		
+		// then add the 
+		for (String featureName : mFeatures.keySet()) {
 			Feature currentFeature = mFeatures.get(featureName);
 			
+			mFeatureCategories.add(currentFeature.getCategory());
 			mThumbIds.add(currentFeature.getDisplayThumbnail());		
 			mNames.add(currentFeature.getDisplayName());
 		}
@@ -43,14 +61,14 @@ public class DetailsGridAdapter extends BaseAdapter {
 
 	@Override
 	public Object getItem(int position) {
-		return mThumbIds.get(position);
+		return mFeatureCategories.get(position);
 	}
-
+	
 	@Override
 	public long getItemId(int position) {
 		return 0;
 	}
-
+	
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		LayoutInflater inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);

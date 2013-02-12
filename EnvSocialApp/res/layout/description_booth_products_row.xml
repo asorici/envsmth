@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:orientation="vertical">
+	
+    <TextView
+        android:id="@+id/description_booth_product_name"
+        android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginBottom="5dip"
+		android:layout_gravity="left|center_vertical"
+		android:gravity="left|center_vertical"
+		
+		android:textSize="14sp"
+		android:textColor="@color/black"
+		android:textStyle="bold"
+        />
+    
+    <TextView
+        android:id="@+id/description_booth_product_description_short"
+        android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:paddingLeft="20dip"
+		android:layout_marginBottom="5dip"
+		android:layout_gravity="right|center_vertical"
+		android:gravity="left|center_vertical"
+		android:ellipsize="end"
+		android:textColor="@color/actionbar_gray"
+        />
+</LinearLayout>

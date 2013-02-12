@@ -1,6 +1,7 @@
 package com.envsocial.android.features.program;
 
 import java.util.Calendar;
+import java.util.List;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -23,9 +24,39 @@ public class ProgramFeature extends Feature {
 	private static final String TAG = "ProgramFeature";
 	
 	public static final String PRESENTATION_QUERY_TYPE = "presentation";
-	public static final String PRESENTATION = "program_presentation";
 	
-	private ProgramDbHelper dbHelper;
+	public static final String SESSION = "session";
+	public static final String SESSION_ID = "id";
+	public static final String SESSION_TITLE = "title";
+	public static final String SESSION_TAG = "tag";
+	public static final String SESSION_LOCATION_URL = "location_url";
+	public static final String SESSION_LOCATION_NAME = "location_name";
+	
+	public static final String PRESENTATION = "presentation";
+	public static final String PRESENTATION_ID = "id";
+	public static final String PRESENTATION_SESSION_ID = "sessionId";
+	public static final String PRESENTATION_TITLE = "title";
+	public static final String PRESENTATION_TAGS = "tags";
+	public static final String PRESENTATION_ABSTRACT = "abstract";
+	public static final String PRESENTATION_START_TIME = "startTime";
+	public static final String PRESENTATION_END_TIME = "endTime";
+	
+	public static final String SPEAKER = "speaker";
+	public static final String SPEAKER_ID = "id";
+	public static final String SPEAKER_FIRST_NAME = "first_name";
+	public static final String SPEAKER_LAST_NAME = "last_name";
+	public static final String SPEAKER_AFFILIATION = "affiliation";
+	public static final String SPEAKER_POSITION = "position";
+	public static final String SPEAKER_BIOGRAPHY = "biography";
+	public static final String SPEAKER_EMAIL = "email";
+	public static final String SPEAKER_ONLINE_PROFILE_LINK = "online_profile_link";
+	public static final String SPEAKER_IMAGE_URL = "image_url";
+	
+	public static final String PRESENTATION_SPEAKERS = "presentation_speakers";
+	public static final String PRESENTATION_SPEAKERS_PRESENTATION_ID = "presentation_id";
+	public static final String PRESENTATION_SPEAKERS_SPEAKER_ID = "speaker_id";
+	
+	private transient ProgramDbHelper dbHelper;
 	
 	public ProgramFeature(String category, int version, Calendar timestamp, String resourceUri, 
 			String environmentUri, String areaUri, String data, boolean virtualAccess) throws EnvSocialContentException {
@@ -35,7 +66,7 @@ public class ProgramFeature extends Feature {
 	
 	
 	@Override
-	protected void featureInit() throws EnvSocialContentException {
+	protected void featureInit(boolean insert) throws EnvSocialContentException {
 		// register order notification handler
 		notificationHandler = new ProgramFeatureNotificationHandler();
 		EnvivedNotificationDispatcher.registerNotificationHandler(notificationHandler);
@@ -48,7 +79,7 @@ public class ProgramFeature extends Feature {
 		}
 		
 		if (dbHelper != null) {
-			dbHelper.init();
+			dbHelper.init(insert);
 		}
 	}
 
@@ -80,79 +111,8 @@ public class ProgramFeature extends Feature {
 		// unregister notification handler
 		EnvivedNotificationDispatcher.unregisterNotificationHandler(notificationHandler);
 	}
-	
-	
-	
-	/**
-	 * Gets the details of a single entry in the program. <br/>
-	 * Performs a query to the FeatureResource.
-	 * @param context
-	 * @param location
-	 * @param entryId
-	 * @return a dictionary of the program entriy's details
-	 */
-	/*
-	public static Map<String,String> getProgramEntryById(Context context, Location location, String entryId) {
-		Map<String,String> entry = new HashMap<String,String>();
-		
-		AppClient client = new AppClient(context);
-		
-		// force a query on the environment
-		String type = Location.ENVIRONMENT;
-		String locationId = location.getId();
-		if ( location.isArea() ) {
-			// get the locationId from the URI of the parent environment
-			locationId = Url.resourceIdFromUrl(location.getParentUrl());
-		}
-		
-		Url url = new Url(Url.RESOURCE, Feature.TAG);
-		url.setParameters(
-			new String[] { type, "category", "querytype", "entry_id"}, 
-			new String[] { locationId, Feature.PROGRAM, ProgramFeature.PRESENTATION_QUERY_TYPE, entryId}
-		);
-		
-		//System.out.println("[DEBUG] >> API query for entry: " + url.toString());
-		
-		
-		try {
-			HttpResponse response = client.makeGetRequest(url.toString());
-			ResponseHolder holder = ResponseHolder.parseResponse(response);
-			
-			if (!holder.hasError() && holder.getCode() == HttpStatus.SC_OK) {
-				// if all is Ok the response will be a list of program features with a single entry
-				JSONObject featuresJSON = holder.getJsonContent();
-				JSONArray featureList = featuresJSON.optJSONArray("objects");
-				
-				if (featureList != null) {
-					JSONObject featureData = featureList.getJSONObject(0);
-					JSONObject entryData = featureData.optJSONObject("data");
-					
-					if (entryData != null) {
-						entry.put(ProgramDbHelper.COL_ENTRY_TITLE, 
-								entryData.optString(ProgramDbHelper.COL_ENTRY_TITLE, "Title not available."));
-						entry.put(ProgramDbHelper.COL_ENTRY_SESSIONID, 
-								entryData.optString(ProgramDbHelper.COL_ENTRY_SESSIONID, "Session name not available."));
-						entry.put(ProgramDbHelper.COL_ENTRY_START_TIME, 
-								entryData.optString(ProgramDbHelper.COL_ENTRY_START_TIME, "Start time not available."));
-						entry.put(ProgramDbHelper.COL_ENTRY_SPEAKERS, 
-								entryData.optString(ProgramDbHelper.COL_ENTRY_SPEAKERS, "Speaker data not available."));
-						entry.put(ProgramDbHelper.COL_ENTRY_ABSTRACT, 
-								entryData.optString(ProgramDbHelper.COL_ENTRY_ABSTRACT, "No abstract available."));
-					
-						return entry;
-					}
-				}
-			}
-		} catch (IOException e) {
-			Log.d(TAG, e.toString());
-		} catch (JSONException e) {
-			Log.d(TAG, e.toString());
-		}
-		
-		return null;
-	}
-	*/
 
+	
 	@Override
 	public boolean hasLocalDatabaseSupport() {
 		return true;
@@ -179,13 +139,63 @@ public class ProgramFeature extends Feature {
 
 
 	@Override
-	public void setDisplayThumbnail() {
-		displayThumbnail = R.drawable.details_icon_schedule_white;
+	public int getDisplayThumbnail() {
+		return R.drawable.details_icon_schedule_white;
 	}
 
 
 	@Override
-	public void setDisplayName() {
-		displayName = "Program";
+	public String getDisplayName() {
+		return "Program";
 	}
+	
+	
+	public List<String> getDistinctDays() {
+		if (dbHelper != null) {
+			return dbHelper.getDistinctDays();
+		}
+		
+		return null;
+	}
+	
+
+	public Cursor getPresentationsByDay(String dayString) {
+		if (dbHelper != null) {
+			return dbHelper.getPresentationsByDay(dayString);
+		}
+		return null;
+	}
+	
+	public Cursor getPresentationDetails(int presentationId) {
+		if (dbHelper != null) {
+			return dbHelper.getPresentationDetails(presentationId);
+		}
+		return null;
+	}
+
+
+	public Cursor getPresentationSpeakerInfo(int presentationId) {
+		if (dbHelper != null) {
+			return dbHelper.getPresentationSpeakerInfo(presentationId);
+		}
+		return null;
+	}
+
+
+	public Cursor getSpeakerDetails(int speakerId) {
+		if (dbHelper != null) {
+			return dbHelper.getSpeakerDetails(speakerId);
+		}
+		return null;
+	}
+
+
+	public Cursor getSpeakerPresentationsInfo(int speakerId) {
+		if (dbHelper != null) {
+			return dbHelper.getSpeakerPresentationsInfo(speakerId);
+		}
+		return null;
+	}
+
+
 }

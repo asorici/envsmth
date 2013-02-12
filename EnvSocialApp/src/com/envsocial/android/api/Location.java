@@ -5,7 +5,9 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.json.JSONArray;
@@ -31,13 +33,14 @@ public class Location implements Serializable {
 	private static final int TYPE_AREA = 1;
 	
 	private String mJSONString;
-	private boolean mVirtualAccess = false;
+	private boolean mVirtualAccess = true;
 	
 	private String mId;
 	private String mResourceUri;
 	private int mType;
 	private String mName;
 	private Map<String, Feature> mFeatures;
+	private List<AreaInfo> mAreaInfoList;
 	private List<String> mTags;
 	
 	private String mParentUri;
@@ -47,6 +50,8 @@ public class Location implements Serializable {
 	private String mOwnerLastName;
 	private String mOwnerEmail;
 	private String mOwnerUri;
+	
+	private String mImageThumbnailUrl;
 	
 	/** Environment specific fields */
 	private String mLatitude;
@@ -80,7 +85,20 @@ public class Location implements Serializable {
 		JSONObject data = new JSONObject(jsonString);
 		
 		// Get location access flag: virtual or physical
-		mVirtualAccess = data.optBoolean("virtual", false);
+		mVirtualAccess = data.optBoolean("virtual", true);
+		
+		// get location Area info list
+		mAreaInfoList = new LinkedList<Location.AreaInfo>();
+		JSONArray areaInfoArray = data.optJSONArray("area_list");
+		if (areaInfoArray != null) {
+			int len = areaInfoArray.length();
+			for (int i = 0; i < len; i++) {
+				JSONObject areaInfoObject = areaInfoArray.getJSONObject(i);
+				AreaInfo info = AreaInfo.fromSerialized(areaInfoObject);
+
+				mAreaInfoList.add(info);
+			}
+		}
 		
 		// Get location type
 		String type = data.getString("location_type");
@@ -133,9 +151,9 @@ public class Location implements Serializable {
 			} catch (IllegalArgumentException ex) {
 				Log.d("Location", ex.getMessage());
 			} catch (EnvSocialContentException ex) {
-				Log.d("Location", "Failed to add feature of category :: " + category.toUpperCase() + ". Reason: " + ex.getMessage());
+				Log.d("Location", "Failed to add feature of category :: " + category.toUpperCase(Locale.US) + ". Reason: " + ex.getMessage());
 			} catch (SQLiteException ex) {
-				Log.d("Location", "Failed to add feature of category ::" + category.toUpperCase() + ". Feature local DB error: " + ex.getMessage());
+				Log.d("Location", "Failed to add feature of category ::" + category.toUpperCase(Locale.US) + ". Feature local DB error: " + ex.getMessage());
 			}
 		}
 		
@@ -146,6 +164,9 @@ public class Location implements Serializable {
 		for (int i = 0; i < len; ++ i) {
 			mTags.add(array.getString(i));
 		}
+		
+		// Get thumbnail image if available
+		mImageThumbnailUrl = locationData.optString("img_thumbnail_url", null);
 		
 		// Get parent data
 		JSONObject parentData = locationData.optJSONObject("parent");
@@ -290,8 +311,16 @@ public class Location implements Serializable {
 		return mFeatures;
 	}
 	
+	public List<AreaInfo> getAreaInfoList() {
+		return mAreaInfoList;
+	}
+	
 	public List<String> getTags() {
 		return mTags;
+	}
+	
+	public String getImageThumbnailUrl() {
+		return mImageThumbnailUrl;
 	}
 	
 	public String getParentUrl() {
@@ -352,6 +381,10 @@ public class Location implements Serializable {
 		return mJSONString;
 	}
 	
+	public JSONObject getAsJson() throws JSONException {
+		return new JSONObject(mJSONString);
+	}
+	
 	@Override
 	public String toString() {
 		String info = "";
@@ -365,5 +398,63 @@ public class Location implements Serializable {
 	/** Location context specific methods */
 	public LocationContextManager getContextManager() {
 		return mContextManager;
+	}
+	
+	public static class AreaInfo implements Serializable {
+		private String mResourceUrl;
+		private String mName;
+		
+		private List<String> mTags;
+		private int mPersonCount;
+		private String mImageUrl;
+		
+		private AreaInfo(String resourceUrl, String name, List<String> tags, int personCount, String imageUrl) {
+			this.mResourceUrl = resourceUrl;
+			this.mName = name;
+			this.mTags = tags;
+			this.mPersonCount = personCount;
+			this.mImageUrl = imageUrl;
+		}
+
+		
+		public String getResourceUrl() {
+			return mResourceUrl;
+		}
+		
+		public String getName() {
+			return mName;
+		}
+		
+		public List<String> getTags() {
+			return mTags;
+		}
+		
+		public int getPersonCount() {
+			return mPersonCount;
+		}
+		
+		public String getImageUrl() {
+			return mImageUrl;
+		}
+		
+		public static AreaInfo fromSerialized(JSONObject areaInfo) throws JSONException {
+			String resourceUrl = areaInfo.getString("resource_uri");
+			String name = areaInfo.getString("name");
+			JSONArray tags = areaInfo.optJSONArray("tags");
+			List<String> tagList = null;
+			if (tags != null) {
+				tagList = new LinkedList<String>();
+				int len = tags.length();
+				
+				for (int i = 0; i < len; i++) {
+					tagList.add(tags.getString(i));
+				}
+			}
+			
+			int personCount = areaInfo.getInt("person_count");
+			String imageUrl = areaInfo.optString("image_url", null);
+			
+			return new AreaInfo(resourceUrl, name, tagList, personCount, imageUrl);
+		}
 	}
 }

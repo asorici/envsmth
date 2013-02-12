@@ -70,7 +70,7 @@ public class DescriptionFeature extends Feature {
 	}
 
 	@Override
-	protected void featureInit() throws EnvSocialContentException {
+	protected void featureInit(boolean insert) throws EnvSocialContentException {
 		String serializedData = retrievedData;
 		try {
 			String localCacheFileName = getLocalCacheFileName(category, environmentUrl, areaUrl, version);
@@ -83,12 +83,10 @@ public class DescriptionFeature extends Feature {
 				Preferences.setSerializedFeatureData(Envived.getContext(), localCacheFileName, serializedData);
 			}
 			
-			if (serializedData != null) {
-				JSONObject descriptionData = new JSONObject(serializedData);
-				mDescriptionText = descriptionData.optString(DESCRIPTION_TEXT, NO_DESCRIPTION);
-				mNewestInfoText = descriptionData.optString(NEWEST_INFO_TEXT, NO_NEWEST_INFO);
-				mLogoImageUri = descriptionData.optString(IMG_URL, null);
-			}
+			JSONObject descriptionData = new JSONObject(serializedData);
+			mDescriptionText = descriptionData.optString(DESCRIPTION_TEXT, NO_DESCRIPTION);
+			mNewestInfoText = descriptionData.optString(NEWEST_INFO_TEXT, NO_NEWEST_INFO);
+			mLogoImageUri = descriptionData.optString(IMG_URL, null);
 		} 
 		catch (JSONException e) {
 			throw new EnvSocialContentException(serializedData, EnvSocialResource.FEATURE, e);
@@ -117,13 +115,13 @@ public class DescriptionFeature extends Feature {
 
 
 	@Override
-	public void setDisplayThumbnail() {
-		displayThumbnail = R.drawable.details_icon_description_white;
+	public int getDisplayThumbnail() {
+		return R.drawable.details_icon_description_white;
 	}
 
 
 	@Override
-	public void setDisplayName() {
-		displayName = "Description";
+	public String getDisplayName() {
+		return "Description";
 	}
 }

@@ -5,7 +5,8 @@
     android:layout_height="match_parent" 
     android:layout_marginLeft="5dip"
     android:layout_marginRight="5dip"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@drawable/details_grid_cell_background">
     
     <ImageView android:id="@+id/details_grid_cell_image"
         android:contentDescription="GridView cell image"
@@ -18,13 +19,14 @@
     <TextView android:id="@+id/details_grid_cell_text"
 	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"
-	    android:layout_marginLeft="1dip" 
-	    android:layout_marginRight="1dip"
+	    android:layout_marginLeft="2dip" 
+	    android:layout_marginRight="2dip"
 	    
+	    android:lines="2"
 	    android:textColor="@color/white"
 	    android:textStyle="bold"
 	    android:gravity="center"
 	    android:layout_gravity="center"
-	    android:textSize="20sp" />
+	    android:textSize="18sp" />
 
 </LinearLayout>

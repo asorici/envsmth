@@ -92,7 +92,6 @@ public class Utils {
     }
 
     public static boolean hasJellyBean() {
-        //return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN;
-    	return false;
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN;
     }
 }

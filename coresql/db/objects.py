@@ -50,7 +50,7 @@ class ListWrapper(object):
     
     
     def __unicode__(self):
-        return " ; ".join(self.argList)
+        return ";".join(self.argList)
     
 
 
@@ -202,5 +202,8 @@ class AreaShape(object):
         else:
             return AreaShape()
     
-    def __repr__(self):
-        return "AreaShape(" + self.areaType + "," + str(self.points) + ")"
+    def __str__(self):
+        if not self.areaType is None:
+            return "AreaShape(" + self.areaType + "," + str(self.points) + ")"
+        else:
+            return ""

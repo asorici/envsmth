@@ -4,7 +4,6 @@ import java.text.ParseException;
 import java.util.List;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -26,6 +25,7 @@ public final class Preferences {
 	private static final String CHECKED_IN_LOCATION = "checked_in_location";
 	private static final String PEOPLE_IN_LOCATION = "people_in_location";
 	private static final String FEATURE_LRU_TRACKER = "feature_lru_tracker";
+	private static final String LOCATION_HISTORY = "location_history";
 	
 	public static void login(Context context, String email, String firstName, String lastName, String uri) {
 		setStringPreference(context, EMAIL, email);
@@ -35,23 +35,27 @@ public final class Preferences {
 	}
 	
 	public static void logout(Context context) {
+		// when we logout we clear out every logged in user data, including SESSIONID
 		removeStringPreference(context, EMAIL);
 		removeStringPreference(context, USER_URI);
-		removeStringPreference(context, AppClient.SESSIONID);
-		removeStringPreference(context, PEOPLE_IN_LOCATION);
 		removeStringPreference(context, FIRST_NAME);
 		removeStringPreference(context, LAST_NAME);
+		removeStringPreference(context, AppClient.SESSIONID);
 	}
 	
 	public static boolean isLoggedIn(Context context) {
-		return !(getLoggedInUserEmail(context) == null);
+		return getLoggedInUserEmail(context) != null;
+	}
+	
+	public static boolean isCheckedIn(Context context) {
+		return getCheckedInLocation(context) != null;
 	}
 	
 	public static String getLoggedInUserEmail(Context context) {
 		return getStringPreference(context, EMAIL);
 	}
 	
-	public static String getLoggedInUserUri(Context context) {
+	public static String getUserUri(Context context) {
 		return getStringPreference(context, USER_URI);
 	}
 	
@@ -68,9 +72,24 @@ public final class Preferences {
 	}
 	
 	
-	public static void checkin(Context context, String userUri, Location location) {
-		setStringPreference(context, CHECKED_IN_LOCATION, location.serialize());
+	public static void create_anonymous(Context context, String userUri) {
 		setStringPreference(context, USER_URI, userUri);
+	}
+	
+	
+	public static void delete_anonymous(Context context) {
+		// when we delete an anonymous user, we clear out everything related to such, including SESSIONID
+		removeStringPreference(context, USER_URI);
+		removeStringPreference(context, AppClient.SESSIONID);
+	}
+	
+	
+	public static void checkin(Context context, String userUri, Location location, boolean virtual) {
+		// set a CHECKED_IN_LOCATION only for physical checkins
+		if (!virtual) {
+			setStringPreference(context, CHECKED_IN_LOCATION, location.serialize());
+		}
+		//setStringPreference(context, USER_URI, userUri);
 	}
 	
 	public static void checkout(Context context) {
@@ -83,13 +102,15 @@ public final class Preferences {
 		
 		removeStringPreference(context, CHECKED_IN_LOCATION);
 		removeStringPreference(context, PEOPLE_IN_LOCATION);
-		removeStringPreference(context, USER_URI);
+		//removeStringPreference(context, USER_URI);
 		
+		/*
 		// if we didn't log in
 		if (!isLoggedIn(context)) {
 			// remove the client SESSION ID
 			removeStringPreference(context, AppClient.SESSIONID);
 		}
+		*/
 	}
 	
 	public static Location getCheckedInLocation(Context context) {
@@ -105,10 +126,6 @@ public final class Preferences {
 		}
 		
 		return null;
-	}
-	
-	public static boolean isCheckedIn(Context context) {
-		return getCheckedInLocation(context) != null;
 	}
 	
 	
@@ -152,6 +169,37 @@ public final class Preferences {
 		try {
 			String jsonString = featureLRUTracker.toJSON();
 			setStringPreference(context, FEATURE_LRU_TRACKER, jsonString);
+		}
+		catch (JSONException ex) {
+			Log.d(TAG, "ERROR json serializing feature lru tracker", ex);
+		}
+	}
+	
+	
+	public static LocationHistory getLocationHistory(Context context) {
+		String jsonString = getStringPreference(context, LOCATION_HISTORY);
+		
+		try {
+			if (jsonString != null) {
+				return LocationHistory.fromJSON(jsonString);
+			}
+			
+			return null;
+		}
+		catch (JSONException ex) {
+			Log.d(TAG, "ERROR reading location history tracker from JSON serialized string.", ex);
+			return null;
+		} catch (ParseException ex) {
+			Log.d(TAG, "ERROR reading location history tracker from JSON serialized string.", ex);
+			return null;
+		}
+	}
+	
+	
+	public static void setLocationHistory(Context context, LocationHistory locationHistory) {
+		try {
+			String jsonString = locationHistory.toJSON();
+			setStringPreference(context, LOCATION_HISTORY, jsonString);
 		}
 		catch (JSONException ex) {
 			Log.d(TAG, "ERROR json serializing feature lru tracker", ex);

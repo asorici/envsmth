@@ -18,7 +18,7 @@ public class OrderFeature extends Feature {
 	private static final String TAG = "OrderFeature";
 	
 	private EnvivedNotificationHandler notificationHandler;
-	private OrderDbHelper dbHelper;
+	private transient OrderDbHelper dbHelper;
 	
 	
 	public static final String TYPE_DRINKS = "drinks";
@@ -56,7 +56,7 @@ public class OrderFeature extends Feature {
 
 	
 	@Override
-	protected void featureInit() throws EnvSocialContentException {
+	protected void featureInit(boolean insert) throws EnvSocialContentException {
 		// register order notification handler
 		notificationHandler = new OrderFeatureNotificationHandler();
 		EnvivedNotificationDispatcher.registerNotificationHandler(notificationHandler);
@@ -69,8 +69,8 @@ public class OrderFeature extends Feature {
 		}
 		
 		// insert data if it was newly retrieved
-		if (dbHelper != null && retrievedData != null) {
-			dbHelper.init();
+		if (dbHelper != null) {
+			dbHelper.init(insert);
 		}
 	}
 
@@ -158,13 +158,13 @@ public class OrderFeature extends Feature {
 
 
 	@Override
-	public void setDisplayThumbnail() {
-		displayThumbnail = R.drawable.details_icon_order_white;
+	public int getDisplayThumbnail() {
+		return R.drawable.details_icon_order_white;
 	}
 
 
 	@Override
-	public void setDisplayName() {
-		displayName = "Order";
+	public String getDisplayName() {
+		return "OrderMenu";
 	}
 }

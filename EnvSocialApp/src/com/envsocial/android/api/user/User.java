@@ -106,7 +106,7 @@ public class User {
 			String next = meta.getString("next");
 			
 			if (next != null && !next.equalsIgnoreCase("null")) {
-				next = Url.fromRelativeUrl(next);
+				next = Url.getFullPath(next);
 				users.addAll(getUsersList(context, next, location, true));
 			}
 		}

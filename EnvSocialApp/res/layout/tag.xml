@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<com.envsocial.android.widget.StaticTagView
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tag="http://schemas.android.com/apk/res-auto"
+	
+	android:layout_width="wrap_content"
+	android:layout_height="wrap_content"
+	android:padding="5dip"
+	android:textColor="@color/envived_order_text_dark_green"
+	android:textSize="12sp"
+	tag:tag_background="@color/envived_order_text_light_green"
+	tag:tag_border="@color/envived_order_text_dark_green" />

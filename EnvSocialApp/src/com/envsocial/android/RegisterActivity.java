@@ -26,7 +26,7 @@ import com.actionbarsherlock.app.SherlockActivity;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.exceptions.EnvSocialComException;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
-import com.envsocial.android.features.program.EntryDetailsActivity;
+import com.envsocial.android.features.program.PresentationDetailsActivity;
 import com.envsocial.android.utils.ResponseHolder;
 
 public class RegisterActivity extends SherlockActivity implements OnClickListener {

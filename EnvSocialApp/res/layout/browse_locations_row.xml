@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:taglist="http://schemas.android.com/apk/res-auto"
+    
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/feature_browse_locations_row">
+	
+    <LinearLayout 
+        android:layout_width="match_parent"
+        android:layout_height="64dip"
+        android:orientation="horizontal"
+        android:layout_marginBottom="5dip">
+        
+        <ImageView 
+       		android:id="@+id/location_image"
+        	android:contentDescription="Location Image"
+        	android:layout_width="64dip"
+    		android:layout_height="match_parent"
+    		android:padding="5dip"
+    		android:layout_marginRight="5dip"
+    		android:scaleType="centerInside"
+    		android:src="@drawable/placeholder_small"
+    		
+    		android:focusable="false"
+			android:focusableInTouchMode="false"
+    	/>
+        
+        <TextView 
+	        android:id="@+id/location_name"
+	        android:layout_width="fill_parent"
+	    	android:layout_height="match_parent"
+	    	android:layout_marginLeft="5dip"
+	    	android:textSize="14sp"
+	    	android:textStyle="bold"
+	    	android:layout_gravity="center"
+	    	android:gravity="center"
+	    	
+	    	android:focusable="false"
+			android:focusableInTouchMode="false"
+    	 />
+    </LinearLayout>
+    
+    <TextView android:id="@+id/location_checked_in_count"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingRight="5dip"
+        android:layout_marginBottom="5dip"
+        android:layout_gravity="right|center_vertical"
+        
+        android:gravity="right|center_vertical"
+        android:textSize="14sp"
+        android:textColor="@color/envived_order_text_warm_green"
+        android:text="@string/locations_checked_in_count"
+    	
+    	android:focusable="false"
+		android:focusableInTouchMode="false"
+    />
+
+    <org.codeandmagic.android.TagListView
+        android:id="@+id/location_tag_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dip"
+        
+        android:layout_gravity="center_horizontal|center_vertical"
+        taglist:horizontal_spacing="3dip"
+        taglist:vertical_spacing="3dip" 
+        
+        android:focusable="false"
+		android:focusableInTouchMode="false"
+    />
+	 
+</LinearLayout>

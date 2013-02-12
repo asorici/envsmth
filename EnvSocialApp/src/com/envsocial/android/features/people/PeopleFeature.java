@@ -36,7 +36,7 @@ public class PeopleFeature extends Feature {
 
 
 	@Override
-	protected void featureInit() throws EnvSocialContentException {}
+	protected void featureInit(boolean insert) throws EnvSocialContentException {}
 
 
 	@Override
@@ -52,14 +52,14 @@ public class PeopleFeature extends Feature {
 
 
 	@Override
-	public void setDisplayThumbnail() {
-		displayThumbnail = R.drawable.details_icon_schedule; // no people thumbnail yet
+	public int getDisplayThumbnail() {
+		return R.drawable.ic_envived_white; // no people thumbnail yet
 	}
 
 
 	@Override
-	public void setDisplayName() {
-		displayName = "People";
+	public String getDisplayName() {
+		return "People";
 	}
 
 }

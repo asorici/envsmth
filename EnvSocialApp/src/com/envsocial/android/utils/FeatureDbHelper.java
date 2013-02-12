@@ -21,11 +21,13 @@ public abstract class FeatureDbHelper extends SQLiteOpenHelper implements Serial
 	protected transient SQLiteDatabase database;
 	protected String databaseName;
 	
-	protected static final int TABLES_INEXISTENT = 0;
-	protected static final int TABLES_CREATED = 1;
-	protected static final int TABLES_POPULATED = 2;
+	protected static final int DB_INEXISTENT = 0;
+	protected static final int DB_CREATED = 1;
+	protected static final int DB_POPULATED = 2;
+	protected static final int DB_OPEN = 3;
+	protected static final int DB_CLOSED = 4;
 	
-	protected int dbStatus = TABLES_INEXISTENT;
+	protected int dbStatus = DB_INEXISTENT;
 	
 	public FeatureDbHelper(Context context, String databaseName, Feature feature, int version) {
 		super(context, databaseName, null, version);
@@ -34,7 +36,7 @@ public abstract class FeatureDbHelper extends SQLiteOpenHelper implements Serial
 		this.feature = feature;
 	}
 	
-	public String getDatabaseName() {
+	public String getDBName() {
 		return databaseName;
 	}
 	
@@ -49,12 +51,26 @@ public abstract class FeatureDbHelper extends SQLiteOpenHelper implements Serial
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		onDbCreate(db);
+		
+		dbStatus = DB_CREATED;
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		onDbUpgrade(db, oldVersion, newVersion);
+		
+		dbStatus = DB_INEXISTENT;
+		onCreate(db);
 	}
+	
+	
+	@Override
+	public void onOpen(SQLiteDatabase db) {
+		onDbOpen(db);
+		
+		dbStatus = DB_OPEN;
+	}
+	
 	
 	@Override
 	public void close() {
@@ -63,15 +79,16 @@ public abstract class FeatureDbHelper extends SQLiteOpenHelper implements Serial
 	}
 	
 	/**
-	 * Allows the initialization of the database tables typically by
+	 * Allows the initialization of the database tables. The  typically by
 	 * performing the initial insertion of the serialized data from the feature.
 	 * <br/>
 	 * Default method does nothing.
 	 * 
+	 * @param insert flag specifying if new data is to be inserted in this feature's database tables
 	 * @throws {@link EnvSocialContentException} if the parsing of the serialized data
 	 * from the feature is unsuccessful.
 	 */
-	public void init() throws EnvSocialContentException {
+	public void init(boolean insert) throws EnvSocialContentException {
 		
 	}
 	
@@ -88,10 +105,11 @@ public abstract class FeatureDbHelper extends SQLiteOpenHelper implements Serial
 		
 	}
 	
-	
 	protected abstract void onDbCreate(SQLiteDatabase db);
 	
 	protected abstract void onDbUpgrade(SQLiteDatabase db, int oldVersion, int newVersion);
+	
+	protected abstract void onDbOpen(SQLiteDatabase db);
 	
 	/**
 	 * Appends * at the end of each word in the query.
@@ -103,10 +121,10 @@ public abstract class FeatureDbHelper extends SQLiteOpenHelper implements Serial
  
         final StringBuilder builder = new StringBuilder();
         final String[] splits = TextUtils.split(query, " ");
- 
+        
         for (String split : splits)
-          builder.append(split).append("*").append(" ");
- 
+        	builder.append(split).append("*").append(" ");
+        
         return builder.toString().trim();
     }
 }

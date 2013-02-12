@@ -22,7 +22,10 @@ import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
 
 public class ActionHandler {
+	private static final String TAG = "ActionHandler";
 	
+	public final static String CREATE_ANONYMOUS = "create_anonymous";
+	public final static String DELETE_ANONYMOUS = "delete_anonymous";
 	public final static String LOGIN = "login";
 	public final static String LOGOUT = "logout";
 	public final static String CHECKIN = "checkin";
@@ -47,7 +50,7 @@ public class ActionHandler {
 		HttpResponse response = null;
 		
 		try {
-			String url = Url.fromRelativeUrl(Preferences.getLoggedInUserUri(context));
+			String url = Url.getFullPath(Preferences.getUserUri(context));
 			
 			String data = new JSONStringer()
 				.object()
@@ -70,6 +73,72 @@ public class ActionHandler {
 		
 		// handle GCM registration response from server
 		ResponseHolder holder = ResponseHolder.parseResponse(response);
+		
+		return holder;
+	}
+	
+	
+	public static ResponseHolder create_anonymous(Context context) {
+		AppClient client = new AppClient(context);
+		
+		HttpResponse response = null;
+		try {
+			response = client.makeGetRequest(Url.actionUrl(CREATE_ANONYMOUS));
+		} catch (IOException e) {
+			return new ResponseHolder(new EnvSocialComException(null, HttpMethod.GET, 
+											EnvSocialResource.CREATE_ANONYMOUS, e));
+		}
+		
+		
+		// handle logout response
+		ResponseHolder holder = ResponseHolder.parseResponse(response);
+		
+		// Log.d(TAG, "create anonymous: " + holder.getResponseBody());
+		
+		try {
+			if (!holder.hasError()) {
+				int statusCode = holder.getCode();
+				
+				if (statusCode == HttpStatus.SC_OK) {
+					JSONObject dataJSON = holder.getJsonContent().getJSONObject("data");
+					
+					String userUri = dataJSON.getString("user_uri");
+					Preferences.create_anonymous(context, userUri);
+				}
+			}
+			
+			return holder;
+		} catch (JSONException e) {
+			return new ResponseHolder(new EnvSocialContentException(holder.getResponseBody(), 
+											EnvSocialResource.LOGIN, e));
+		}
+	}
+	
+	
+	public static ResponseHolder delete_anonymous(Context context) {
+		String userUri = Preferences.getUserUri(context);
+		AppClient client = new AppClient(context);
+		
+		HttpResponse response = null;
+		try {
+			response = client.makeGetRequest(Url.actionUrl(DELETE_ANONYMOUS));
+		} catch (IOException e) {
+			return new ResponseHolder(new EnvSocialComException(userUri, HttpMethod.GET, 
+											EnvSocialResource.DELETE_ANONYMOUS, e));
+		}
+		
+		// handle logout response
+		ResponseHolder holder = ResponseHolder.parseResponse(response);
+		if (!holder.hasError() && holder.getCode() == HttpStatus.SC_OK) {
+			Preferences.delete_anonymous(context);
+		}
+		else if (holder.hasError()) {
+			Log.d(TAG, "ERROR deleting anonymous user: " + userUri, holder.getError());
+		}
+		else if (holder.getCode() != HttpStatus.SC_OK) {
+			Log.d(TAG, "ERROR deleting anonymous user: " + userUri + ". " +
+					"Status code: " + holder.getCode() + ". Response Body: " + holder.getResponseBody());
+		}
 		
 		return holder;
 	}
@@ -119,7 +188,7 @@ public class ActionHandler {
 	
 	
 	public static ResponseHolder logout(Context context) {
-		String userUri = Preferences.getLoggedInUserUri(context);
+		String userUri = Preferences.getUserUri(context);
 		AppClient client = new AppClient(context);
 		
 		HttpResponse response = null;
@@ -132,7 +201,7 @@ public class ActionHandler {
 		
 		// handle logout response
 		ResponseHolder holder = ResponseHolder.parseResponse(response);
-		if (!holder.hasError()) {
+		if (!holder.hasError() && holder.getCode() == HttpStatus.SC_OK) {
 			Preferences.logout(context);
 		}
 		
@@ -142,7 +211,7 @@ public class ActionHandler {
 	
 	public static ResponseHolder checkin(Context context, String url) {
 		
-		String userUri = Preferences.getLoggedInUserUri(context);
+		String userUri = Preferences.getUserUri(context);
 		AppClient client = new AppClient(context);
 		
 		if (url == null) {
@@ -150,6 +219,9 @@ public class ActionHandler {
 			Location l = Preferences.getCheckedInLocation(context);
 			return new ResponseHolder(HttpStatus.SC_OK, null, l);
 		}
+		
+		// determine if the url is for a virtual checkin
+		boolean virtualCheckin = !Url.hasPhysicalAccess(url);
 		
 		// Sign url for client requests
 		url = Url.signUrl(url);
@@ -175,7 +247,7 @@ public class ActionHandler {
 					
 					Location checkinLoc = Location.fromSerialized(checkinData.getString("data"));
 					holder.setTag(checkinLoc);
-					Preferences.checkin(context, userUri, checkinLoc);
+					Preferences.checkin(context, userUri, checkinLoc, virtualCheckin);
 				}
 			}
 			
@@ -188,7 +260,7 @@ public class ActionHandler {
 	}
 	
 	public static ResponseHolder checkout(Context context) {
-		String userUri = Preferences.getLoggedInUserUri(context);
+		String userUri = Preferences.getUserUri(context);
 		AppClient client = new AppClient(context);
 		
 		HttpResponse response = null;

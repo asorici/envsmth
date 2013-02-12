@@ -11,7 +11,8 @@ from coresql.exceptions import AnnotationException
 import datetime
 
 CATEGORY_CHOICES = ( 
-    ("description", "description"), 
+    ("description", "description"),
+    ("booth_description", "booth_description"), 
     ("order", "order"),
     ("program", "program"),
     ("people", "people")
@@ -35,7 +36,17 @@ class UserProfile(models.Model):
         ''' On save, update timestamp '''
         self.timestamp = datetime.datetime.now()
         super(UserProfile, self).save(*args, **kwargs)
-
+        
+    
+    def copy_from_profile(self, user_profile):
+        ''' copy the UserContext data and c2dm_id from the given user_profile - equivalent of a user switch '''
+        self.c2dm_id = user_profile.c2dm_id
+        user_context = UserContext.from_user(user_profile, self)
+        if not user_context is None:
+            self.context = user_context
+        
+        self.save()
+        
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
@@ -109,6 +120,8 @@ class Environment(models.Model):
     
     parent = models.ForeignKey('self', null = True, blank = True, related_name="children")
     tags = fields.TagListField(null = True, blank = True)
+    img_thumbnail_url = models.URLField(null = True, blank = True, max_length = 256)
+    
     width = models.IntegerField(null = True, blank = True)
     height = models.IntegerField(null = True, blank = True)
     latitude = models.FloatField(null = True, blank = True)
@@ -142,6 +155,7 @@ class Area(models.Model):
     
     tags = fields.TagListField(null = True, blank = True)
     layout = models.ForeignKey(Layout, related_name = "areas", blank = True)
+    img_thumbnail_url = models.URLField(null = True, blank = True, max_length = 256)
     
     shape = fields.AreaShapeField(blank = True, null = True)
     timestamp = models.DateTimeField(auto_now = True)
@@ -401,6 +415,16 @@ class UserContext(models.Model):
     currentEnvironment = models.ForeignKey(Environment, null = True, blank = True)
     currentArea = models.ForeignKey(Area, null = True, blank = True)
     virtual = models.BooleanField()
+    
+    @staticmethod
+    def from_user(from_user_profile, to_user_profile):
+        if hasattr(from_user_profile, "context"):
+            from_context = from_user_profile.context
+            return UserContext(user = to_user_profile,
+                           currentArea = from_context.currentArea, 
+                           currentEnvironment = from_context.currentEnvironment, 
+                           virtual = from_context.virtual)
+        return None
 
 
 """
@@ -455,6 +479,7 @@ class DescriptionFeature(Feature):
     newest_info = models.TextField(null = True, blank = True)
     img_url = models.URLField(null = True, blank = True, max_length = 256)
     
+    
     def to_serializable(self, virtual = False, include_data = False):
         serialized_feature = super(DescriptionFeature, self).to_serializable(virtual=virtual, include_data=include_data)
         
@@ -479,6 +504,80 @@ class DescriptionFeature(Feature):
         return self.to_serializable(virtual = virtual, include_data = True)['data']
 
 
+class BoothDescriptionFeature(Feature):
+    ## contact details
+    description = models.TextField(null = True, blank = True)
+    image_url = models.URLField(null = True, blank = True, max_length = 256)
+    
+    contact_email = models.EmailField(null = True, blank = True, max_length = 128)
+    contact_website = models.URLField(null = True, blank = True, max_length = 256)
+    
+    def to_serializable(self, virtual = False, include_data = False):
+        serialized_feature = super(BoothDescriptionFeature, self).to_serializable(virtual=virtual, include_data=include_data)
+        
+        if include_data:
+            data_dict = { 'id' : self.id }
+            
+            if self.description:
+                data_dict['description'] = self.description
+            
+            ''' take tags from location to which this feature is attached '''
+            location = None
+            if not self.environment is None:
+                location = self.environment
+            elif not self.area is None:
+                location = self.area
+                
+            if location and location.tags:
+                data_dict['tags'] = location.tags.getList()
+            
+            if self.image_url:
+                data_dict['image_url'] = self.image_url
+            
+            if self.contact_email:
+                data_dict['contact_email'] = self.contact_email
+                
+            if self.contact_website:
+                data_dict['contact_website'] = self.contact_website
+            
+            
+            product_list = []
+            for product in self.products.all():
+                product_dict = {'product_id' : product.id,
+                                'product_name' : product.name,
+                                'product_description' : product.description}
+                
+                if product.image_url:
+                    product_dict['product_image_url'] = product.image_url
+                
+                if product.website_url:
+                    product_dict['product_website_url'] = product.website_url
+                    
+                product_list.append(product_dict)
+            
+            if product_list:
+                data_dict['products'] = product_list
+            
+            serialized_feature.update( {'data' : data_dict} )
+        
+        return serialized_feature
+    
+    def get_feature_data(self, virtual, filters):
+        return self.to_serializable(virtual = virtual, include_data = True)['data']
+    
+    
+class BoothProduct(models.Model):
+    booth = models.ForeignKey(BoothDescriptionFeature, related_name = "products")
+    name = models.CharField(max_length = 256)
+    description = models.TextField()
+    
+    image_url = models.URLField(null = True, blank = True, max_length = 256)
+    website_url = models.URLField(null = True, blank = True, max_length = 256)
+    
+    def __unicode__(self):
+        return self.name + " @ " + str(self.booth)
+    
+    
 ###################################### Program Feature Classes ############################################
 class ProgramFeature(Feature):
     QUERY_TYPES = ('presentation', 'speaker', 'search')
@@ -496,6 +595,7 @@ class ProgramFeature(Feature):
             sessions_list = []
             presentation_list = []
             speaker_list = []
+            presentation_speakers_list = []
             
             sessions = self.sessions.all()
             for s in sessions:
@@ -504,11 +604,9 @@ class ProgramFeature(Feature):
                                 'tag' : s.tag,
                                }
                 
-                if self.environment:
-                    session_dict['location'] = EnvironmentResource().get_resource_uri(self.environment)
-                elif self.area:
-                    ## by default we return the data of the area
-                    session_dict['location'] = AreaResource().get_resource_uri(self.area)
+                ## we add the data of the area in which this session of presentations is to take place
+                session_dict['location_url'] = AreaResource().get_resource_uri(s.location)
+                session_dict['location_name'] = s.location.name
                 
                 sessions_list.append(session_dict)
                 
@@ -523,31 +621,53 @@ class ProgramFeature(Feature):
                     if pres.abstract:
                         presentation_dict['abstract'] = pres.abstract
                     
+                    if pres.tags:
+                        presentation_dict['tags'] = ";".join(pres.tags.getList())
+                    
                     presentation_list.append(presentation_dict)
                     
                     speakers = pres.speakers.all().order_by('last_name')
                     for speaker in speakers:
-                        speaker_dict = {'id': speaker.id,
-                                        'first_name': speaker.first_name,
-                                        'last_name': speaker.last_name,
-                                        'affiliation': speaker.affiliation,
-                                        'position': speaker.position
-                                        }
+                        presentation_speaker_dict = {'presentation_id' : pres.id,
+                                                    'speaker_id': speaker.id
+                                                    }
+                        presentation_speakers_list.append(presentation_speaker_dict)
                         
-                        if speaker.biography:
-                            speaker_dict['biography'] = speaker.biography
+                        if not any(d.get('id', None) == speaker.id for d in speaker_list):
+                            speaker_dict = {'id': speaker.id,
+                                            'first_name': speaker.first_name,
+                                            'last_name': speaker.last_name,
+                                            'affiliation': speaker.affiliation,
+                                            'position': speaker.position
+                                            }
+                                    
+                            if speaker.biography:
+                                speaker_dict['biography'] = speaker.biography
                             
-                        if speaker.email:
-                            speaker_dict['email'] = speaker.email
+                            if speaker.email:
+                                speaker_dict['email'] = speaker.email
                             
-                        if speaker.online_profile_link:
-                            speaker_dict['online_profile_link'] = speaker.online_profile_link
+                            if speaker.online_profile_link:
+                                speaker_dict['online_profile_link'] = speaker.online_profile_link
+                            
+                            if speaker.image_url:
+                                speaker_dict['image_url'] = speaker.image_url
+                            
+                            speaker_list.append(speaker_dict)
                         
-                        speaker_list.append(speaker_dict)
+            """
+            distinct_program_days_list =\
+                Presentation.objects.values('startTime').\
+                    extra({'start_date' : "date(startTime)"}).values('start_date').distinct()
             
-            program_dict['data']['program'] =  {'sessions' : sessions_list, 
+            program_days = map(lambda x: x['start_date'].strftime("%Y-%m-%dT%H:%M:%S"), 
+                                distinct_program_days_list)
+            """
+            program_dict['data']['program'] =  {#'program_days': program_days,
+                                                'sessions' : sessions_list, 
                                                 'presentations' : presentation_list,
-                                                'speakers': speaker_list
+                                                'speakers': speaker_list,
+                                                'presentation_speakers' : presentation_speakers_list
                                                }
             
             serialized_feature.update(program_dict)
@@ -566,7 +686,6 @@ class ProgramFeature(Feature):
                     presentation = Presentation.objects.get(id = presentation_id)
                     presentation_dict = {'id' : presentation.id,
                                     'title' : presentation.title,
-                                    'speakers' : presentation.speakers,
                                     'sessionId' : presentation.session.id,
                                     'sessionTitle' : presentation.session.title,
                                     'startTime' : presentation.startTime.strftime("%Y-%m-%dT%H:%M:%S"),
@@ -600,6 +719,9 @@ class ProgramFeature(Feature):
                     if speaker.online_profile_link:
                         speaker_dict['online_profile_link'] = speaker.online_profile_link
                         
+                    if speaker.image_url:
+                        speaker_dict['image_url'] = speaker.image_url
+                        
                     return speaker_dict
                     
             else:
@@ -617,6 +739,7 @@ class Session(models.Model):
     title = models.CharField(max_length = 256)
     tag = models.CharField(max_length = 8)
     program = models.ForeignKey(ProgramFeature, related_name = "sessions")
+    location = models.ForeignKey(Area, null = False)
     
     def save(self, *args, **kwargs):
         ''' On save, update timestamp for associated program feature'''
@@ -658,6 +781,7 @@ class Speaker(models.Model):
     biography = models.TextField(null = True, blank = True)
     email = models.EmailField(null = True, blank = True)
     online_profile_link = models.URLField(null = True, blank = True)
+    image_url = models.URLField(null = True, blank = True)
     
     class Meta:
         unique_together = ("first_name", "last_name")

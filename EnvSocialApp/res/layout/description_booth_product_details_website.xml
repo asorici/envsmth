@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/description_product_details_website_layout"
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:orientation="horizontal">
+	
+    <TextView 
+	    android:layout_width="80dip"
+		android:layout_height="wrap_content"
+		android:layout_marginRight="5dip"
+		android:lines="2"
+		android:layout_gravity="left|center_vertical"
+		android:gravity="left|center_vertical"
+		android:textColor="@color/envived_order_text_white"
+		android:textSize="16sp"
+		android:textStyle="bold"
+		android:text="Website:"/>
+   
+	<TextView android:id="@+id/description_product_details_website" 
+	    android:layout_width="fill_parent"
+		android:layout_height="wrap_content" 
+		android:layout_marginLeft="5dip" 
+		android:lines="2"
+		android:textColor="@color/white"
+		android:textColorLink="@color/white"
+		android:text="No link available."
+		android:layout_gravity="left|center_vertical"
+		android:gravity="left|center_vertical"
+		android:autoLink="web"
+	/>
+    
+</LinearLayout>
