@@ -3,21 +3,19 @@ package com.envsocial.android.features.description;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.FragmentManager.BackStackEntry;
+import android.support.v4.app.FragmentTransaction;
 
 import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.ActionBar.Tab;
 import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
-import com.actionbarsherlock.app.ActionBar.Tab;
 import com.envsocial.android.Envived;
 import com.envsocial.android.R;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.EnvivedFeatureActivity;
 import com.envsocial.android.features.Feature;
-import com.envsocial.android.features.program.ProgramBySessionFragment;
-import com.envsocial.android.features.program.ProgramByTimeFragment;
 import com.envsocial.android.utils.imagemanager.ImageCache;
 import com.envsocial.android.utils.imagemanager.ImageFetcher;
 
@@ -25,8 +23,8 @@ public class BoothDescriptionActivity extends EnvivedFeatureActivity {
 	private static final String DESCRIPTION_TAB_TAG = "Description";
 	private static final String PRODUCT_TAB_TAG = "Projects";
 	
-	private static final int BOOTH_DESCRIPTION_LOADER = 0;
-	private static final int BOOTH_PRODUCT_LOADER = 1;
+	//private static final int BOOTH_DESCRIPTION_LOADER = 0;
+	//private static final int BOOTH_PRODUCT_LOADER = 1;
 	
 	private BoothDescriptionFeature mDescriptionFeature;
 	
@@ -39,7 +37,7 @@ public class BoothDescriptionActivity extends EnvivedFeatureActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        setContentView(R.layout.program);
+        setContentView(R.layout.description_booth);
         
         mActionBar = getSupportActionBar();
         mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
@@ -109,7 +107,6 @@ public class BoothDescriptionActivity extends EnvivedFeatureActivity {
     			.setTabListener(new TabListener<BoothDescriptionDetailsFragment>(this, 
     					Feature.BOOTH_DESCRIPTION, BoothDescriptionDetailsFragment.class, mLocation));
         mActionBar.addTab(boothDescriptionTab);	
-        
         
         
         Tab boothProductsTab = mActionBar.newTab()

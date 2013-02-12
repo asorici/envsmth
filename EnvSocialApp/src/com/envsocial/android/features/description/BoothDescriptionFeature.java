@@ -104,6 +104,12 @@ public class BoothDescriptionFeature extends Feature {
 	}
 	
 	
+	@Override
+	public boolean hasLocalDatabaseSupport() {
+		return true;
+	}
+	
+	
 	public Cursor getBoothData() {
 		if (dbHelper != null) {
 			return dbHelper.getBoothData();
@@ -147,4 +153,6 @@ public class BoothDescriptionFeature extends Feature {
 		
 		return null;
 	}
+
+	
 }

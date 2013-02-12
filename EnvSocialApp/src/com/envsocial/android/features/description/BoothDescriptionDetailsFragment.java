@@ -86,7 +86,7 @@ public class BoothDescriptionDetailsFragment extends SherlockFragment
 	private void bindData(Cursor cursor) {
 		mBoothNameView.setText(mParentActivity.getFeatureLocation().getName());
 		
-		if (cursor != null) {
+		if (cursor != null && cursor.moveToFirst()) {
 			int imageUrlIndex = cursor.getColumnIndex(BoothDescriptionDbHelper.COL_BOOTH_DESCRIPTION_IMAGE_URL);
 			int contactEmailIndex = cursor.getColumnIndex(BoothDescriptionDbHelper.COL_BOOTH_DESCRIPTION_CONTACT_EMAIL);
 			int contactWebsiteIndex = cursor.getColumnIndex(BoothDescriptionDbHelper.COL_BOOTH_DESCRIPTION_CONTACT_WEBSITE);

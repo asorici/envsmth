@@ -27,6 +27,6 @@
 		android:layout_gravity="right|center_vertical"
 		android:gravity="left|center_vertical"
 		android:ellipsize="end"
-		android:textColor="@color/actionbar_gray"
+		android:textColor="@color/divider_gray"
         />
 </LinearLayout>

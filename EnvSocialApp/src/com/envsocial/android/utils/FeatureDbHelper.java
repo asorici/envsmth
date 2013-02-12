@@ -34,6 +34,8 @@ public abstract class FeatureDbHelper extends SQLiteOpenHelper implements Serial
 		
 		this.databaseName = databaseName;
 		this.feature = feature;
+		
+		this.database = getWritableDatabase();
 	}
 	
 	public String getDBName() {

@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,6 +53,8 @@ public class BoothDescriptionProductsFragment extends SherlockFragment
 		View view = inflater.inflate(R.layout.description_booth_products, container, false);
 		
 		mBoothNameView = (TextView) view.findViewById(R.id.description_details_location);
+		mBoothNameView.setText(mParentActivity.getFeatureLocation().getName());
+		
 		mBoothProductListView = (ListView) view.findViewById(R.id.description_product_list);
 		
 		// Create and set adapter
@@ -142,8 +145,7 @@ public class BoothDescriptionProductsFragment extends SherlockFragment
 	static class BoothProductsCursorLoader extends SimpleCursorLoader {
 		private BoothDescriptionFeature mDescriptionFeature;
 
-		public BoothProductsCursorLoader(Context context,
-				BoothDescriptionFeature descriptionFeature) {
+		public BoothProductsCursorLoader(Context context, BoothDescriptionFeature descriptionFeature) {
 			super(context);
 			mDescriptionFeature = descriptionFeature;
 		}

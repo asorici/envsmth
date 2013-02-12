@@ -259,7 +259,7 @@ public abstract class Feature implements Serializable {
 	 */
 	public boolean hasData() {
 		if (retrievedData != null) {
-			Log.d(TAG, "DATA RETRIEVED FROM SERVER exists for feature: " + category);
+			Log.d(TAG, "THE DATA RETRIEVED FROM THE SERVER exists for feature: " + category);
 			return true;
 		}
 		else {
@@ -434,10 +434,8 @@ public abstract class Feature implements Serializable {
 	
 	public abstract FeatureDbHelper getLocalDatabaseSupport();
 	
+	public abstract boolean hasLocalDatabaseSupport();
 	
-	public boolean hasLocalDatabaseSupport() {
-		return getLocalDatabaseSupport() != null;
-	}
 	
 	public Cursor localSearchQuery(String query) {
 		return null;
