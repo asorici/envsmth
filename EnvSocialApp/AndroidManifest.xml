@@ -92,6 +92,8 @@
         
         <activity android:name=".features.program.ProgramActivity" />
         
+        <activity android:name=".CommentsViewActivity" />
+        
         
         <activity android:name=".features.program.PresentationDetailsActivity" />
         <activity android:name=".features.program.SpeakerDetailsActivity" />

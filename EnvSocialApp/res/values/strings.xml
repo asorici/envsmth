@@ -24,6 +24,8 @@
     <string name="search_no_results">No results found for \"%s\"</string>
     <string name="menu_search">Search</string>
     
+    <string name="menu_comment">Comments</string>
+    <string name="menu_filter">Filter</string>
     
     <string name="menu_test">Test!</string>
     
