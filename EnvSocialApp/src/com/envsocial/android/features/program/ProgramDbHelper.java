@@ -76,7 +76,7 @@ public class ProgramDbHelper extends FeatureDbHelper {
 	
 	public ProgramDbHelper(Context context, String databaseName, ProgramFeature feature, int version) throws EnvSocialContentException {
 		super(context, databaseName, feature, version);
-		database = this.getWritableDatabase();
+		//database = this.getWritableDatabase();
 	}
 	
 	

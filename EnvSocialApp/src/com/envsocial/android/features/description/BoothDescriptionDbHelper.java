@@ -41,7 +41,7 @@ public class BoothDescriptionDbHelper extends FeatureDbHelper {
 	protected static final String BOOTH_DESCRIPTION_FTS_TABLE = "booth_description_fts";
 	protected static final String COL_BOOTH_DESCRIPTION_FTS_ID = BaseColumns._ID;
 	protected static final String COL_BOOTH_DESCRIPTION_FTS_DESCRIPTION = "booth_description";
-	protected static final String COL_BOOTH_DESCRIPTION_FTS_TAGS = "booth_description";
+	protected static final String COL_BOOTH_DESCRIPTION_FTS_TAGS = "booth_tags";
 	
 	protected static final String BOOTH_PRODUCT_FTS_TABLE = "booth_product_fts";
 	protected static final String COL_BOOTH_PRODUCT_FTS_ID = BaseColumns._ID;
@@ -270,6 +270,8 @@ public class BoothDescriptionDbHelper extends FeatureDbHelper {
 	}
 	
 	public Cursor getAllProducts(int boothId) {
+		Log.d(TAG, "Retrieving products for booth id: " + boothId);
+		
 		String selection = BOOTH_PRODUCT_TABLE + "." + COL_BOOTH_PRODUCT_BOOTH_ID + " = ?";
 		String[] selectionArgs = new String[] {"" + boothId};
 		String[] projection = new String[] { COL_BOOTH_PRODUCT_ID, COL_BOOTH_PRODUCT_NAME, COL_BOOTH_PRODUCT_DESCRIPTION };

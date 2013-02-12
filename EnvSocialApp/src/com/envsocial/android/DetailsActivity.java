@@ -30,6 +30,7 @@ import com.envsocial.android.api.Location;
 import com.envsocial.android.api.exceptions.EnvSocialComException;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
+import com.envsocial.android.features.description.BoothDescriptionActivity;
 import com.envsocial.android.features.description.DescriptionActivity;
 import com.envsocial.android.features.program.ProgramActivity;
 import com.envsocial.android.utils.EnvivedNotificationContents;
@@ -240,7 +241,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 		String locationKey = locationType + "_" + locationId;
 
 		// touch the location
-		if (locationHistory.get(locationKey) == null) {
+		if (locationHistory != null && locationHistory.get(locationKey) == null) {
 			locationHistory.put(locationType + "_" + locationId, mLocation);
 		}
 		
@@ -286,6 +287,9 @@ public class DetailsActivity extends SherlockFragmentActivity {
 				}
 				else if (featureCategory.equals(Feature.DESCRIPTION)) {
 					i = new Intent(getApplicationContext(), DescriptionActivity.class);
+				}
+				else if (featureCategory.equals(Feature.BOOTH_DESCRIPTION)) {
+					i = new Intent(getApplicationContext(), BoothDescriptionActivity.class);
 				}
 				else if (featureCategory.equals(Feature.PROGRAM)) {
 					i = new Intent(getApplicationContext(), ProgramActivity.class);

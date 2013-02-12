@@ -89,6 +89,8 @@
         <activity android:name=".BrowseLocationsActivity" />
         
         <activity android:name=".features.description.DescriptionActivity" />
+        <activity android:name=".features.description.BoothDescriptionActivity" />
+        <activity android:name=".features.description.BoothDescriptionProductDetailsActivity" />
         
         <activity android:name=".features.program.ProgramActivity" />
         
