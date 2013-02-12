@@ -65,10 +65,11 @@
 			android:layout_marginBottom="20dip"
 			
 			android:textStyle="bold"
-			android:textSize="14sp"
+			android:textSize="16sp"
 			android:padding="5dip"
 			android:gravity="left|center_vertical"
-			android:textColor="@color/envived_order_text_white"
+			android:background="@color/envived_button_white"
+			android:textColor="@color/envived_order_text_warm_green"
    		/>
        	
        	

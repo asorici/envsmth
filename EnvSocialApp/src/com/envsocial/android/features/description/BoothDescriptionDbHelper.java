@@ -270,11 +270,13 @@ public class BoothDescriptionDbHelper extends FeatureDbHelper {
 	}
 	
 	public Cursor getAllProducts(int boothId) {
-		Log.d(TAG, "Retrieving products for booth id: " + boothId);
-		
 		String selection = BOOTH_PRODUCT_TABLE + "." + COL_BOOTH_PRODUCT_BOOTH_ID + " = ?";
 		String[] selectionArgs = new String[] {"" + boothId};
-		String[] projection = new String[] { COL_BOOTH_PRODUCT_ID, COL_BOOTH_PRODUCT_NAME, COL_BOOTH_PRODUCT_DESCRIPTION };
+		String[] projection = new String[] { 
+				COL_BOOTH_PRODUCT_ID, 
+				COL_BOOTH_PRODUCT_NAME, 
+				"SUBSTR(" + COL_BOOTH_PRODUCT_DESCRIPTION + ",1,64) AS " + COL_BOOTH_PRODUCT_DESCRIPTION
+				};
 		String orderBy = COL_BOOTH_PRODUCT_NAME;
 		
 		Cursor c = database.query(BOOTH_PRODUCT_TABLE, projection, selection, selectionArgs, null, null, orderBy);
@@ -286,6 +288,7 @@ public class BoothDescriptionDbHelper extends FeatureDbHelper {
 		String[] selectionArgs = new String[] {"" + productId};
 		
 		Cursor c = database.query(BOOTH_PRODUCT_TABLE, null, selection, selectionArgs, null, null, null);
+		
 		return c;
 	}
 	

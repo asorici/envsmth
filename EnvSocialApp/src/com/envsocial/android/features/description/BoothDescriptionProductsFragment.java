@@ -132,6 +132,7 @@ public class BoothDescriptionProductsFragment extends SherlockFragment
 			int productId = cursor.getInt(productIdIndex);
 			
 			Intent intent = new Intent(getActivity(), BoothDescriptionProductDetailsActivity.class);
+			intent.putExtra("location", mParentActivity.getFeatureLocation());
 			intent.putExtra(Feature.BOOTH_DESCRIPTION, mDescriptionFeature);
 			intent.putExtra("product_id", productId);
 			

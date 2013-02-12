@@ -2,6 +2,7 @@ package com.envsocial.android.features.description;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -69,6 +70,7 @@ public class BoothDescriptionDetailsFragment extends SherlockFragment
 		mBoothContactWebsiteView = (TextView) view.findViewById(R.id.description_details_contact_website);
 		mBoothTagListView = (TagListView) view.findViewById(R.id.description_details_tag_list);
 		mBoothDescriptionView = (WebView) view.findViewById(R.id.description_details_description_content);
+		mBoothDescriptionView.getSettings().setBuiltInZoomControls(true);
 		
 		return view;
 	}
@@ -110,7 +112,15 @@ public class BoothDescriptionDetailsFragment extends SherlockFragment
 			
 			if (!cursor.isNull(tagsIndex)) {
 				String tagListString = cursor.getString(tagsIndex);
+				String [] tagArray = tagListString.split(";");
+				
 				mBoothTags = Arrays.asList(tagListString.split(";"));
+				mBoothTags = new ArrayList<String>();
+				for (int i = 0; i < tagArray.length; i++) {
+					String tag = tagArray[i].replace("\"", "");
+					mBoothTags.add(tag);
+				}
+				
 				mBoothTagListView.setTags(mBoothTags);
 			}
 			
