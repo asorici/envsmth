@@ -531,7 +531,6 @@ public class HomeActivity extends SherlockFragmentActivity
 		}
 		else {
 			View parent = (View)v.getParent();
-			Log.d(TAG, "CLICK EXECUTED ON CHILD OF PARENT ID: " + parent.getId());
 			
 			if (parent.getId() == R.id.home_featured_locations) {
 				int position = (Integer)v.getTag();
@@ -547,6 +546,8 @@ public class HomeActivity extends SherlockFragmentActivity
 					Url checkinUrl = new Url(Url.ACTION, ActionHandler.CHECKIN);
 					checkinUrl.setParameters(new String [] {locationItem, "virtual"}, 
 											 new String [] {locationId, Boolean.toString(true)});
+					
+					Log.d(TAG, "TRYING TO GET ACCESS TO FEATURED LOCATION: " + position + " - " + checkinUrl.toString());
 					
 					// create intent for new DetailsActivity
 					Intent intent = new Intent(this, DetailsActivity.class);
@@ -625,8 +626,7 @@ public class HomeActivity extends SherlockFragmentActivity
     }
 	
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		Context context = getApplicationContext();
+	public boolean onCreateOptionsMenu(Menu menu) {		
 		
 		// add the search button
 		MenuItem item = menu.add(R.string.menu_search);
@@ -637,20 +637,47 @@ public class HomeActivity extends SherlockFragmentActivity
      	menu.add(REGISTER_GCM_ITEM);
      	menu.add(UNREGISTER_GCM_ITEM);
         
+		
+    	return true;
+	}
+	
+	
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		Context context = getApplicationContext();
+		
 		if (Preferences.getUserUri(context) != null) {
-			if (Preferences.isLoggedIn(context)) {
-				menu.add(SIGN_OUT);
+			
+			boolean exists = false;
+			for (int i = 0; i < menu.size(); i++) {
+				if (menu.getItem(i).getTitle().equals(SIGN_OUT) 
+					|| menu.getItem(i).getTitle().equals(QUIT_ANONYMOUS)) {
+					exists = true;
+				}
 			}
-			else {
-				menu.add(QUIT_ANONYMOUS);
+			
+			if (!exists) {
+				if (Preferences.isLoggedIn(context)) {
+					menu.add(SIGN_OUT);
+				}
+				else {
+					menu.add(QUIT_ANONYMOUS);
+				}
 			}
 		}
 		
 		if (Preferences.isCheckedIn(context)) {
-			menu.add(CHECK_OUT);
+			boolean exists = false;
+			for (int i = 0; i < menu.size(); i++) {
+				if (menu.getItem(i).getTitle().equals(CHECK_OUT) ) {
+					exists = true;
+				}
+			}
+			
+			if (!exists) menu.add(CHECK_OUT);
 		}
 		
-    	return true;
+		return true;
 	}
 	
 	@Override

@@ -93,8 +93,6 @@ public class ActionHandler {
 		// handle logout response
 		ResponseHolder holder = ResponseHolder.parseResponse(response);
 		
-		// Log.d(TAG, "create anonymous: " + holder.getResponseBody());
-		
 		try {
 			if (!holder.hasError()) {
 				int statusCode = holder.getCode();

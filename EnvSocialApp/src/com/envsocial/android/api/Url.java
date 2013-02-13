@@ -8,18 +8,21 @@ public class Url {
 
 	public static final String HTTP = "http://";
 	public static final String HTTPS = "https://";
-	//public static final String HOSTNAME = "envived.com:8800";
-	public static final String HOSTNAME = "192.168.100.102:8080";
+	public static final String HOSTNAME = "envived.com:8800";
+	//public static final String HOSTNAME = "192.168.100.102:8080";
 	//public static final String HOSTNAME = "192.168.1.108:8080";
 	
-	//private static final String BASE_URL = "/envived/envsocial/client/v1/";
-	private static final String BASE_URL = "/envsocial/client/v1/";
-	private static final String ACTION_RELATIVE_URL = BASE_URL + "actions/";
-	private static final String RESOURCE_RELATIVE_URL = BASE_URL + "resources/";
+	public static final String BASE_URL = "/envived/envsocial/client/v1/";
+	//public static final String BASE_URL = "/envsocial/client/v1/";
+	public static final String ACTION_RELATIVE_URL = BASE_URL + "actions/";
+	public static final String RESOURCE_RELATIVE_URL = BASE_URL + "resources/";
+	//public static final String RESOURCE_STATIC_URL = "/envsocial/client/v1/resources/";
 	
 	private static final Pattern ENVIVED_RESOURCE_GENERAL_URL_PATTERN = 
+			//Pattern.compile(RESOURCE_STATIC_URL + "(\\w+)" + "/");
 			Pattern.compile(RESOURCE_RELATIVE_URL + "(\\w+)" + "/");
 	private static final Pattern ENVIVED_RESOURCE_SPECIFIC_URL_PATTERN = 
+			//Pattern.compile(RESOURCE_STATIC_URL + "(\\w+)" + "/" + "(\\d+)" + "/");
 			Pattern.compile(RESOURCE_RELATIVE_URL + "(\\w+)" + "/" + "(\\d+)" + "/");
 	
 	public static final int ACTION = 0;

@@ -15,9 +15,12 @@ public class HomeFeaturedLocationsAdapter extends BaseAdapter {
 	/*
 	 * Hardcoded for now - include just the link to the AIWO environment
 	 */
-	private static final String URL_BASE = "http://192.168.1.108:8080";
-	private static final String ENVIVED_AIWO_LINK = "/envsocial/client/v1/resources/environment/12/";
-	private static final String ENVIVED_AIWO_IMAGE_URL = "/envsocial/media/images/aiwo_small_white_background.png";
+	private static final String URL_BASE = Url.HTTP + Url.HOSTNAME;
+	private static final String AIWO_ENVIRONMENT = "environment/12/";
+	private static final String ENVIVED_AIWO_LINK = Url.RESOURCE_RELATIVE_URL + AIWO_ENVIRONMENT;
+	
+	//private static final String ENVIVED_AIWO_IMAGE_URL = "/envsocial/media/images/aiwo_small_white_background.png";
+	private static final String ENVIVED_AIWO_IMAGE_URL = "/envived/media/images/aiwo_small_white_background.png";
 	
 	private Context mContext;
 	private ImageFetcher mImageFetcher;
