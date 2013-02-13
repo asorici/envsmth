@@ -455,7 +455,11 @@ class Feature(models.Model):
     
     
     def to_serializable(self, virtual = False, include_data = False):
-        serialized_feature = {'category' : self.category, 'version' : self.version, 'timestamp': self.timestamp}
+        serialized_feature = {'category' : self.category, 
+                              'version' : self.version, 
+                              'timestamp': self.timestamp,
+                              'is_general': self.is_general
+                              }
         if include_data:
             serialized_feature['data'] = None
         
