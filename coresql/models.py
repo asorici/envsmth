@@ -292,7 +292,7 @@ class BoothDescriptionAnnotation(Annotation):
     def __init__(self, *args, **kwargs):
         data = kwargs.pop('data', None)
         
-        super(DescriptionAnnotation, self).__init__(*args, **kwargs)
+        super(BoothDescriptionAnnotation, self).__init__(*args, **kwargs)
         
         if not data is None:
             if 'text' in data and 'topic_type' in data and 'topic_title' in data:
