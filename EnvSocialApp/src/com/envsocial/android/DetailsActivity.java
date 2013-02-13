@@ -173,19 +173,11 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	}
 	
 	
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// add the comment button
-		MenuItem commentItem = menu.add(getText(R.string.menu_comment));
-        commentItem.setIcon(R.drawable.ic_menu_comments);
-        commentItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        
+	public boolean onCreateOptionsMenu(Menu menu) {        
 		// add the search button
 		MenuItem item = menu.add(getText(R.string.menu_search));
         item.setIcon(R.drawable.ic_menu_search_holder);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-     	
-     	// add temporary test for feature update notification
-     	//menu.add("Test Update Feature");
      	
     	return true;
 	}
@@ -209,14 +201,6 @@ public class DetailsActivity extends SherlockFragmentActivity {
 					notificationContents);
 			
 			context.startService(updateService);
-			
-			return true;
-		}
-		
-		else if (item.getTitle().toString().compareTo(getString(R.string.menu_comment)) == 0) {
-			Intent intent = new Intent(getApplicationContext(), CommentsViewActivity.class);
-			intent.putExtra("location", mLocation);
-			startActivity(intent);
 			
 			return true;
 		}

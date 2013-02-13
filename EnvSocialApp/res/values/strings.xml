@@ -26,6 +26,7 @@
     
     <string name="menu_comment">Comments</string>
     <string name="menu_filter">Filter</string>
+    <string name="menu_add">ADD</string>
     
     <string name="menu_test">Test!</string>
     
@@ -58,6 +59,7 @@
     
     <string name="btn_c2dm_reg">Register C2DM</string>
     <string name="btn_c2dm_unreg">Unregister C2DM</string>
+
     
     
     <!-- Labels -->
@@ -86,6 +88,8 @@
     <string name="lbl_people_affiliation">Affiliation:</string>
     <string name="lbl_people_research_interests">Research Interests:</string>
     <string name="lbl_authenticated_users">Authenticated Users:</string>
+    <string name="lbl_subject">Subject:</string>
+    <string name="lbl_content">Content:</string>
     
     
     <!-- Tabs -->
@@ -156,6 +160,10 @@
     <string name="msg_get_entry_details_err">Service error retrieving program entry detail.</string>
     
     <string name="msg_share_order_fb_err">Unable to post message to wall. Please try again later.</string>
+
+    <!-- Comments Messages -->
+    <string name="msg_send_comment_ok">Comment Sent.</string>
+    <string name="msg_send_comment_err">Error sending comment.</string>
     
     <!-- location browsing feature -->
     <string name="locations_checked_in_count">%1$s people checked in.</string>
