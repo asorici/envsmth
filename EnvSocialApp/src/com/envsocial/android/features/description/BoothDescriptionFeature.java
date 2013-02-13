@@ -34,11 +34,10 @@ public class BoothDescriptionFeature extends Feature {
 	public static final String BOOTH_PRODUCT_WEBSITE_URL = "product_website_url";
 	
 	
-	public BoothDescriptionFeature(String category, int version, Calendar timestamp, 
-			String resourceUrl, String environmentUrl,
-			String areaUrl, String data, boolean virtualAccess) {
+	public BoothDescriptionFeature(String category, int version, Calendar timestamp, boolean isGeneral,
+			String resourceUrl, String environmentUrl, String areaUrl, String data, boolean virtualAccess) {
 		
-		super(category, version, timestamp, resourceUrl, environmentUrl, areaUrl, data, virtualAccess);
+		super(category, version, timestamp, isGeneral, resourceUrl, environmentUrl, areaUrl, data, virtualAccess);
 		
 	}
 

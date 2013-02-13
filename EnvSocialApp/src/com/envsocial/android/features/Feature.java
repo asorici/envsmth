@@ -57,6 +57,8 @@ public abstract class Feature implements Serializable {
 	protected String category;
 	protected int version;
 	protected Calendar timestamp;
+	protected boolean isGeneral = false;
+	
 	protected String resourceUrl;
 	protected String environmentUrl;
 	protected String areaUrl;
@@ -76,11 +78,13 @@ public abstract class Feature implements Serializable {
 	 */
 	private transient boolean initialized = false;
 	
-	protected Feature(String category, int version, Calendar timestamp, String resourceUrl, 
-			String environmentUrl, String areaUrl, String data, boolean virtualAccess) {
+	protected Feature(String category, int version, Calendar timestamp, boolean isGeneral, 
+			String resourceUrl, String environmentUrl, String areaUrl, String data, boolean virtualAccess) {
 		this.category = category;
 		this.version = version;
 		this.timestamp = timestamp;
+		this.isGeneral = isGeneral;
+		
 		this.resourceUrl = resourceUrl;
 		this.environmentUrl = environmentUrl;
 		this.areaUrl = areaUrl;
@@ -227,6 +231,10 @@ public abstract class Feature implements Serializable {
 		return virtualAccess;
 	}
 	
+	public boolean isGeneral () {
+		return isGeneral;
+	}
+	
 	public String getCategory() {
 		return category;
 	}
@@ -347,6 +355,8 @@ public abstract class Feature implements Serializable {
 						remoteTimestamp = Utils.stringToCalendar(remoteTimestampString, TIMESTAMP_FORMAT);
 					}
 					
+					boolean remoteIsGeneral = featureObject.optBoolean("is_general", false);
+					
 					String environmentUri = featureObject.optString("environment", null);
 					String areaUri = featureObject.optString("area", null);
 					String resourceUri = featureObject.optString("resource_uri", null);
@@ -357,8 +367,8 @@ public abstract class Feature implements Serializable {
 						data = featureSerializedDataObject.toString();
 					}
 					
-					return getInstance(remoteCategory, remoteVersion, remoteTimestamp, resourceUri, 
-							environmentUri, areaUri, data, virtualAccess);
+					return getInstance(remoteCategory, remoteVersion, remoteTimestamp, remoteIsGeneral, 
+							resourceUri, environmentUri, areaUri, data, virtualAccess);
 				}
 			}
 			else {
@@ -373,8 +383,8 @@ public abstract class Feature implements Serializable {
 		return null;
 	}
 	
-	public static Feature getInstance(String category, int version, Calendar timestamp, String resourceUri, 
-			String environmentUri, String areaUri, String data, boolean virtualAccess) 
+	public static Feature getInstance(String category, int version, Calendar timestamp, boolean isGeneral,  
+			String resourceUri, String environmentUri, String areaUri, String data, boolean virtualAccess) 
 					throws IllegalArgumentException, EnvSocialContentException {
 		
 		if (category == null) {
@@ -382,19 +392,19 @@ public abstract class Feature implements Serializable {
 		}
 		
 		if (category.equals(PROGRAM)) {
-			return new ProgramFeature(category, version, timestamp, resourceUri, environmentUri, areaUri, data, virtualAccess); 
+			return new ProgramFeature(category, version, timestamp, isGeneral, resourceUri, environmentUri, areaUri, data, virtualAccess); 
 		}
 		else if (category.equals(DESCRIPTION)) {
-			return new DescriptionFeature(category, version, timestamp, resourceUri, environmentUri, areaUri, data, virtualAccess);
+			return new DescriptionFeature(category, version, timestamp, isGeneral, resourceUri, environmentUri, areaUri, data, virtualAccess);
 		}
 		else if (category.equals(BOOTH_DESCRIPTION)) {
-			return new BoothDescriptionFeature(category, version, timestamp, resourceUri, environmentUri, areaUri, data, virtualAccess);
+			return new BoothDescriptionFeature(category, version, timestamp, isGeneral, resourceUri, environmentUri, areaUri, data, virtualAccess);
 		}
 		else if (category.equals(ORDER)) {
-			return new OrderFeature(category, version, timestamp, resourceUri, environmentUri, areaUri, data, virtualAccess);
+			return new OrderFeature(category, version, timestamp, isGeneral, resourceUri, environmentUri, areaUri, data, virtualAccess);
 		}
 		else if (category.equals(PEOPLE)) {
-			return new PeopleFeature(category, version, timestamp, resourceUri, environmentUri, areaUri, data, virtualAccess);
+			return new PeopleFeature(category, version, timestamp, isGeneral, resourceUri, environmentUri, areaUri, data, virtualAccess);
 		}
 		else {
 			throw new IllegalArgumentException("No feature matching category (" + category + ").");

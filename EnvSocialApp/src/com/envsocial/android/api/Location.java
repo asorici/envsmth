@@ -140,13 +140,16 @@ public class Location implements Serializable {
 				}
 			}
 			
+			boolean isGeneral = item.optBoolean("is_general", false);
+			
 			String environmentUri = item.optString("environment", null);
 			String areaUri = item.optString("area", null);
 			String resourceUri = item.optString("resource_uri", null);
 			String featureData = item.optString("data", null);
 			
+			
 			try {
-				Feature feat = Feature.getInstance(category, version, timestamp, resourceUri, environmentUri, areaUri, featureData, mVirtualAccess);
+				Feature feat = Feature.getInstance(category, version, timestamp, isGeneral, resourceUri, environmentUri, areaUri, featureData, mVirtualAccess);
 				mFeatures.put(category, feat);
 			} catch (IllegalArgumentException ex) {
 				Log.d("Location", ex.getMessage());

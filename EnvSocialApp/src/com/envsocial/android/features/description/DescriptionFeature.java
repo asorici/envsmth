@@ -31,10 +31,10 @@ public class DescriptionFeature extends Feature {
 	private String peopleCountText = NO_PEOPLE_COUNT;
 	private String mLogoImageUri = null;
 
-	public DescriptionFeature(String category, int version, Calendar timestamp, String resourceUri,
-			String environmentUri, String areaUri, String data, boolean virtualAccess) {
+	public DescriptionFeature(String category, int version, Calendar timestamp, boolean isGeneral, 
+			String resourceUri, String environmentUri, String areaUri, String data, boolean virtualAccess) {
 
-		super(category, version, timestamp, resourceUri, environmentUri, areaUri, data, virtualAccess);
+		super(category, version, timestamp, isGeneral, resourceUri, environmentUri, areaUri, data, virtualAccess);
 	}
 
 

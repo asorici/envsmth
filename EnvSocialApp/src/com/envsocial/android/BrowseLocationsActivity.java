@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.envsocial.android.api.ActionHandler;
@@ -22,6 +23,7 @@ public class BrowseLocationsActivity extends SherlockFragmentActivity implements
 	private Location mLocation;
 	private ImageFetcher mImageFetcher;
 	
+	private TextView mListHeaderView;
 	private ListView mListView;
 	private BrowseLocationsListAdapter mAdapter;
 	
@@ -43,10 +45,15 @@ public class BrowseLocationsActivity extends SherlockFragmentActivity implements
         // image cache initialization 
         initImageFetcher();
         
+        // build the header view
+        mListHeaderView = (TextView) findViewById(R.id.browse_locations_label);
+        mListHeaderView.setText(getResources().getString(R.string.lbl_browse_locations, mLocation.getName()));
+        
+        
         // build list view and its adapter
         mListView = (ListView) findViewById(R.id.browse_locations_list);
-        mAdapter = new BrowseLocationsListAdapter(this, mLocation, mImageFetcher);  
         
+        mAdapter = new BrowseLocationsListAdapter(this, mLocation, mImageFetcher);  
         mListView.setAdapter(mAdapter);
         mListView.setOnItemClickListener(this);
     }

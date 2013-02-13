@@ -48,10 +48,11 @@ public class OrderFeature extends Feature {
 	public static final String CALL_CHECK_NOTIFICATION = "call_check";
 	
 	
-	public OrderFeature(String category, int version, Calendar timestamp, String resourceUri,
-			String environmentUri, String areaUri, String data, boolean virtualAccess) throws EnvSocialContentException {
+	public OrderFeature(String category, int version, Calendar timestamp, boolean isGeneral, 
+			String resourceUri, String environmentUri, String areaUri, String data, boolean virtualAccess) 
+					throws EnvSocialContentException {
 		
-		super(category, version, timestamp, resourceUri, environmentUri, areaUri, data, virtualAccess);
+		super(category, version, timestamp, isGeneral, resourceUri, environmentUri, areaUri, data, virtualAccess);
 	}
 
 	

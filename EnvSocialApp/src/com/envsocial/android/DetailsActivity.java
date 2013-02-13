@@ -3,6 +3,7 @@ package com.envsocial.android;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.http.HttpStatus;
 
@@ -19,6 +20,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.ActionBar;
@@ -74,6 +76,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	private ActionBar mActionBar;
 	
 	private LinearLayout mMainView;
+	private TextView mLabelView;
 	private GridView mGridView;
 	private DetailsGridAdapter mGridAdapter;
 	
@@ -85,8 +88,8 @@ public class DetailsActivity extends SherlockFragmentActivity {
         
         setContentView(R.layout.details);
         
-        mMainView = (LinearLayout)findViewById(R.id.details_container);
-        
+        mMainView = (LinearLayout) findViewById(R.id.details_container);
+        mLabelView = (TextView) findViewById(R.id.details_label_features);
         mGridView = new GridView(this);
         
         mActionBar = getSupportActionBar();
@@ -99,8 +102,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
         // first check to see if we have a location parameter sent directly
         mLocation = (Location) getIntent().getSerializableExtra("location");
         if (mLocation != null) {
-        	mActionBar.setTitle(mLocation.getName());
-			initializeGrid();
+        	displayOrRedirect();
         }
         else {
         	// we must at least have received a checkin URL
@@ -174,11 +176,13 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	
 	
 	public boolean onCreateOptionsMenu(Menu menu) {
+		/*
 		// add the search button
 		MenuItem item = menu.add(getText(R.string.menu_search));
         item.setIcon(R.drawable.ic_menu_search_holder);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-     	
+     	*/
+		
      	// add temporary test for feature update notification
      	//menu.add("Test Update Feature");
      	
@@ -232,19 +236,59 @@ public class DetailsActivity extends SherlockFragmentActivity {
 		new CheckinTask(checkinUrl).execute();
 	}
 	
-	private void initializeGrid() {
+	
+	private void displayOrRedirect() {
 		// save/update this location in the LocationHistory cache
 		LocationHistory locationHistory = Envived.getLocationHistory();
-		String locationType = mLocation.isEnvironment() ? Location.ENVIRONMENT
-				: Location.AREA;
+		String locationType = mLocation.isEnvironment() ? Location.ENVIRONMENT : Location.AREA;
 		String locationId = mLocation.getId();
 		String locationKey = locationType + "_" + locationId;
-
+		
 		// touch the location
 		if (locationHistory != null && locationHistory.get(locationKey) == null) {
 			locationHistory.put(locationType + "_" + locationId, mLocation);
 		}
 		
+		
+		int localFeatures = 0;
+		boolean hasBoothDescription = false;
+		
+		// if the location is an area, see if there is only a booth description feature and/or general features
+		// attached to it. If so, redirect to that description activity. 
+		if (mLocation.isArea()) {
+			for (Entry<String, Feature> featureEntry : mLocation.getFeatures().entrySet()) {
+				Feature feature = featureEntry.getValue();
+				
+				if (!feature.isGeneral()) {
+					localFeatures ++;
+					if ( feature.getCategory().equals(Feature.BOOTH_DESCRIPTION)) {
+						hasBoothDescription = true;
+					}
+				}
+			}
+			
+			if (localFeatures == 1 && hasBoothDescription) {
+				
+				// redirect to booth description feature and remove this activity from the backstack
+				Intent intent = new Intent(this, BoothDescriptionActivity.class);
+				intent.putExtra("location", mLocation);
+				startActivity(intent);
+				
+				finish();
+				return;
+			}
+		}
+		
+		mActionBar.setTitle(mLocation.getName());
+		
+		String featureLabelMessage = getResources().getString(R.string.lbl_details_features, mLocation.getName());
+		mLabelView.setText(featureLabelMessage);
+		
+		initializeGrid();
+	}
+	
+	
+	private void initializeGrid() {
 		// initialize grid
 		
 		final Map<String, Feature> features = mLocation.getFeatures();
@@ -338,14 +382,9 @@ public class DetailsActivity extends SherlockFragmentActivity {
 			if (!holder.hasError()) {
 				if (holder.getCode() == HttpStatus.SC_OK) {
 					mLocation = (Location) holder.getTag();
-
-					// TODO: fix padding issue in action bar style xml
-					mActionBar.setTitle(mLocation.getName());
 					
-					initializeGrid();
-					
-					// lastly setup GCM notification registration
-			        // checkGCMRegistration();
+					// check to see the type of features for this location and redirect to proper activity
+					displayOrRedirect();
 				}
 				else if (holder.getCode() == HttpStatus.SC_INTERNAL_SERVER_ERROR) {
 					setResult(RESULT_CANCELED);

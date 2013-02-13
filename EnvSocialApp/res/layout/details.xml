@@ -3,8 +3,31 @@
     android:id="@+id/details_container"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical" 
+    android:orientation="vertical"
+    android:layout_gravity="center_horizontal|top"
     android:gravity="center"
-    android:layout_gravity="center">
+    android:padding="5dip">
+    
+    <TextView 
+        android:id="@+id/details_label_features"
+        android:layout_width="fill_parent"
+    	android:layout_height="wrap_content"
+    	android:layout_marginBottom="10dip"
+    	android:layout_gravity="center"
+    	android:gravity="center_vertical|fill_horizontal"
+    	android:padding="5dip"
+    	android:textColor="@color/white"
+    	android:textSize="16sp"
+    	android:textStyle="bold"
+    	android:text="@string/lbl_details_features"
+    />
+    
+    <View
+    	xmlns:android="http://schemas.android.com/apk/res/android"
+    	android:id="@+id/layout_separator"
+    	android:layout_width="fill_parent"
+    	android:layout_height="1dip"
+    	android:layout_marginBottom="5dip"
+    	android:background="@color/white"/>
     
 </LinearLayout>

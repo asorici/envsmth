@@ -12,10 +12,10 @@ import com.envsocial.android.utils.FeatureDbHelper;
 public class PeopleFeature extends Feature {
 	private static final long serialVersionUID = 1L;
 
-	public PeopleFeature(String category, int version, Calendar timestamp, String resourceUri,
-			String environmentUri, String areaUri, String data, boolean virtualAccess) {
+	public PeopleFeature(String category, int version, Calendar timestamp, boolean isGeneral, 
+			String resourceUri, String environmentUri, String areaUri, String data, boolean virtualAccess) {
 		
-		super(category, version, timestamp, resourceUri, environmentUri, areaUri, data, virtualAccess);
+		super(category, version, timestamp, isGeneral, resourceUri, environmentUri, areaUri, data, virtualAccess);
 	}
 	
 	

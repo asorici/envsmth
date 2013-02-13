@@ -536,7 +536,7 @@ public class HomeActivity extends SherlockFragmentActivity
 				int position = (Integer)v.getTag();
 				String locationUrl = (String) mFeaturedLocationsAdapter.getItem(position);
 				
-				Log.d(TAG, "TRYING TO GET ACCESS TO FEATURED LOCATION: " + position + " - " + locationUrl);
+				//Log.d(TAG, "TRYING TO GET ACCESS TO FEATURED LOCATION: " + position + " - " + locationUrl);
 				Url url = Url.fromResourceUrl(locationUrl);
 				
 				if (url != null && url.getItemId() != null) {
@@ -547,7 +547,7 @@ public class HomeActivity extends SherlockFragmentActivity
 					checkinUrl.setParameters(new String [] {locationItem, "virtual"}, 
 											 new String [] {locationId, Boolean.toString(true)});
 					
-					Log.d(TAG, "TRYING TO GET ACCESS TO FEATURED LOCATION: " + position + " - " + checkinUrl.toString());
+					//Log.d(TAG, "TRYING TO GET ACCESS TO FEATURED LOCATION: " + position + " - " + checkinUrl.toString());
 					
 					// create intent for new DetailsActivity
 					Intent intent = new Intent(this, DetailsActivity.class);

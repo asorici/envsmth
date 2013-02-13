@@ -63,6 +63,8 @@
     <string name="lbl_register">Create Your Envived Account</string>
     <string name="lbl_current_checkin">Current checkin</string>
     <string name="lbl_no_checkin_location">No location selected.</string>
+    <string name="lbl_details_features">Check out below the list of options for %1$s.</string>
+    <string name="lbl_browse_locations">Browse locations for %1$s.</string>
     
     <string name="lbl_email">Email</string>
     <string name="lbl_password">Password</string>

@@ -121,7 +121,7 @@
 				android:gravity="left"
 				
 				android:textColor="@color/envived_order_text_white"
-				android:text="Checkin History"
+				android:text="Recent Checkins"
 				android:background="@drawable/feature_details_label"
 	        />
 	        

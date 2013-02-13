@@ -21,7 +21,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.view.MenuItem;
 import com.envsocial.android.EnvivedFeatureDataRetrievalService;
+import com.envsocial.android.HomeActivity;
 import com.envsocial.android.R;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
@@ -56,7 +58,9 @@ public abstract class EnvivedFeatureActivity extends SherlockFragmentActivity {
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-	
+        
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        
         // retrieve Location argument
         if (savedInstanceState != null) {
         	mLocation = (Location) savedInstanceState.get("location");
@@ -162,6 +166,21 @@ public abstract class EnvivedFeatureActivity extends SherlockFragmentActivity {
 		
 		// finally close the feature
 		mFeature.doClose(getApplicationContext());
+	}
+	
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+	    switch (item.getItemId()) {
+	        case android.R.id.home:
+	            // app icon in action bar clicked; go home
+	            Intent intent = new Intent(this, HomeActivity.class);
+	            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+	            startActivity(intent);
+	            return true;
+	        default:
+	            return super.onOptionsItemSelected(item);
+	    }
 	}
 	
 	
