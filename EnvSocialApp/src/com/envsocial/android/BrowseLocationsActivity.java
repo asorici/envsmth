@@ -108,6 +108,9 @@ public class BrowseLocationsActivity extends SherlockFragmentActivity implements
 	public void onItemClick(AdapterView<?> parentView, View childView, int position, long id) {
 		AreaInfo areaInfo = (AreaInfo) mAdapter.getItem(position);
 		String areaUrlString = areaInfo.getResourceUrl();
+		
+		Log.d(TAG, "Accessing area with url: " + areaUrlString);
+		
 		Url areaResourceUrl = Url.fromResourceUrl(areaUrlString);
 		
 		if (areaResourceUrl != null && areaResourceUrl.getItemId() != null) {
