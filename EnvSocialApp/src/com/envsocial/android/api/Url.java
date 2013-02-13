@@ -17,6 +17,7 @@ public class Url {
 	public static final String ACTION_RELATIVE_URL = BASE_URL + "actions/";
 	public static final String RESOURCE_RELATIVE_URL = BASE_URL + "resources/";
 	//public static final String RESOURCE_STATIC_URL = "/envsocial/client/v1/resources/";
+
 	
 	private static final Pattern ENVIVED_RESOURCE_GENERAL_URL_PATTERN = 
 			//Pattern.compile(RESOURCE_STATIC_URL + "(\\w+)" + "/");

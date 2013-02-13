@@ -1,6 +1,8 @@
 package com.envsocial.android.features.description;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentManager.BackStackEntry;
@@ -10,6 +12,9 @@ import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.ActionBar.Tab;
 import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+import com.envsocial.android.CommentsActivity;
 import com.envsocial.android.Envived;
 import com.envsocial.android.R;
 import com.envsocial.android.api.Location;
@@ -236,5 +241,27 @@ public class BoothDescriptionActivity extends EnvivedFeatureActivity {
 	
 	protected ImageFetcher getImageFetcher() {
 		return mImageFetcher;
+	}
+	
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuItem commentItem = menu.add(getText(R.string.menu_comment));
+		commentItem.setIcon(R.drawable.ic_menu_comments);
+		commentItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+		
+		return true;
+	}
+	
+	public boolean onOptionsItemSelected(MenuItem item) {
+		final Context context = getApplicationContext();
+		
+		if (item.getTitle().toString().compareTo(getString(R.string.menu_comment)) == 0) {
+			Intent intent = new Intent(getApplicationContext(), CommentsActivity.class);
+			intent.putExtra("location", mLocation);
+			startActivity(intent);
+			
+			return true;
+		}
+		
+		return false;
 	}
 }

@@ -175,12 +175,14 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	}
 	
 	
+
 	public boolean onCreateOptionsMenu(Menu menu) {
 		/*
 		// add the search button
 		MenuItem item = menu.add(getText(R.string.menu_search));
         item.setIcon(R.drawable.ic_menu_search_holder);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+
      	*/
 		
      	// add temporary test for feature update notification

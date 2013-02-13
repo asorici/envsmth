@@ -80,6 +80,11 @@
         <item name="android:textColor">@color/envived_order_text_white</item>
     </style>
     
+    <style name="CommentsDialogTheme" parent="@android:style/Theme.Dialog">
+        <item name="android:background">@color/envived_default_layout_green</item>
+        <item name="android:textColor">@color/envived_order_text_white</item>
+    </style>
+    
     <style name="AlertDialogFacebookStyle" parent="@android:style/Theme.Dialog">
         <item name="android:background">@color/facebook_blue</item>
         <item name="android:textColor">@color/divider_gray</item>
