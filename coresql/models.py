@@ -188,6 +188,7 @@ class Announcement(models.Model):
 """
 class Annotation(models.Model):
     DESCRIPTION = "description"
+    BOOTH_DESCRIPTION = "booth_description"
     PROGRAM = "program"
     ORDER = "order"
     
@@ -249,7 +250,7 @@ class Annotation(models.Model):
     def get_extra_filters(cls, filters):
         return {}
         
-######################################## DefaultAnnotation Class ##########################################
+######################################## Description Class ##########################################
 class DescriptionAnnotation(Annotation):
     text = models.TextField()
     
@@ -270,7 +271,79 @@ class DescriptionAnnotation(Annotation):
     @classmethod
     def is_annotation_for(cls, category, annotation_data):
         return category == Annotation.DESCRIPTION
+
+
+######################################## BoothDescription Class ##########################################
+class BoothDescriptionAnnotation(Annotation):
+    BOOTH_DESCRIPTION = "booth_description"
+    PRODUCT_DESCRIPTION = "product_description"
     
+    TOPIC_CHOICES = (
+        (BOOTH_DESCRIPTION, BOOTH_DESCRIPTION), 
+        (PRODUCT_DESCRIPTION, PRODUCT_DESCRIPTION)
+    )
+    
+    topic_type = models.CharField(max_length = 32, choices = TOPIC_CHOICES, default="booth_description")
+    topic_title = models.CharField(max_length = 128)
+    text = models.TextField()
+    
+    booth_product = models.ForeignKey('BoothProduct', null = True, blank = True, related_name = 'annotations') 
+    
+    def __init__(self, *args, **kwargs):
+        data = kwargs.pop('data', None)
+        
+        super(BoothDescriptionAnnotation, self).__init__(*args, **kwargs)
+        
+        if not data is None:
+            if 'text' in data and 'topic_type' in data and 'topic_title' in data:
+                self.text = data['text']
+                self.topic_type = data['topic_type']
+                self.topic_title = data['topic_title']
+                
+                if self.topic_type == BoothDescriptionAnnotation.PRODUCT_DESCRIPTION and 'product_id' in data:
+                    try:
+                        product_id = data['product_id']
+                        self.booth_product = BoothProduct.objects.get(id = product_id)
+                    except BoothProduct.DoesNotExist:
+                        raise AnnotationException("BoothDescripionAnnotation missing valid product product_id")
+            else:
+                raise AnnotationException("Booth Description Annotation missing text, topic_type or topic_title")
+                
+    
+    
+    def get_annotation_data(self):
+        data_dict = {'topic_type' : self.topic_type,
+                     'topic_title' : self.topic_title,
+                     'text' : self.text 
+                    }
+        
+        if not self.booth_product is None:
+            data_dict['product_id'] = self.booth_product.id
+        
+        return data_dict
+    
+    
+    @classmethod
+    def is_annotation_for(cls, category, annotation_data):
+        return category == Annotation.BOOTH_DESCRIPTION
+    
+    
+    @classmethod
+    def get_extra_filters(cls, filters):
+        specific_filters = {}
+        
+        ## just this single case for now
+        if "product_id" in filters:
+            try:
+                product = BoothProduct.objects.get(id = filters['product_id'])
+                specific_filters['id__in'] = [ann.id for ann in BoothDescriptionAnnotation.objects.filter(product = product)]
+            except BoothProduct.DoesNotExist:
+                pass
+            except Exception:
+                pass 
+        
+        return specific_filters
+
     
 ##################################### PresentationAnnotation Class ########################################
 class ProgramAnnotation(Annotation):
@@ -455,7 +528,11 @@ class Feature(models.Model):
     
     
     def to_serializable(self, virtual = False, include_data = False):
-        serialized_feature = {'category' : self.category, 'version' : self.version, 'timestamp': self.timestamp}
+        serialized_feature = {'category' : self.category, 
+                              'version' : self.version, 
+                              'timestamp': self.timestamp,
+                              'is_general': self.is_general
+                              }
         if include_data:
             serialized_feature['data'] = None
         

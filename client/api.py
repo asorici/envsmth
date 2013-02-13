@@ -298,7 +298,6 @@ class AreaResource(ModelResource):
     
     def dehydrate_features(self, bundle):
         ## retrieve the value of the virtual flag
-        print "Calling dehydrate features in AREA"
         virtual = get_virtual_flag_from_url(bundle.request)
         
         ## return a list of dictionary values from the features of this area
