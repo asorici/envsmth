@@ -84,6 +84,7 @@
     <string name="lbl_abstract">Abstract:</string>
     <string name="lbl_post_comment">Post a comment:</string>
     <string name="lbl_comments">Comments:</string>
+    <string name="lbl_comments_request">Comment request.</string>
     <string name="lbl_people_name">Name:</string>
     <string name="lbl_people_affiliation">Affiliation:</string>
     <string name="lbl_people_research_interests">Research Interests:</string>
