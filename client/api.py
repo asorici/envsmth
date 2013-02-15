@@ -549,6 +549,7 @@ class AnnotationResource(ModelResource):
         authorization = AnnotationAuthorization()
         #validation = FormValidation(form_class = AnnotationForm)
         validation = AnnotationValidation()
+        always_return_data = True
     
             
     def get_list(self, request, **kwargs):
