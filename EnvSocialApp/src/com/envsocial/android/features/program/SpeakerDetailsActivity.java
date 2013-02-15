@@ -29,6 +29,7 @@ import com.envsocial.android.utils.imagemanager.ImageFetcher;
 
 public class SpeakerDetailsActivity extends SherlockFragmentActivity {
 	private static final String TAG = "SpeakerDetailsActivity";
+	private static final String TITLE_TAG = "Speaker Details";
 	
 	private ProgramFeature mProgramFeature;
 	private ImageFetcher mImageFetcher;
@@ -50,7 +51,8 @@ public class SpeakerDetailsActivity extends SherlockFragmentActivity {
     public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		//getSupportActionBar().setDisplayShowTitleEnabled(false);
+		getSupportActionBar().setTitle(TITLE_TAG);
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		
 		if (savedInstanceState != null) {
 			mProgramFeature = (ProgramFeature)savedInstanceState.getSerializable("program_feature");

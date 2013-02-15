@@ -195,6 +195,7 @@ public class ProgramByTimeFragment extends ProgramFragment
 		Bundle extras = new Bundle();
 		extras.putInt(ProgramFeature.PRESENTATION_ID, presentationId);
 		extras.putSerializable("program_feature", mProgramFeature);
+		extras.putSerializable("location", mParentActivity.getFeatureLocation());
 		i.putExtras(extras);
 		
 		startActivity(i);

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+    
+    <LinearLayout 
+        android:id="@+id/presentation_comment_row_wrapper"
+        android:layout_width="fill_parent"
+    	android:layout_height="wrap_content"
+    	android:orientation="vertical" 
+    	android:background="@drawable/feature_program_presentation_comment_wrapper">
+    	    
+        <LinearLayout 
+        android:id="@+id/presentation_comment_author_date_holder"
+        android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:orientation="horizontal"
+		android:layout_marginBottom="10dip">
+	    
+	    <TextView android:id="@+id/presentation_comment_author"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content" 
+	        android:layout_marginLeft="5dip"
+	        android:layout_marginRight="5dip"
+	        android:layout_gravity="left|center_vertical"
+	        android:gravity="left|center_vertical"
+	        android:textColor="@color/envived_order_text_warm_green"/>
+	    
+        
+	    <TextView android:id="@+id/presentation_comment_date"
+	        android:layout_width="0dip"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="1"
+	        android:layout_marginLeft="5dip"
+	        android:layout_marginRight="5dip" 
+	       	android:layout_gravity="right|center_vertical"
+	        android:gravity="right|center_vertical"
+	        android:textColor="@color/envived_order_text_warm_green"
+	        android:ellipsize="end"/>
+    </LinearLayout>
+    
+    <TextView android:id="@+id/presentation_comment_text"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" 
+        android:textStyle="italic"
+        android:layout_marginLeft="5dip"
+	    android:layout_marginRight="5dip"
+        android:layout_marginBottom="2dp"
+        android:layout_marginTop="2dp"/>
+    </LinearLayout>
+    
+</LinearLayout>

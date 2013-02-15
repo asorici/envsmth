@@ -223,7 +223,6 @@ class Annotation(models.Model):
         elif self.area:
             location_name = self.area.name
         
-        
         if self.user and location_name:
             return str(self.user) + " - " + location_name
         elif location_name:

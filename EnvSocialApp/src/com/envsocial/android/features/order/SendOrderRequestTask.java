@@ -64,7 +64,9 @@ public class SendOrderRequestTask extends AsyncTask<Void, Void, ResponseHolder> 
 			int msgId = R.string.msg_send_order_ok;
 
 			switch(holder.getCode()) {
-			case HttpStatus.SC_CREATED: 					
+			case HttpStatus.SC_CREATED:
+			case HttpStatus.SC_ACCEPTED:
+			case HttpStatus.SC_NO_CONTENT:
 				error = false;
 				break;
 

@@ -24,9 +24,10 @@
     <string name="search_no_results">No results found for \"%s\"</string>
     <string name="menu_search">Search</string>
     
-    <string name="menu_comment">Comments</string>
+    <string name="menu_comments">Comments</string>
     <string name="menu_filter">Filter</string>
-    <string name="menu_add">ADD</string>
+    <string name="menu_add">Add</string>
+    <string name="menu_refresh">Refresh</string>
     
     <string name="menu_test">Test!</string>
     
@@ -57,18 +58,22 @@
     <string name="btn_more">Show More</string>
     <string name="btn_submit">Submit</string>
     
-    <string name="btn_c2dm_reg">Register C2DM</string>
-    <string name="btn_c2dm_unreg">Unregister C2DM</string>
+    <string name="btn_c2dm_reg">Register GCM</string>
+    <string name="btn_c2dm_unreg">Unregister GCM</string>
 
     
     
     <!-- Labels -->
+    <string name="lbl_attention">Attention</string>
+    <string name="lbl_warning">Warning</string>
+    
     <string name="lbl_login">Log in</string>
     <string name="lbl_register">Create Your Envived Account</string>
     <string name="lbl_current_checkin">Current checkin</string>
     <string name="lbl_no_checkin_location">No location selected.</string>
     <string name="lbl_details_features">Check out below the list of options for %1$s.</string>
-    <string name="lbl_browse_locations">Browse locations for %1$s.</string>
+    <string name="lbl_browse_locations">Browse locations for %1$s</string>
+    <string name="lbl_presentation_comments">View comments for: %1$s</string>
     
     <string name="lbl_email">Email</string>
     <string name="lbl_password">Password</string>
@@ -84,8 +89,8 @@
     <string name="lbl_order_message_details">Message details.</string>
     <string name="lbl_location_name">AREA_NAME</string>
     <string name="lbl_abstract">Abstract:</string>
-    <string name="lbl_post_comment">Post a comment:</string>
-    <string name="lbl_comments">Comments:</string>
+    <string name="lbl_post_comment">Post a comment</string>
+    <string name="lbl_comments">Comments</string>
     <string name="lbl_comments_request">Comment request.</string>
     <string name="lbl_people_name">Name:</string>
     <string name="lbl_people_affiliation">Affiliation:</string>

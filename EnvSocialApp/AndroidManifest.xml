@@ -98,6 +98,7 @@
         
         
         <activity android:name=".features.program.PresentationDetailsActivity" />
+        <activity android:name=".features.program.PresentationCommentsActivity" />
         <activity android:name=".features.program.SpeakerDetailsActivity" />
         
         <activity

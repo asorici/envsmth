@@ -541,7 +541,7 @@ class AnnotationResource(ModelResource):
         filtering = {
             'area': ['exact'],
             'environment': ['exact'],
-            'timestamp': ['gt', 'gte'],
+            'timestamp': ['gt', 'gte', 'lt', 'lte'],
             'category': ['exact'],
         }
         ordering = ['timestamp']

@@ -1,0 +1,6 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/view_presentation_comments"
+          android:icon="@drawable/ic_menu_comments"
+          android:title="@string/menu_comments"
+          android:showAsAction="ifRoom"/>
+</menu>

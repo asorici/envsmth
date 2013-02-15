@@ -21,8 +21,13 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
 import com.envsocial.android.Envived;
+import com.envsocial.android.HomeActivity;
 import com.envsocial.android.R;
+import com.envsocial.android.api.Location;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.utils.Utils;
 import com.envsocial.android.utils.imagemanager.ImageCache;
@@ -30,7 +35,9 @@ import com.envsocial.android.utils.imagemanager.ImageFetcher;
 
 public class PresentationDetailsActivity extends SherlockFragmentActivity {
 	private static final String TAG = "PresentationDetailsActivity";
+	private static final String TITLE_TAG = "Presentation Details";
 	
+	private Location mLocation;
 	private ProgramFeature mProgramFeature;
 	private ImageFetcher mImageFetcher;
 	
@@ -58,17 +65,15 @@ public class PresentationDetailsActivity extends SherlockFragmentActivity {
     public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		//getSupportActionBar().setDisplayShowTitleEnabled(false);
+		getSupportActionBar().setTitle(TITLE_TAG);
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		
-		if (savedInstanceState != null) {
-			mProgramFeature = (ProgramFeature)savedInstanceState.getSerializable("program_feature");
-			mPresentationId = savedInstanceState.getInt(ProgramFeature.PRESENTATION_ID, -1);
-		}
-		else {
-			// get them from intent
-			mProgramFeature = (ProgramFeature)getIntent().getExtras().getSerializable("program_feature");
-			mPresentationId = getIntent().getExtras().getInt(ProgramFeature.PRESENTATION_ID);
-		}
+		
+		// get intent parameters
+		mLocation = (Location) getIntent().getExtras().getSerializable("location");
+		mProgramFeature = (ProgramFeature)getIntent().getExtras().getSerializable("program_feature");
+		mPresentationId = getIntent().getExtras().getInt(ProgramFeature.PRESENTATION_ID);
+		
 		
 		// initialize feature
 		try {
@@ -100,13 +105,6 @@ public class PresentationDetailsActivity extends SherlockFragmentActivity {
 		}
 	}
 	
-	@Override
-	protected void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-		
-		outState.putInt(ProgramFeature.PRESENTATION_ID, mPresentationId);
-		outState.putSerializable("program_feature", mProgramFeature);
-	}
 	
 	@Override
 	public void onPause() {
@@ -146,6 +144,38 @@ public class PresentationDetailsActivity extends SherlockFragmentActivity {
 		// cleanup the program feature
 		mProgramFeature.doClose(getApplicationContext());
 	}
+	
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+	    MenuInflater inflater = getSupportMenuInflater();
+	    inflater.inflate(R.menu.presentation_details_menu, menu);
+	    return true;
+	}
+	
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+	    switch (item.getItemId()) {
+	        case android.R.id.home:
+	            // app icon in action bar clicked; go home
+	            Intent intent = new Intent(this, HomeActivity.class);
+	            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+	            startActivity(intent);
+	            return true;
+	        case R.id.view_presentation_comments:
+	        	// start the presentation comments activity
+	        	Intent i = new Intent(this, PresentationCommentsActivity.class);
+	        	i.putExtra("presentation_id", mPresentationId);
+	        	i.putExtra("presentation_title", mTitle);
+	        	i.putExtra("location", mLocation);
+	        	startActivity(i);
+	        	return true;
+	        default:
+	            return super.onOptionsItemSelected(item);
+	    }
+	}
+	
 	
 	private View getSeparatorView() {
 		// instantiate speaker separator view

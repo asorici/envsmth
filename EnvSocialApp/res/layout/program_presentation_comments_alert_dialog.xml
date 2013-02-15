@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+    
+    <TextView
+        android:id="@+id/lbl_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dip"
+		android:layout_marginBottom="20dip"
+        android:layout_gravity="top|center_horizontal"
+        android:gravity="center"
+        
+        android:background="@drawable/feature_order_catalog_category_wrapper"
+        android:textColor="@color/envived_order_text_warm_green"
+		android:textStyle="bold"
+		android:textSize="20sp"
+        android:text="@string/lbl_attention" />
+    
+    <TextView
+        android:id="@+id/msg_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dip"
+        android:layout_marginRight="10dip"
+        android:layout_marginBottom="20dip"
+        android:gravity="center_vertical|fill_horizontal"
+        android:layout_gravity="center"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:text = "You have to be checked in at this location (scan the QR code) to be able to post messages."
+    /> 
+    
+    <Button
+        android:id="@+id/btn_ok"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dip"
+        android:layout_marginRight="10dip"
+        android:layout_gravity="bottom|center_horizontal"
+        android:text="@string/btn_ok"
+    />
+</LinearLayout>

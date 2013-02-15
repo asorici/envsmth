@@ -125,8 +125,7 @@ public class Annotation {
 	}
 	
 	
-	public static List<Annotation> getAnnotations(Context context, 
-			Location location, String category, 
+	public static List<Annotation> getAnnotations(Context context, Location location, String category, 
 			boolean retrieveAll) throws EnvSocialComException, EnvSocialContentException {
 		
 		if (retrieveAll) {
@@ -170,7 +169,13 @@ public class Annotation {
 				int i = 2;
 				for (String key : extra.keySet()) {
 					keys[i] = key;
-					values[i] = extra.get(key);
+					
+					try {
+						values[i] = URLEncoder.encode(extra.get(key), "UTF-8");
+					} catch (UnsupportedEncodingException e) {
+						throw new EnvSocialContentException(null, EnvSocialResource.ANNOTATION, e);
+					}
+					
 					i++;
 				}
 			}
@@ -185,8 +190,7 @@ public class Annotation {
 	}
 	
 	
-	public static List<Annotation> getAnnotations(Context context, 
-			Location location, String category, 
+	public static List<Annotation> getAnnotations(Context context, Location location, String category, 
 			int offset, int limit) throws EnvSocialComException, EnvSocialContentException {
 		
 		String type = (location.isEnvironment()) ? Location.ENVIRONMENT : Location.AREA;
@@ -226,7 +230,13 @@ public class Annotation {
 			int i = 4;
 			for (String key : extra.keySet()) {
 				keys[i] = key;
-				values[i] = extra.get(key);
+				
+				try {
+					values[i] = URLEncoder.encode(extra.get(key), "UTF-8");
+				} catch (UnsupportedEncodingException e) {
+					throw new EnvSocialContentException(null, EnvSocialResource.ANNOTATION, e);
+				}
+				
 				i++;
 			}
 		}
@@ -337,40 +347,55 @@ public class Annotation {
 		
 		List<Annotation> annotations = new ArrayList<Annotation>();
 		for (int i = 0; i < len; ++ i) {
-			JSONObject annotation = array.getJSONObject(i);
-			String resourceUri = annotation.getString("resource_uri");
-			String category = annotation.getString("category");
-			String userUri = annotation.optString("user", null);
-			
-//			String strTimestamp = annotation.getString("timestamp").replace('T', ' ');
-			String strTimestamp = annotation.getString("timestamp");
-			Calendar timestamp = Utils.stringToCalendar(strTimestamp, "yyyy-MM-dd'T'HH:mm:ssZ");
-			
-			Location annLocation = null;
-			
-			if (location == null) {
-				// We need to parse the location
-				JSONObject locObj;
-				try {
-					locObj = annotation.getJSONObject("area");
-				} catch (JSONException e) {
-					locObj = annotation.getJSONObject("environment");
-				}
-				
-				String locationName = locObj.getString("name");
-				String locationUri = locObj.getString("resource_uri");
-				
-				annLocation = new Location(locationName, locationUri);
-			}
-			else {
-				annLocation = location;
-			}
-			
-			String data = annotation.getString("data");
-			annotations.add(new Annotation(context, annLocation, category, timestamp, data, resourceUri, userUri));
+			JSONObject annotationObject = array.getJSONObject(i);
+			Annotation ann = parseAnnotation(context, location, annotationObject);
+			annotations.add(ann);
 		}
 		
 		return annotations;
+	}
+	
+	
+	public static Annotation parseAnnotation(Context context, Location location, JSONObject annotationObject) 
+			throws JSONException, ParseException {
+		String resourceUri = annotationObject.getString("resource_uri");
+		String category = annotationObject.getString("category");
+		String userUri = annotationObject.optString("user", null);
+		
+		//String strTimestamp = annotation.getString("timestamp").replace('T', ' ');
+		String strTimestamp = annotationObject.getString("timestamp");
+		Calendar timestamp = null;
+		try {
+			// try it without milliseconds
+			timestamp = Utils.stringToCalendar(strTimestamp, "yyyy-MM-dd'T'HH:mm:ssZ");
+		}
+		catch(ParseException ex) {
+			// try it wit milliseconds
+			timestamp = Utils.stringToCalendar(strTimestamp, "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZ");
+		}
+		
+		Location annLocation = null;
+		
+		if (location == null) {
+			// We need to parse the location
+			JSONObject locObj;
+			try {
+				locObj = annotationObject.getJSONObject("area");
+			} catch (JSONException e) {
+				locObj = annotationObject.getJSONObject("environment");
+			}
+			
+			String locationName = locObj.getString("name");
+			String locationUri = locObj.getString("resource_uri");
+			
+			annLocation = new Location(locationName, locationUri);
+		}
+		else {
+			annLocation = location;
+		}
+		
+		String data = annotationObject.getString("data");
+		return new Annotation(context, annLocation, category, timestamp, data, resourceUri, userUri);
 	}
 	
 	
