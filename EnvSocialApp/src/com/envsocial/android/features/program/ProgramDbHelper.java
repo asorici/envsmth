@@ -504,14 +504,6 @@ public class ProgramDbHelper extends FeatureDbHelper {
 		String orderBy = PRESENTATION_TABLE + "." + COL_PRESENTATION_START_TIME;
 		
 		Cursor c = qb.query(database, projectionIn, selection, selectionArgs, null, null, orderBy);
-		/*
-		Log.d(TAG, "---------- Should have 2 presentations: " + c.getCount());
-		while(c.moveToNext()) {
-			Log.d(TAG, "Presentations: " + c.getInt(0) + ": " + c.getString(1));
-		}
-		
-		c.moveToFirst();
-		*/
 		
 		return c;
 		
@@ -542,22 +534,64 @@ public class ProgramDbHelper extends FeatureDbHelper {
 	
 	
 	public Cursor getPresentationsByDay(String day, int sessionId) {
-		String queryString = 	"SELECT " +
-									"e1." + COL_PRESENTATION_ID + ", " + 
-									"e1." + COL_PRESENTATION_SESSIONID + ", " +
-									"e1." + COL_PRESENTATION_TITLE + ", " +
-									"e1." + COL_PRESENTATION_ABSTRACT + ", " + 
-									"e1." + COL_PRESENTATION_START_TIME + ", " +
-									"e1." + COL_PRESENTATION_END_TIME + " " + 
-								"FROM presentation e1 " +
-								"WHERE " + 
-									"SUBSTR(e1." + COL_PRESENTATION_START_TIME + ",1,10) = '" + day + "' " + 
-									"AND e1." + COL_PRESENTATION_SESSIONID + " = '" + sessionId + "';";
+		SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 		
-		Cursor c = database.rawQuery(queryString, null);
+		qb.setTables(PRESENTATION_TABLE + " LEFT OUTER JOIN " + SESSION_TABLE + " " +
+				"ON (" + PRESENTATION_TABLE + "." + COL_PRESENTATION_SESSIONID + 
+				" = " + SESSION_TABLE + "." + COL_SESSION_ID + ")");
+		
+		String selection = "SUBSTR(" + PRESENTATION_TABLE +  "." + COL_PRESENTATION_START_TIME + ",1,10) = ? " +
+							"AND " + PRESENTATION_TABLE + "." + COL_PRESENTATION_SESSIONID + " = ?";
+		String[] selectionArgs = new String[] { day, String.valueOf(sessionId) };
+		
+		String[] projectionIn = new String[] {
+				PRESENTATION_TABLE + "." + COL_PRESENTATION_ID + " AS " + COL_PRESENTATION_ID,
+				PRESENTATION_TABLE + "." + COL_PRESENTATION_TITLE + " AS " + COL_PRESENTATION_TITLE,
+				"SUBSTR(" + COL_PRESENTATION_START_TIME + ", " + "12, 5) AS " + COL_PRESENTATION_START_TIME ,
+				"SUBSTR(" + COL_PRESENTATION_END_TIME + ", " + "12, 5) AS " + COL_PRESENTATION_END_TIME ,
+				SESSION_TABLE + "." + COL_SESSION_TITLE + " AS " + ProgramFeature.SESSION,
+				COL_SESSION_LOCATION_NAME
+		};
+		
+		String orderBy = PRESENTATION_TABLE + "." + COL_PRESENTATION_START_TIME;
+		
+		Cursor c = qb.query(database, projectionIn, selection, selectionArgs, null, null, orderBy);
+		
+		/*
+		Log.d(TAG, "---------- Should have 2 presentations: " + c.getCount());
+		while(c.moveToNext()) {
+			Log.d(TAG, "Presentations: " + c.getInt(0) + ": " + c.getString(1));
+		}
+		
+		c.moveToFirst();
+		*/
+		
 		return c;
 	}
 	
+	
+	public Cursor getSessionsByDay(String selectedDayString) {
+		String selection = "(SELECT COUNT(*) FROM " + PRESENTATION_TABLE + 
+				" WHERE SUBSTR(" + PRESENTATION_TABLE +  "." + COL_PRESENTATION_START_TIME + ",1,10) = ? " +
+				" AND " + PRESENTATION_TABLE + "." + COL_PRESENTATION_SESSIONID + 
+						" = " + SESSION_TABLE + "." + COL_SESSION_ID + ") > 0";
+		String[] selectionArgs = new String[] { selectedDayString };
+		String orderBy = SESSION_TABLE + "." + COL_SESSION_TITLE;
+		
+		Cursor c = database.query(SESSION_TABLE, null, 
+				selection, selectionArgs, null, null, orderBy);
+		
+		/*
+		Log.d(TAG, "---------- Should have 2 presentations: " + c.getCount());
+		while(c.moveToNext()) {
+			Log.d(TAG, "Sessions: " + c.getInt(0) + ": " + c.getString(1));
+		}
+		
+		c.moveToFirst();
+		*/
+		
+		return c;
+	}
 	
 	public List<Map<String,String>> getOverlappingPresentations(String presentationId) {
 		List<Map<String,String>> entries = new ArrayList<Map<String,String>>();

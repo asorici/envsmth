@@ -31,7 +31,7 @@ import com.envsocial.android.utils.SimpleCursorLoader;
 
 public class ProgramByTimeFragment extends ProgramFragment 
 		implements OnClickListener, OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
-	private static final String TAG = "ProgramFragment";
+	private static final String TAG = "ProgramByTimeFragment";
 	
 	private ProgramActivity mParentActivity;
 	private ProgramFeature mProgramFeature;
@@ -84,10 +84,6 @@ public class ProgramByTimeFragment extends ProgramFragment
 		mProgramListView.setAdapter(mProgramAdapter);
 		mProgramListView.setOnItemClickListener(this);
 		
-		// setup the progress dialog which will be canceled when the program data has been loaded
-		mProgramLoaderDialog = getProgressDialogInstance(getActivity());
-		mProgramLoaderDialog.show();
-		
 		
 		return view;
 	}
@@ -111,33 +107,39 @@ public class ProgramByTimeFragment extends ProgramFragment
 			Log.d(TAG, "distinct program days: " + mDistinctProgramDays);
 			
 			int k = 0;
-			for (String d : mDistinctProgramDays) {
-				TextView dayView = new TextView(getActivity());
-	
-				try {
-					SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-					Date date = formatter.parse(d);
-					formatter = new SimpleDateFormat("EEE, MMM d");
-					dayView.setText(formatter.format(date));
-				} catch (ParseException e) {
-					e.printStackTrace();
-					dayView.setText(d);
+			int numDays = mDistinctProgramDays.size();
+			
+			if (numDays > 1) {
+				for (int i = 0; i < numDays; i++) {
+					String d = mDistinctProgramDays.get(i);
+					TextView dayView = new TextView(getActivity());
+		
+					try {
+						SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+						Date date = formatter.parse(d);
+						formatter = new SimpleDateFormat("EEE, MMM d");
+						dayView.setText(formatter.format(date));
+					} catch (ParseException e) {
+						e.printStackTrace();
+						dayView.setText(d);
+					}
+					
+					LinearLayout.LayoutParams dayViewParams = 
+							new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
+					//dayView.setLayoutParams(dayViewParams);
+					
+					dayView.setTag(k ++);
+					dayView.setOnClickListener(this);
+					dayView.setPadding(15, 15, 15, 15);
+					dayView.setTextColor(getResources().getColor(R.color.envived_order_text_dark_green));
+					dayView.setBackgroundDrawable(getResources().getDrawable(R.drawable.envived_default_green_tab_indicator_ab));
+					mDayScroll.addView(dayView, dayViewParams);
 				}
-				
-				LinearLayout.LayoutParams dayViewParams = 
-						new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
-				//dayView.setLayoutParams(dayViewParams);
-				
-				dayView.setTag(k ++);
-				dayView.setOnClickListener(this);
-				dayView.setPadding(15, 15, 15, 15);
-				dayView.setTextColor(getResources().getColor(R.color.envived_order_text_dark_green));
-				dayView.setBackgroundDrawable(getResources().getDrawable(R.drawable.envived_default_green_tab_indicator_ab));
-				mDayScroll.addView(dayView, dayViewParams);
+			
+				mDayScroll.getChildAt(mCurrentDayIndex).setBackgroundDrawable(getResources().getDrawable(R.drawable.envived_default_actionbar_tab_selected_pressed));
 			}
 		}
 		
-		mDayScroll.getChildAt(mCurrentDayIndex).setBackgroundDrawable(getResources().getDrawable(R.drawable.envived_default_actionbar_tab_selected_pressed));
 		
 		// ======== start the loader days ========
 		Bundle loaderArgs = new Bundle();

@@ -20,6 +20,15 @@ public abstract class ProgramFragment extends SherlockFragment implements Progra
 	    ((ProgramUpdateObserver)getActivity()).registerListener(mProgramUpdateListener);
 	}
 	
+	
+	@Override
+	public void onDestroy() {
+	    super.onDestroy();
+	    
+		((ProgramUpdateObserver)getActivity()).unregisterListener(mProgramUpdateListener);
+	}
+	
+	
 	protected void setProgramDisplayType(int displayType) {
 		mProgramDisplayType = displayType;
 	}

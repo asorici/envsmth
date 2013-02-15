@@ -124,16 +124,14 @@
 		    android:text="@string/lbl_abstract"
 		    android:textStyle="bold" />
 
-		<TextView android:id="@+id/presentation_abstract"
+		<WebView android:id="@+id/presentation_abstract"
 		    android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
 			android:layout_marginBottom="5dip"
 			
 			android:padding="5dip"
 			android:background="@drawable/feature_program_presentation_abstract_wrapper"
-			android:textColor="@color/envived_order_text_dark_green"
-			android:text="No abstract avaialable."
-			 />
+		/>
 		
 		<TextView
 		    android:layout_width="fill_parent"

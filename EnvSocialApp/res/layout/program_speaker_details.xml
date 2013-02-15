@@ -79,16 +79,14 @@
 		    android:text="Biography"
 		    android:textStyle="bold" />
 
-		<TextView android:id="@+id/speaker_biography"
+		<WebView android:id="@+id/speaker_biography"
 		    android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
 			android:layout_marginBottom="5dip"
 			
 			android:padding="5dip"
 			android:background="@drawable/feature_program_presentation_abstract_wrapper"
-			android:textColor="@color/envived_order_text_dark_green"
-			android:text="No information avaialable."
-			 />
+		/>
 
 		<TextView
 		    android:layout_width="fill_parent"

@@ -201,26 +201,39 @@ public abstract class Feature implements Serializable {
 
 
 	public void doClose(Context context) {
-		featureClose(context);
-		
-		// check to see if our feature data is still in the feature lru tracker
-		FeatureLRUTracker featureLruTracker = Envived.getFeatureLRUTracker();
 		String localCacheFileName = getLocalCacheFileName(category, 
 				environmentUrl, areaUrl, version);
 		
-		if (featureLruTracker.get(localCacheFileName) == null) {
-			Log.d(TAG, "---- NO FEATURE DATA CACHING: DB OR PREFERENCE DELETE ----");
+		if (initialized) {
+			featureClose(context);
 			
-			// if it is no longer in the cache then remove the database file entirely
+			// check to see if our feature data is still in the feature lru tracker
+			FeatureLRUTracker featureLruTracker = Envived.getFeatureLRUTracker();
+			
+			if (featureLruTracker.get(localCacheFileName) == null) {
+				Log.d(TAG, "---- NO FEATURE DATA CACHING: DB OR PREFERENCE DELETE ----");
+				
+				// if it is no longer in the cache then remove the database file entirely
+				if (hasLocalDatabaseSupport()) {
+					context.deleteDatabase(localCacheFileName);
+				}
+				else {
+					Preferences.removeSerializedFeatureData(context, localCacheFileName);
+				}
+			}
+			else {
+				Log.d(TAG, "---- FEATURE DATA IS CACHED: NO DB OR PREFERENCE DELETE ----");
+			}
+		}
+		else {
+			featureClose(context);
+			
 			if (hasLocalDatabaseSupport()) {
 				context.deleteDatabase(localCacheFileName);
 			}
 			else {
 				Preferences.removeSerializedFeatureData(context, localCacheFileName);
 			}
-		}
-		else {
-			Log.d(TAG, "---- FEATURE DATA IS CACHED: NO DB OR PREFERENCE DELETE ----");
 		}
 		
 		initialized = false;

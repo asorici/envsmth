@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/program_presentation_row_wrapper"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -13,18 +12,6 @@
     
     <TextView 
         android:id="@+id/program_presentation_title"
-        android:layout_width="fill_parent"
-    	android:layout_height="wrap_content"
-    	android:layout_marginTop="2dip"
-    	android:layout_marginBottom="2dip"
-    	android:lines="2"
-    	android:textSize="16sp"
-    	android:textStyle="bold"
-    	android:ellipsize="end"
-    />
-    
-    <TextView 
-        android:id="@+id/program_presentation_session"
         android:layout_width="fill_parent"
     	android:layout_height="wrap_content"
     	android:layout_marginTop="2dip"

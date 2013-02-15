@@ -199,7 +199,6 @@ public class DetailsActivity extends SherlockFragmentActivity {
 			return onSearchRequested();
 		}
 		
-		
 		else if (item.getTitle().toString().compareTo("Test Update Feature") == 0) {
 			Intent updateService = new Intent(context, EnvivedFeatureDataRetrievalService.class);
 			

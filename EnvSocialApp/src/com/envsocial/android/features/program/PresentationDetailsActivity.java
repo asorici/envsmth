@@ -1,6 +1,8 @@
 package com.envsocial.android.features.program;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -10,8 +12,10 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Xml.Encoding;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -46,7 +50,7 @@ public class PresentationDetailsActivity extends SherlockFragmentActivity {
 	private TextView mSessionView;
 	private TextView mLocationNameView;
 	private TextView mTagsView;
-	private TextView mAbstractView;
+	private WebView mAbstractView;
 	
 	private LinearLayout mSpeakersLayout;
 	
@@ -54,7 +58,7 @@ public class PresentationDetailsActivity extends SherlockFragmentActivity {
     public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		getSupportActionBar().setDisplayShowTitleEnabled(false);
+		//getSupportActionBar().setDisplayShowTitleEnabled(false);
 		
 		if (savedInstanceState != null) {
 			mProgramFeature = (ProgramFeature)savedInstanceState.getSerializable("program_feature");
@@ -80,7 +84,8 @@ public class PresentationDetailsActivity extends SherlockFragmentActivity {
 		mLocationNameView = (TextView) findViewById(R.id.locationName);
 		mDatetimeView = (TextView) findViewById(R.id.datetime);
 		mTagsView = (TextView) findViewById(R.id.tags);
-		mAbstractView = (TextView) findViewById(R.id.presentation_abstract);
+		mAbstractView = (WebView) findViewById(R.id.presentation_abstract);
+		mAbstractView.getSettings().setBuiltInZoomControls(true);
 		
 		mSpeakersLayout = (LinearLayout) findViewById(R.id.presentation_speakers_layout);
 		
@@ -218,7 +223,15 @@ public class PresentationDetailsActivity extends SherlockFragmentActivity {
 			}
 			
 			if (mAbstract != null) {
-				mAbstractView.setText(mAbstract);
+				try {
+					mAbstractView.loadData(URLEncoder.encode(mAbstract, "UTF-8").replaceAll("\\+", " "), "text/html", Encoding.UTF_8.toString());
+				} catch (UnsupportedEncodingException e) {
+					Log.d(TAG, "ERROR loading presentation abstract in WebView.", e);
+				}
+			}
+			else {
+				String message = "No abstract available";
+				mAbstractView.loadData(message, "text/html", Encoding.UTF_8.toString());
 			}
 		}
 		

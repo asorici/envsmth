@@ -41,6 +41,7 @@ public class ProgramActivity extends EnvivedFeatureActivity implements ProgramUp
         setContentView(R.layout.program);
         
         mActionBar = getSupportActionBar();
+        mActionBar.setTitle("View Schedule");
         mActionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         
         // instantiate the registered program update receivers list
@@ -83,17 +84,16 @@ public class ProgramActivity extends EnvivedFeatureActivity implements ProgramUp
         mActionBar.addTab(timeBasedProgramTab);	
         
         
-        /*
-        Tab sessionBasedProgramTab = actionBar.newTab()
+        
+        Tab sessionBasedProgramTab = mActionBar.newTab()
         		.setText("By Session")
         		.setTag(SESSION_TAB_TAG)
     			.setTabListener(new TabListener<ProgramBySessionFragment>(this, 
-    					Feature.DESCRIPTION, ProgramBySessionFragment.class, mLocation));
-        actionBar.addTab(sessionBasedProgramTab);
-        */
+    					Feature.PROGRAM, ProgramBySessionFragment.class, mLocation));
+        mActionBar.addTab(sessionBasedProgramTab);
+        
         
         // set the selected tab
-        
         if (mCurrentTabTag != null) {
 	        int numTabs = mActionBar.getTabCount();
 	        for (int i = 0; i < numTabs; i++) {

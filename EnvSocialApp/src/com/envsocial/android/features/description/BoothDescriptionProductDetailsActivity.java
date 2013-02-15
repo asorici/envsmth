@@ -5,7 +5,6 @@ import java.net.URLEncoder;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -21,7 +20,6 @@ import android.widget.TextView;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
-import com.envsocial.android.CommentsActivity;
 import com.envsocial.android.Envived;
 import com.envsocial.android.R;
 import com.envsocial.android.api.Location;
@@ -124,7 +122,7 @@ public class BoothDescriptionProductDetailsActivity extends SherlockFragmentActi
 	
 	public boolean onOptionsItemSelected(MenuItem item) {
 		final Context context = getApplicationContext();
-		
+		/*
 		if (item.getTitle().toString().compareTo(getString(R.string.menu_comment)) == 0) {
 			Intent intent = new Intent(getApplicationContext(), CommentsActivity.class);
 			intent.putExtra("location", mLocation);
@@ -132,7 +130,7 @@ public class BoothDescriptionProductDetailsActivity extends SherlockFragmentActi
 			
 			return true;
 		}
-		
+		*/
 		return false;
 	}
 	

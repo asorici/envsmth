@@ -1,6 +1,8 @@
 package com.envsocial.android.features.program;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.LinkedList;
@@ -9,8 +11,10 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Xml.Encoding;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -36,7 +40,7 @@ public class SpeakerDetailsActivity extends SherlockFragmentActivity {
 	private TextView mPositionView;
 	private TextView mAffiliationView;
 	private ImageView mSpeakerImageView;
-	private TextView mBiographyView;
+	private WebView mBiographyView;
 	private TextView mEmailView;
 	private TextView mOnlineProfileView;
 	
@@ -46,7 +50,7 @@ public class SpeakerDetailsActivity extends SherlockFragmentActivity {
     public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		getSupportActionBar().setDisplayShowTitleEnabled(false);
+		//getSupportActionBar().setDisplayShowTitleEnabled(false);
 		
 		if (savedInstanceState != null) {
 			mProgramFeature = (ProgramFeature)savedInstanceState.getSerializable("program_feature");
@@ -68,10 +72,12 @@ public class SpeakerDetailsActivity extends SherlockFragmentActivity {
 		
 		mNameView = (TextView) findViewById(R.id.speaker_name);
 		mPositionView = (TextView) findViewById(R.id.speaker_position);
-		mAffiliationView= (TextView) findViewById(R.id.speaker_affiliation);
-		mBiographyView= (TextView) findViewById(R.id.speaker_biography);
+		mAffiliationView = (TextView) findViewById(R.id.speaker_affiliation);
+		mBiographyView = (WebView) findViewById(R.id.speaker_biography);
+		mBiographyView.getSettings().setBuiltInZoomControls(true);
+		
 		mSpeakerImageView = (ImageView) findViewById(R.id.speaker_image);
-		mEmailView= (TextView) findViewById(R.id.speaker_email);
+		mEmailView = (TextView) findViewById(R.id.speaker_email);
 		mOnlineProfileView = (TextView) findViewById(R.id.speaker_online_profile_link);
 		
 		mPresentationsLayout = (LinearLayout) findViewById(R.id.speaker_presentations_layout);
@@ -139,7 +145,15 @@ public class SpeakerDetailsActivity extends SherlockFragmentActivity {
 			mAffiliationView.setText(affiliation);
 			
 			if (biography != null) {
-				mBiographyView.setText(biography);
+				try {
+					mBiographyView.loadData(URLEncoder.encode(biography, "UTF-8").replaceAll("\\+", " "), "text/html", Encoding.UTF_8.toString());
+				} catch (UnsupportedEncodingException e) {
+					Log.d(TAG, "ERROR loading speaker biography in WebView.", e);
+				}
+			}
+			else {
+				String message = "No biography available";
+				mBiographyView.loadData(message, "text/html", Encoding.UTF_8.toString());
 			}
 			
 			if (email != null) {

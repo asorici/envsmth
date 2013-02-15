@@ -167,6 +167,23 @@ public class ProgramFeature extends Feature {
 		return null;
 	}
 	
+	
+	public Cursor getPresentationsByDay(String dayString, int sessionId) {
+		if (dbHelper != null) {
+			return dbHelper.getPresentationsByDay(dayString, sessionId);
+		}
+		return null;
+	}
+	
+	public Cursor getSessionsByDay(String selectedDayString) {
+		if (dbHelper != null) {
+			return dbHelper.getSessionsByDay(selectedDayString);
+		}
+		return null;
+	}
+
+	
+	
 	public Cursor getPresentationDetails(int presentationId) {
 		if (dbHelper != null) {
 			return dbHelper.getPresentationDetails(presentationId);
@@ -197,6 +214,5 @@ public class ProgramFeature extends Feature {
 		}
 		return null;
 	}
-
 
 }
