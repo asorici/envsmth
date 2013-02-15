@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="fill_parent"
         android:padding="5dp">
 	
     <TextView  
@@ -38,7 +38,8 @@
 
     <TextView android:id="@+id/presentation_comments_empty"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dip"
+        android:layout_weight="1"
         android:layout_gravity="center"
         android:gravity="center"
         android:textColor="@color/white"
@@ -52,7 +53,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dip"
-        android:layout_gravity="center"
+        android:layout_gravity="center_horizontal|bottom"
         android:gravity="center"
         android:textSize="16sp"
         android:textStyle="bold"
