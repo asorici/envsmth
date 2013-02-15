@@ -217,10 +217,17 @@ class Annotation(models.Model):
                 pass
     
     def __unicode__(self):
-        if self.user and self.area:
-            return str(self.user) + " - " + self.area.name
+        location_name = None
+        if self.environment:
+            location_name = self.environment
         elif self.area:
-            return "annotation for area " + self.area.name + " but empty user field"
+            location_name = self.area
+        
+        
+        if self.user and location_name:
+            return str(self.user) + " - " + location_name
+        elif location_name:
+            return "annotation for location " + location_name + " but empty user field"
         else:
             return "empty annotation object"
         
