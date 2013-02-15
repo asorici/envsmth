@@ -219,9 +219,9 @@ class Annotation(models.Model):
     def __unicode__(self):
         location_name = None
         if self.environment:
-            location_name = self.environment
+            location_name = self.environment.name
         elif self.area:
-            location_name = self.area
+            location_name = self.area.name
         
         
         if self.user and location_name:
