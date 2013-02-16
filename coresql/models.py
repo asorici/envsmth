@@ -995,6 +995,9 @@ class SocialMediaFeature(Feature):
             if self.twitter_url:
                 data_dict['twitter_url'] = self.twitter_url
             
+            if self.google_plus_url:
+                data_dict['google_plus_url'] = self.google_plus_url
+            
             if self.internal_forum_url:
                 data_dict['internal_forum_url'] = self.internal_forum_url
             
