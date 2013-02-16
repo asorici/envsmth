@@ -980,6 +980,7 @@ class MenuItem(models.Model):
 class SocialMediaFeature(Feature):
     facebook_url = models.URLField(null = True, blank = True, max_length = 256)
     twitter_url = models.URLField(null = True, blank = True, max_length = 256)
+    google_plus_url = models.URLField(null = True, blank = True, max_length = 256)
     internal_forum_url = models.URLField(null = True, blank = True, max_length = 256)
     
     def to_serializable(self, virtual = False, include_data = False):
