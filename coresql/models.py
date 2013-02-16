@@ -15,7 +15,9 @@ CATEGORY_CHOICES = (
     ("booth_description", "booth_description"), 
     ("order", "order"),
     ("program", "program"),
-    ("people", "people")
+    ("people", "people"),
+    ("social_media", "social_media"),
+    ("news_feed", "news_feed")
 )    
 
 """
