@@ -191,6 +191,7 @@ class Announcement(models.Model):
 class Annotation(models.Model):
     DESCRIPTION = "description"
     BOOTH_DESCRIPTION = "booth_description"
+    BOOTH_PRODUCT_VOTE = "booth_vote"
     PROGRAM = "program"
     ORDER = "order"
     
@@ -352,7 +353,62 @@ class BoothDescriptionAnnotation(Annotation):
         
         return specific_filters
 
+
+
+class BoothProductVoteAnnotation(Annotation):
+    booth_product = models.ForeignKey('BoothProduct', related_name = 'votes') 
     
+    class Meta:
+        unique_together = ("booth_product", "user")
+    
+    def __init__(self, *args, **kwargs):
+        data = kwargs.pop('data', None)
+        
+        super(BoothDescriptionAnnotation, self).__init__(*args, **kwargs)
+        
+        if not data is None:
+            if 'product_id' in data:
+                try:
+                    product_id = data['product_id']
+                    self.booth_product = BoothProduct.objects.get(id = product_id)
+                except BoothProduct.DoesNotExist:
+                    raise AnnotationException("Booth Product Vote Annotation missing valid product product_id")
+            else:
+                raise AnnotationException("Booth Product Vote Annotation missing product_id value")
+                
+    
+    
+    def get_annotation_data(self):
+        data_dict = { 'product_id' : self.booth_product.id }
+        if not self.booth_product.votes is None:
+            data_dict['product_votes' : self.booth_product.votes.count()]
+        
+        
+        return data_dict
+    
+    
+    @classmethod
+    def is_annotation_for(cls, category, annotation_data):
+        return category == Annotation.BOOTH_PRODUCT_VOTE
+    
+    
+    @classmethod
+    def get_extra_filters(cls, filters):
+        specific_filters = {}
+        
+        ## just this single case for now
+        if "product_id" in filters:
+            try:
+                product = BoothProduct.objects.get(id = filters['product_id'])
+                specific_filters['id__in'] = [ann.id for ann in BoothDescriptionAnnotation.objects.filter(product = product)]
+            except BoothProduct.DoesNotExist:
+                pass
+            except Exception:
+                pass 
+        
+        return specific_filters
+
+
 ##################################### PresentationAnnotation Class ########################################
 class ProgramAnnotation(Annotation):
     text = models.TextField()
