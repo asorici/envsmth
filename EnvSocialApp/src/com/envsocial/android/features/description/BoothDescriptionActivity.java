@@ -1,12 +1,15 @@
 package com.envsocial.android.features.description;
 
+import java.util.ArrayList;
+
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentManager.BackStackEntry;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.ActionBar.Tab;
@@ -18,6 +21,7 @@ import com.envsocial.android.CommentsActivity;
 import com.envsocial.android.Envived;
 import com.envsocial.android.R;
 import com.envsocial.android.api.Location;
+import com.envsocial.android.api.Url;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.EnvivedFeatureActivity;
 import com.envsocial.android.features.Feature;
@@ -252,13 +256,27 @@ public class BoothDescriptionActivity extends EnvivedFeatureActivity {
 	}
 	
 	public boolean onOptionsItemSelected(MenuItem item) {
-		final Context context = getApplicationContext();
 		
 		if (item.getTitle().toString().compareTo(getString(R.string.menu_comments)) == 0) {
 			Intent intent = new Intent(getApplicationContext(), CommentsActivity.class);
 			intent.putExtra("location", mLocation);
-			startActivity(intent);
+			String boothId = Url.resourceIdFromUrl(mDescriptionFeature.getResourceUri());
+			Cursor productsCursor = mDescriptionFeature.getAllProducts(Integer.parseInt(boothId));
+
+			ArrayList<String> filterItemsList = new ArrayList<String>();
+
+			while (productsCursor.moveToNext()) {
+				int nameIndex = productsCursor.getColumnIndex(BoothDescriptionDbHelper.COL_BOOTH_PRODUCT_NAME);
+				String productName = productsCursor.getString(nameIndex);
+				filterItemsList.add(productName);
+			}
+			filterItemsList.add(mLocation.getName());
+
+			String[] filterItems = filterItemsList.toArray(new String[filterItemsList.size()]);
 			
+			intent.putExtra("filterItems", filterItems);
+			
+			startActivity(intent);
 			return true;
 		}
 		

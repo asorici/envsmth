@@ -102,8 +102,8 @@ public class PresentationCommentsActivity extends SherlockFragmentActivity imple
 		}
 		
 		if (mSendCommentTask != null) {
-			mRetrieveCommentsTask.cancel(false);
-			mRetrieveCommentsTask = null;
+			mSendCommentTask.cancel(false);
+			mSendCommentTask = null;
 		}
 	}
 	

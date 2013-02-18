@@ -26,7 +26,7 @@
     
     <string name="menu_comments">Comments</string>
     <string name="menu_filter">Filter</string>
-    <string name="menu_add">Add</string>
+    <string name="menu_add">ADD</string>
     <string name="menu_refresh">Refresh</string>
     
     <string name="menu_test">Test!</string>
@@ -74,6 +74,7 @@
     <string name="lbl_details_features">Check out below the list of options for %1$s.</string>
     <string name="lbl_browse_locations">Browse locations for %1$s</string>
     <string name="lbl_presentation_comments">View comments for: %1$s</string>
+     <string name="lbl_comments">View comments for: %1$s</string>
     
     <string name="lbl_email">Email</string>
     <string name="lbl_password">Password</string>

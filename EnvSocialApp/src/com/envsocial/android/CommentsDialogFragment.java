@@ -1,10 +1,7 @@
 package com.envsocial.android;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockDialogFragment;
 
@@ -23,12 +19,15 @@ public class CommentsDialogFragment extends SherlockDialogFragment implements Bu
 	
 	private Button mBtnSend;
 	private Button mBtnCancel;
-	private EditText mMsgSubject;
+	private String mMsgSubject;
 	private EditText mMsgContent;
 	
-	static CommentsDialogFragment newInstance() {
-		CommentsDialogFragment f = new CommentsDialogFragment();
-		
+	private CommentsDialogFragment (String subject) {
+		mMsgSubject = subject;
+	}
+	
+	static CommentsDialogFragment newInstance(String subject) {
+		CommentsDialogFragment f = new CommentsDialogFragment(subject);
 		return f;
 	}
 	
@@ -46,7 +45,7 @@ public class CommentsDialogFragment extends SherlockDialogFragment implements Bu
 		getDialog().setTitle(TITLE);
 		View v = inflater.inflate(R.layout.comments_dialog, container, false);
 		
-		mMsgSubject = (EditText) v.findViewById(R.id.msg_subject);
+		//mMsgSubject = (EditText) v.findViewById(R.id.msg_subject);
 		mMsgContent = (EditText) v.findViewById(R.id.msg_content);
 		
 		mBtnSend = (Button) v.findViewById(R.id.btn_send);
@@ -64,7 +63,7 @@ public class CommentsDialogFragment extends SherlockDialogFragment implements Bu
 			commentJSON.put("topic_type", "booth_description");
 			//commentJSON.put("product_id", "test_product_id");
 			commentJSON.put("text", mMsgContent.getText().toString());
-			commentJSON.put("topic_title", "un_string");
+			commentJSON.put("topic_title", mMsgSubject);
 			
 			return commentJSON.toString();
 			

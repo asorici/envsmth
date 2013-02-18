@@ -1,4 +1,4 @@
-package com.envsocial.android.features.program;
+package com.envsocial.android;
 
 import java.util.Calendar;
 import java.util.LinkedList;
@@ -6,6 +6,7 @@ import java.util.List;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -15,42 +16,50 @@ import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.envsocial.android.R;
-import com.envsocial.android.features.program.PresentationCommentsActivity.PresentationComment;
+import com.envsocial.android.CommentsActivity.Comment;
 import com.envsocial.android.utils.Utils;
 
-public class PresentationCommentListAdapter extends BaseAdapter {
+public class CommentsListAdapter extends BaseAdapter {
 	private Context mContext;
-	private List<PresentationComment> mCommentList;
+	private List<Comment> mCommentList;
+	private List<Comment> mActiveCommentList;
 	private LayoutInflater mInflater;
+	private List<String> filters;
 	
-	public PresentationCommentListAdapter(Context context, LinkedList<PresentationComment> commentList) {
+	public CommentsListAdapter(Context context, LinkedList<Comment> commentList) {
 		mContext = context;
 		mInflater = LayoutInflater.from(context);
 		mCommentList = commentList;
+		mActiveCommentList = new LinkedList<Comment>();
+		filters = new LinkedList<String>();
 	}
-	
+
 	@Override
 	public int getCount() {
-		return mCommentList.size();
+		return mActiveCommentList.size();
 	}
 
 	@Override
 	public Object getItem(int position) {
-		return mCommentList.get(position);
+		return mActiveCommentList.get(position);
 	}
 
 	@Override
 	public long getItemId(int position) {
 		return position;
 	}
-
-	public void addItem(PresentationComment comment, boolean append) {
+	
+	public void addItem(Comment comment, boolean append) {
 		if (append) {
 			mCommentList.add(comment);
-		}
-		else {
+			if (checkFilter(comment)) {
+				mActiveCommentList.add(comment);
+			}
+		} else {
 			mCommentList.add(0, comment);
+			if (checkFilter(comment)) {
+				mActiveCommentList.add(0, comment);
+			}
 		}
 		notifyDataSetChanged();
 	}
@@ -60,30 +69,37 @@ public class PresentationCommentListAdapter extends BaseAdapter {
 		notifyDataSetChanged();
 	}
 	
-	public void addAllItems(List<PresentationComment> newComments, boolean append) {
+	public void addAllItems(List<Comment> newComments, boolean append) {
 		if (append) {
 			mCommentList.addAll(newComments);
+			if (checkFilter(newComments)) {
+				mActiveCommentList.addAll(newComments);
+			}
 		}
 		else {
 			mCommentList.addAll(0, newComments);
+			if (checkFilter(newComments)) {
+				mActiveCommentList.addAll(0, newComments);
+			}
 		}
 		notifyDataSetChanged();
 	}
-	
+
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		ViewHolder holder;
 		
 		if (convertView == null) {
-			convertView = mInflater.inflate(R.layout.program_presentation_comment_row, parent, false);
+			convertView = mInflater.inflate(R.layout.comment_row, parent, false);
 			
 			// Creates a ViewHolder and store references to the two children views
             // we want to bind data to.
 			holder = new ViewHolder();
-			holder.wrapperLayout = (LinearLayout) convertView.findViewById(R.id.presentation_comment_row_wrapper);
-			holder.author = (TextView)convertView.findViewById(R.id.presentation_comment_author);
-			holder.date = (TextView)convertView.findViewById(R.id.presentation_comment_date);
-			holder.text = (TextView)convertView.findViewById(R.id.presentation_comment_text);
+			holder.wrapperLayout = (LinearLayout) convertView.findViewById(R.id.comment_row_wrapper);
+			holder.author = (TextView)convertView.findViewById(R.id.comment_author);
+			holder.date = (TextView)convertView.findViewById(R.id.comment_date);
+			holder.text = (TextView)convertView.findViewById(R.id.comment_text);
+			holder.subject = (TextView)convertView.findViewById(R.id.comment_subject);
 			
 			convertView.setTag(holder);
 		}
@@ -117,9 +133,57 @@ public class PresentationCommentListAdapter extends BaseAdapter {
 		return convertView;
 	}
 	
+	public void addFilter(String filter) {
+		filters.add(filter);
+	}
+	
+	public void removeFilter(String filter) {
+		filters.remove(filter);
+	}
+	
+	private boolean checkFilter(List<Comment> comments) {
+		if (filters.size() == 0) return true;
+		
+		for (Comment comment : comments) {
+			for (String filter : filters) {
+				if (filter.equals(comment.getCommentSubject())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	private boolean checkFilter(Comment comment) {
+		if (filters.size() == 0) return true;
+		
+		for (String filter : filters) {
+			if (filter.equals(comment.getCommentSubject())) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private void filterData() {
+		Log.d("adapter", "filters:" + filters.toString());
+		for (Comment comment : mCommentList) {
+			Log.d("adapter!", comment.toString());
+			if (checkFilter(comment)) {
+				mActiveCommentList.add(comment);
+			}
+		}
+	}
+	
+	public void applyFilter() {
+		mActiveCommentList.clear();
+		filterData();
+		notifyDataSetChanged();
+	}
 	
 	private void bind(ViewHolder holder, int position) {
-		PresentationComment commentData = mCommentList.get(position);
+		
+		Comment commentData = mActiveCommentList.get(position);
 		
 		holder.author.setText(commentData.getCommentOwner());
 		holder.text.setText(commentData.getCommentContent());
@@ -128,6 +192,7 @@ public class PresentationCommentListAdapter extends BaseAdapter {
 		String timestampString = Utils.calendarToString(timestamp, "dd MMM, HH:mm");
 		holder.date.setText(timestampString);
 		
+		holder.subject.setText(commentData.getCommentSubject());
 	}
 	
 	static class ViewHolder {
@@ -136,5 +201,6 @@ public class PresentationCommentListAdapter extends BaseAdapter {
 		TextView author;
 		TextView date;
 		TextView text;
+		TextView subject;
 	}
 }
