@@ -2,35 +2,26 @@ package com.envsocial.android.features.socialmedia;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 
-import com.actionbarsherlock.app.SherlockFragment;
+import com.actionbarsherlock.app.SherlockFragmentActivity;
 
-public class SocialMediaFragment extends SherlockFragment {
+public class SocialMediaLinkActivity extends SherlockFragmentActivity {
 	private String mSocialMediaUrl;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 	    
-	    mSocialMediaUrl = getArguments().getString("social_media_url");
+	    mSocialMediaUrl = getIntent().getStringExtra("social_media_url");
 	    
-	}
-	
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		
-		WebView webview = new WebView(getActivity());
-		getActivity().getWindow().requestFeature(Window.FEATURE_PROGRESS);
-		
-		webview.getSettings().setJavaScriptEnabled(true);
+	    WebView webview = new WebView(this);
+	    setContentView(webview);
+	    
+	    webview.getSettings().setJavaScriptEnabled(true);
 
-		final Activity activity = getActivity();
+		final Activity activity = this;
 		webview.setWebChromeClient(new WebChromeClient() {
 		   public void onProgressChanged(WebView view, int progress) {
 		     // Activities and WebViews measure progress with different scales.
@@ -42,7 +33,5 @@ public class SocialMediaFragment extends SherlockFragment {
 		if (mSocialMediaUrl != null) {
 			webview.loadUrl(mSocialMediaUrl);
 		}
-		
-		return webview;
 	}
 }

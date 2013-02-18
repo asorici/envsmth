@@ -1,0 +1,18 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/home_menu_settings"
+          android:icon="@drawable/ic_menu_settings_white"
+          android:title="@string/menu_settings"
+          android:showAsAction="never"/>
+    <item android:id="@+id/home_menu_logout"
+          android:icon="@drawable/ic_menu_logout_white"
+          android:title="@string/menu_logout"
+          android:showAsAction="never"/>
+    <item android:id="@+id/home_menu_quit_anonymous"
+          android:icon="@drawable/ic_menu_logout_white"
+          android:title="@string/menu_quit_anonymous"
+          android:showAsAction="never"/>
+    <item android:id="@+id/home_menu_checkout"
+          android:icon="@drawable/ic_menu_checkout_white"
+          android:title="@string/menu_checkout"
+          android:showAsAction="never"/>
+</menu>

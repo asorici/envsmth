@@ -1,5 +1,6 @@
 package com.envsocial.android.features.socialmedia;
 
+import java.io.Serializable;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,7 +32,7 @@ public class SocialMediaFeature extends Feature {
 	private String mInternalForumUrl;
 	private List<SocialMediaLink> mSocialMediaLinks;
 	
-	protected SocialMediaFeature(String category, int version, Calendar timestamp, boolean isGeneral, 
+	public SocialMediaFeature(String category, int version, Calendar timestamp, boolean isGeneral, 
 			String resourceUrl, String environmentUrl, String areaUrl, String data,
 			boolean virtualAccess) {
 		
@@ -153,7 +154,9 @@ public class SocialMediaFeature extends Feature {
 	}
 	
 	
-	static class SocialMediaLink {
+	static class SocialMediaLink implements Serializable {
+		private static final long serialVersionUID = 1L;
+		
 		private String mName;
 		private String mUrl;
 		private int mIconDrawable;

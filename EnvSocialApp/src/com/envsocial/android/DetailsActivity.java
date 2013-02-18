@@ -35,6 +35,7 @@ import com.envsocial.android.features.Feature;
 import com.envsocial.android.features.description.BoothDescriptionActivity;
 import com.envsocial.android.features.description.DescriptionActivity;
 import com.envsocial.android.features.program.ProgramActivity;
+import com.envsocial.android.features.socialmedia.SocialMediaActivity;
 import com.envsocial.android.utils.EnvivedNotificationContents;
 import com.envsocial.android.utils.LocationHistory;
 import com.envsocial.android.utils.ResponseHolder;
@@ -308,7 +309,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 		mGridView.setLayoutParams(gridViewLayoutParams);
 		mGridView.setColumnWidth(90);
 		mGridView.setHorizontalSpacing(10);
-		mGridView.setVerticalSpacing(100);
+		mGridView.setVerticalSpacing(10);
 		mGridView.setGravity(Gravity.CENTER);
 		mGridView.setStretchMode(GridView.STRETCH_COLUMN_WIDTH);
 		
@@ -339,6 +340,10 @@ public class DetailsActivity extends SherlockFragmentActivity {
 				else if (featureCategory.equals(Feature.PROGRAM)) {
 					i = new Intent(getApplicationContext(), ProgramActivity.class);
 				}
+				else if (featureCategory.equals(Feature.SOCIAL_MEDIA)) {
+					i = new Intent(getApplicationContext(), SocialMediaActivity.class);
+				}
+				
 				
 				if (i != null) {
 					i.putExtra("location", mLocation);

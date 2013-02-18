@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Location;
@@ -135,24 +136,6 @@ public class HomeActivity extends SherlockFragmentActivity
         mFeaturedLocationsView = (LinearLayout) findViewById(R.id.home_featured_locations);
         mLocationHistoryView = (LinearLayout) findViewById(R.id.home_location_history);
         
-        
-        /*
-        mFeaturedLocationsView.setAdapter(mFeaturedLocationsAdapter);
-        mFeaturedLocationsView.setOnItemClickListener(this);
-        
-        mLocationHistoryView.setAdapter(mLocationHistoryAdapter);
-        mLocationHistoryView.setOnItemClickListener(this);
-        */
-        
-        
-        /*
-        mLocationListView = (ExpandableListView) findViewById(R.id.home_locations_list);
-        mLocationListAdapter = new HomeLocationListAdapter(this, mImageFetcher);
-        
-        mLocationListView.setAdapter(mLocationListAdapter);
-        mLocationListView.setOnChildClickListener(this);
-        */
-        
         // Set up action bar.
         getSupportActionBar().setTitle(R.string.app_name);
 
@@ -163,35 +146,6 @@ public class HomeActivity extends SherlockFragmentActivity
         fillLocationHistory();
 	}
 	
-	/*
-	@Override
-	public void onContentChanged() {
-	    super.onContentChanged();
-	    
-	    LinearLayout featuredLocationsList = (LinearLayout) findViewById(R.id.home_featured_locations);
-	    if (mFeaturedLocationsAdapter.getCount() == 0) {
-	    	featuredLocationsList.removeAllViews();
-	    	
-	    	View v = 
-	    		getLayoutInflater().inflate(R.layout.home_featured_locations_empty, featuredLocationsList, false);
-	    	View emptyView = v.findViewById(R.id.home_featured_locations_empty);
-	    	
-	    	featuredLocationsList.addView(emptyView);
-	    }
-	    
-	    
-	    LinearLayout locationHistoryList = (LinearLayout) findViewById(R.id.home_location_history);
-	    if (mLocationHistoryAdapter.getCount() == 0) {
-	    	locationHistoryList.removeAllViews();
-	    	
-	    	View v = 
-	    		getLayoutInflater().inflate(R.layout.home_location_history_empty, locationHistoryList, false);
-	    	View emptyView = v.findViewById(R.id.home_location_history_empty);
-	    	
-	    	locationHistoryList.addView(emptyView);
-	    }
-	}
-	*/
 	
 	@Override
 	public void onDestroy() {
@@ -350,8 +304,12 @@ public class HomeActivity extends SherlockFragmentActivity
         public void onReceive(Context context, Intent intent) {
             String newGCMMessage = intent.getExtras().getString(GCMIntentService.EXTRA_GCM_MESSAGE);
             
+            Log.d(TAG, "RECEIVED GCM MESSAGE: " + newGCMMessage);
+            
+            /*
             Toast toast = Toast.makeText(HomeActivity.this, newGCMMessage, Toast.LENGTH_LONG);
 			toast.show();
+			*/
         }
     };
 	
@@ -437,80 +395,6 @@ public class HomeActivity extends SherlockFragmentActivity
 		return v.findViewById(R.id.layout_separator);
 	}
 	
-	/*
-	@Override
-	public void onItemClick(AdapterView<?> parentView, View childView, int position, long id) {
-		
-		if (parentView == mLocationHistoryView) {
-			Location location = (Location) mLocationHistoryAdapter.getItem(position);
-			
-			Intent intent = new Intent(this, DetailsActivity.class);
-			intent.putExtra("location", location);
-			
-			startActivity(intent);
-		}
-		else if (parentView == mFeaturedLocationsView) {
-			String locationUrl = (String) mFeaturedLocationsAdapter.getItem(position);
-			Url url = Url.fromResourceUrl(locationUrl);
-			
-			if (url != null && url.getItemId() != null) {
-				String locationItem = url.getUrlItem();
-				String locationId = url.getItemId();
-			
-				Url checkinUrl = new Url(Url.ACTION, ActionHandler.CHECKIN);
-				checkinUrl.setParameters(new String [] {locationItem, "virtual"}, 
-										 new String [] {locationId, Boolean.toString(true)});
-				
-				// create intent for new DetailsActivity
-				Intent intent = new Intent(this, DetailsActivity.class);
-				intent.putExtra(ActionHandler.CHECKIN, checkinUrl.toString());
-				
-				startActivity(intent);
-			}
-		}
-	}
-	*/
-	
-	/*
-	@Override
-	public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, 
-			int childPosition, long id) {
-		
-		if (groupPosition == HomeLocationListAdapter.FEATURED_LOCATIONS_GROUP_ID) {
-			String locationUrl = (String) mLocationListAdapter.getChild(groupPosition, childPosition);
-			Url url = Url.fromResourceUrl(locationUrl);
-			
-			if (url != null && url.getItemId() != null) {
-				String locationItem = url.getUrlItem();
-				String locationId = url.getItemId();
-			
-				Url checkinUrl = new Url(Url.ACTION, ActionHandler.CHECKIN);
-				checkinUrl.setParameters(new String [] {locationItem, "virtual"}, 
-										 new String [] {locationId, Boolean.toString(true)});
-				
-				// create intent for new DetailsActivity
-				Intent intent = new Intent(this, DetailsActivity.class);
-				intent.putExtra(ActionHandler.CHECKIN, checkinUrl.toString());
-				
-				startActivity(intent);
-				
-				return true;
-			}
-		}
-		else if (groupPosition == HomeLocationListAdapter.LOCATION_HISTORY_GROUP_ID) {
-			Location location = (Location) mLocationListAdapter.getChild(groupPosition, childPosition);
-			
-			Intent intent = new Intent(this, DetailsActivity.class);
-			intent.putExtra("location", location);
-			
-			startActivity(intent);
-			
-			return true;
-		}
-		
-		return false;
-	}
-	*/
 	
 	public void onClick(View v) {
 		if (v == mBtnCheckin) {
@@ -627,18 +511,9 @@ public class HomeActivity extends SherlockFragmentActivity
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {		
-		
-		// add the search button
-		MenuItem item = menu.add(R.string.menu_search);
-        item.setIcon(R.drawable.ic_menu_search);
-        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-		
-        // add the register/unregister for notifications menu options
-     	menu.add(REGISTER_GCM_ITEM);
-     	menu.add(UNREGISTER_GCM_ITEM);
-        
-		
-    	return true;
+		MenuInflater inflater = getSupportMenuInflater();
+		inflater.inflate(R.menu.home_menu, menu);
+		return true;
 	}
 	
 	
@@ -646,35 +521,29 @@ public class HomeActivity extends SherlockFragmentActivity
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		Context context = getApplicationContext();
 		
-		if (Preferences.getUserUri(context) != null) {
-			
-			boolean exists = false;
-			for (int i = 0; i < menu.size(); i++) {
-				if (menu.getItem(i).getTitle().equals(SIGN_OUT) 
-					|| menu.getItem(i).getTitle().equals(QUIT_ANONYMOUS)) {
-					exists = true;
-				}
+		if (Preferences.isLoggedIn(context)) {
+			menu.removeItem(R.id.home_menu_quit_anonymous);
+			if (menu.findItem(R.id.home_menu_logout) == null) {
+				MenuItem logoutItem = menu.add(Menu.NONE, R.id.home_menu_logout, Menu.NONE, R.string.menu_logout);
+				logoutItem.setIcon(R.drawable.ic_menu_logout_white);
 			}
-			
-			if (!exists) {
-				if (Preferences.isLoggedIn(context)) {
-					menu.add(SIGN_OUT);
-				}
-				else {
-					menu.add(QUIT_ANONYMOUS);
-				}
+		}
+		else {
+			menu.removeItem(R.id.home_menu_logout);
+			if (menu.findItem(R.id.home_menu_quit_anonymous) == null) {
+				MenuItem logoutItem = menu.add(Menu.NONE, R.id.home_menu_quit_anonymous, Menu.NONE, R.string.menu_quit_anonymous);
+				logoutItem.setIcon(R.drawable.ic_menu_logout_white);
 			}
 		}
 		
 		if (Preferences.isCheckedIn(context)) {
-			boolean exists = false;
-			for (int i = 0; i < menu.size(); i++) {
-				if (menu.getItem(i).getTitle().equals(CHECK_OUT) ) {
-					exists = true;
-				}
+			if (menu.findItem(R.id.home_menu_checkout) == null) {
+				MenuItem logoutItem = menu.add(Menu.NONE, R.id.home_menu_checkout, Menu.NONE, R.string.menu_checkout);
+				logoutItem.setIcon(R.drawable.ic_menu_checkout_white);
 			}
-			
-			if (!exists) menu.add(CHECK_OUT);
+		}
+		else {
+			menu.removeItem(R.id.home_menu_checkout);
 		}
 		
 		return true;
@@ -683,18 +552,24 @@ public class HomeActivity extends SherlockFragmentActivity
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		final Context context = getApplicationContext();
+		switch (item.getItemId()) {
+			case R.id.home_menu_logout:
+				new LogoutTask().execute(LogoutTask.REAL_LOGOUT);
+				return true;
+			case R.id.home_menu_quit_anonymous:
+				new LogoutTask().execute(LogoutTask.ANONYMOUS_LOGOUT);
+				return true;
+			case R.id.home_menu_checkout:
+				new CheckoutTask().execute();
+				return true;
+			case R.id.home_menu_settings:
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
 		
-		if (item.getTitle().toString().compareTo(SIGN_OUT) == 0) {
-			new LogoutTask().execute(LogoutTask.REAL_LOGOUT);
-		}
-		else if (item.getTitle().toString().compareTo(QUIT_ANONYMOUS) == 0) {
-			new LogoutTask().execute(LogoutTask.ANONYMOUS_LOGOUT);
-		}
-		else if (item.getTitle().toString().compareTo(CHECK_OUT) == 0) {
-			new CheckoutTask().execute();
-		}
-		
-		else if (item.getTitle().toString().compareTo(REGISTER_GCM_ITEM) == 0) {
+		/*
+		if (item.getTitle().toString().compareTo(REGISTER_GCM_ITEM) == 0) {
             final String regId = GCMRegistrar.getRegistrationId(context);
 			
 			if (regId != null && !"".equals(regId)) {
@@ -738,6 +613,7 @@ public class HomeActivity extends SherlockFragmentActivity
 		}
 		
 		return true;
+		*/
 	}
 
 	

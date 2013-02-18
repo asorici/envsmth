@@ -87,6 +87,8 @@
         </activity>
         
         <activity android:name=".BrowseLocationsActivity" />
+        <activity android:name=".features.socialmedia.SocialMediaActivity" />
+        <activity android:name=".features.socialmedia.SocialMediaLinkActivity" />
         
         <activity android:name=".features.description.DescriptionActivity" />
         <activity android:name=".features.description.BoothDescriptionActivity" />

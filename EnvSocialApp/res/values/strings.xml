@@ -29,7 +29,10 @@
     <string name="menu_add">Add</string>
     <string name="menu_refresh">Refresh</string>
     
-    <string name="menu_test">Test!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_checkout">Checkout</string>
+    <string name="menu_logout">Logout</string>
+    <string name="menu_quit_anonymous">Quit Anonymous</string>
     
     
     <!-- Menu item names -->
@@ -128,7 +131,7 @@
     <string name="msg_gcm_registered">Envived Notification Service is now registered.</string>
     <string name="msg_gcm_unregistered">Envived Notification Service is now unregistered.</string>
     <string name="msg_gcm_already_registered">Envived Notification Service already registered.</string>
-    <string name="msg_gcm_registration_error">Envived Notification Service registration error. Please try registering again later.</string>
+    <string name="msg_gcm_registration_error">Envived Notification Service registration error. Please use the Settings Menu to try registering again later.</string>
     
     <string name="msg_unauthorized_login">Incorrect email and / or password.</string>
     <string name="msg_service_unavailable">Service is currently unavailable.</string>

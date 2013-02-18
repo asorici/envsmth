@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,6 +53,8 @@ public class DetailsGridAdapter extends BaseAdapter {
 			mThumbIds.add(currentFeature.getDisplayThumbnail());		
 			mNames.add(currentFeature.getDisplayName());
 		}
+		
+		Log.d(TAG, "environment feature categories: " + mFeatureCategories);
 	}
 
 	@Override

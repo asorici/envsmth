@@ -26,6 +26,7 @@ import com.envsocial.android.features.description.DescriptionFeature;
 import com.envsocial.android.features.order.OrderFeature;
 import com.envsocial.android.features.people.PeopleFeature;
 import com.envsocial.android.features.program.ProgramFeature;
+import com.envsocial.android.features.socialmedia.SocialMediaFeature;
 import com.envsocial.android.utils.EnvivedNotificationContents;
 import com.envsocial.android.utils.FeatureDbHelper;
 import com.envsocial.android.utils.FeatureLRUEntry;
@@ -421,6 +422,9 @@ public abstract class Feature implements Serializable {
 		}
 		else if (category.equals(PEOPLE)) {
 			return new PeopleFeature(category, version, timestamp, isGeneral, resourceUri, environmentUri, areaUri, data, virtualAccess);
+		}
+		else if (category.equals(SOCIAL_MEDIA)) {
+			return new SocialMediaFeature(category, version, timestamp, isGeneral, resourceUri, environmentUri, areaUri, data, virtualAccess);
 		}
 		else {
 			throw new IllegalArgumentException("No feature matching category (" + category + ").");

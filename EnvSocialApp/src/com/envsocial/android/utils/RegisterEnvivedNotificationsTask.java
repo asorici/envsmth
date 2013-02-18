@@ -42,15 +42,16 @@ public class RegisterEnvivedNotificationsTask extends AsyncTask<String, Void, Re
     @Override
     protected void onPostExecute(ResponseHolder holder) {
     	if (holder.hasError()) {
-        	Toast toast = Toast.makeText(mContext, 
-        			R.string.msg_gcm_registration_error, Toast.LENGTH_LONG);
+        	Toast toast = Toast.makeText(mContext, R.string.msg_gcm_registration_error, Toast.LENGTH_LONG);
 			toast.show();
     	}
     	else {
     		GCMRegistrar.setRegisteredOnServer(mContext, true);
     		
+    		/*
     		Toast toast = Toast.makeText(mContext, R.string.msg_gcm_registered, Toast.LENGTH_LONG);
 			toast.show();
+			*/
     	}
     }
 
