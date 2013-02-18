@@ -358,9 +358,6 @@ class BoothDescriptionAnnotation(Annotation):
 class BoothProductVoteAnnotation(Annotation):
     booth_product = models.ForeignKey('BoothProduct', related_name = 'votes') 
     
-    class Meta:
-        unique_together = ("booth_product", "user")
-    
     def __init__(self, *args, **kwargs):
         data = kwargs.pop('data', None)
         
@@ -371,6 +368,10 @@ class BoothProductVoteAnnotation(Annotation):
                 try:
                     product_id = data['product_id']
                     self.booth_product = BoothProduct.objects.get(id = product_id)
+                    
+                    if self.booth_product and self.user.id in [ann.user.id for ann in self.booth_product.votes.all()]:
+                        raise AnnotationException("User already voted for booth product.")
+                    
                 except BoothProduct.DoesNotExist:
                     raise AnnotationException("Booth Product Vote Annotation missing valid product product_id")
             else:
