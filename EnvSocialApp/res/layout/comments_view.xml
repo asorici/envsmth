@@ -3,6 +3,58 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
+    
+    <TextView  
+	    android:id="@+id/comments_label"
+	    android:layout_width="fill_parent"
+	   	android:layout_height="wrap_content"
+	   	android:layout_marginBottom="5dip"
+	   	android:layout_gravity="center"
+	   	android:gravity="center_vertical|center_horizontal"
+	   	android:paddingLeft="5dip"
+	   	android:paddingRight="5dip"
+	   	android:paddingBottom="10dip"
+	   	android:paddingTop="10dip"
+	   	
+	   	android:background="@drawable/feature_details_label"
+	   	android:textColor="@color/white"
+	   	android:textSize="16sp"
+	   	android:textStyle="bold"
+	   	android:text="@string/lbl_browse_locations"
+	/>
 
+    <ListView
+        android:id="@+id/comments_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dip"
+        android:layout_weight="1"
+        android:cacheColorHint="@android:color/transparent"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="10dip"
+        android:listSelector="@android:color/transparent" >
+    </ListView>
+    
+    <TextView android:id="@+id/comments_empty"
+        android:layout_width="match_parent"
+        android:layout_height="0dip"
+        android:layout_weight="1"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:text="No comments yet.\nBe the first to add one."/>
+    
+    <Button 
+        android:id="@+id/comments_load_more_button"
+        style="@style/Widget.Envived.Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dip"
+        android:layout_gravity="center_horizontal|bottom"
+        android:gravity="center"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:text="More"/>
 
 </LinearLayout>

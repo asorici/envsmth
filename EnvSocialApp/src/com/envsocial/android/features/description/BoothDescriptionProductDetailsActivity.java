@@ -2,6 +2,7 @@ package com.envsocial.android.features.description;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -25,6 +26,7 @@ import com.envsocial.android.CommentsActivity;
 import com.envsocial.android.Envived;
 import com.envsocial.android.R;
 import com.envsocial.android.api.Location;
+import com.envsocial.android.api.Url;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
 import com.envsocial.android.utils.imagemanager.ImageCache;
@@ -128,6 +130,22 @@ public class BoothDescriptionProductDetailsActivity extends SherlockFragmentActi
 		if (item.getTitle().toString().compareTo(getString(R.string.menu_comments)) == 0) {
 			Intent intent = new Intent(getApplicationContext(), CommentsActivity.class);
 			intent.putExtra("location", mLocation);
+			intent.putExtra("productName", mBoothProductName);
+			String boothId = Url.resourceIdFromUrl(mDescriptionFeature.getResourceUri());
+			Cursor productsCursor = mDescriptionFeature.getAllProducts(Integer.parseInt(boothId));
+
+			ArrayList<String> filterItemsList = new ArrayList<String>();
+
+			while (productsCursor.moveToNext()) {
+				int nameIndex = productsCursor.getColumnIndex(BoothDescriptionDbHelper.COL_BOOTH_PRODUCT_NAME);
+				String productName = productsCursor.getString(nameIndex);
+				filterItemsList.add(productName);
+			}
+			filterItemsList.add(mLocation.getName());
+
+			String[] filterItems = filterItemsList.toArray(new String[filterItemsList.size()]);
+			
+			intent.putExtra("filterItems", filterItems);
 			startActivity(intent);
 			
 			return true;
