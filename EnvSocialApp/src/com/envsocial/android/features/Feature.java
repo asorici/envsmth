@@ -47,12 +47,15 @@ public abstract class Feature implements Serializable {
 	public static final String ORDER 				= 	"order";
 	public static final String PEOPLE 				= 	"people";
 	public static final String PROGRAM 				= 	"program";
+	public static final String SOCIAL_MEDIA 		= 	"social_media";
 	
 	public static final String TAG 				= 	"Feature";
 	public static final String SEARCH_FEATURE 	= 	"Search_Feature";
 	
 	public static final String RETRIEVE_CONTENT_NOTIFICATION = "retrieve_content";
 	public static final String RETRIEVE_STRUCTURE_NOTIFICATION = "retrieve_structure";
+
+	
 	
 	protected String category;
 	protected int version;

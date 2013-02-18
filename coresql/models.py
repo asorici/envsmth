@@ -15,7 +15,9 @@ CATEGORY_CHOICES = (
     ("booth_description", "booth_description"), 
     ("order", "order"),
     ("program", "program"),
-    ("people", "people")
+    ("people", "people"),
+    ("social_media", "social_media"),
+    ("news_feed", "news_feed")
 )    
 
 """
@@ -978,6 +980,7 @@ class MenuItem(models.Model):
 class SocialMediaFeature(Feature):
     facebook_url = models.URLField(null = True, blank = True, max_length = 256)
     twitter_url = models.URLField(null = True, blank = True, max_length = 256)
+    google_plus_url = models.URLField(null = True, blank = True, max_length = 256)
     internal_forum_url = models.URLField(null = True, blank = True, max_length = 256)
     
     def to_serializable(self, virtual = False, include_data = False):
@@ -991,6 +994,9 @@ class SocialMediaFeature(Feature):
                 
             if self.twitter_url:
                 data_dict['twitter_url'] = self.twitter_url
+            
+            if self.google_plus_url:
+                data_dict['google_plus_url'] = self.google_plus_url
             
             if self.internal_forum_url:
                 data_dict['internal_forum_url'] = self.internal_forum_url
