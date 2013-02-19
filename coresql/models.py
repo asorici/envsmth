@@ -191,7 +191,7 @@ class Announcement(models.Model):
 class Annotation(models.Model):
     DESCRIPTION = "description"
     BOOTH_DESCRIPTION = "booth_description"
-    BOOTH_PRODUCT_VOTE = "booth_vote"
+    BOOTH_PRODUCT_VOTE = "booth_product_vote"
     PROGRAM = "program"
     ORDER = "order"
     
@@ -361,7 +361,7 @@ class BoothProductVoteAnnotation(Annotation):
     def __init__(self, *args, **kwargs):
         data = kwargs.pop('data', None)
         
-        super(BoothDescriptionAnnotation, self).__init__(*args, **kwargs)
+        super(BoothProductVoteAnnotation, self).__init__(*args, **kwargs)
         
         if not data is None:
             if 'product_id' in data:
@@ -694,6 +694,11 @@ class BoothDescriptionFeature(Feature):
                 
                 if product.website_url:
                     product_dict['product_website_url'] = product.website_url
+                
+                if product.votes:
+                    product_dict['votes'] = product.votes.count()
+                else:
+                    product_dict['votes'] = 0
                     
                 product_list.append(product_dict)
             
