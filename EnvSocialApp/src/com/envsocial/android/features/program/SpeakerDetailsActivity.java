@@ -20,7 +20,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.view.MenuItem;
 import com.envsocial.android.Envived;
+import com.envsocial.android.HomeActivity;
 import com.envsocial.android.R;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.utils.Utils;
@@ -54,14 +56,8 @@ public class SpeakerDetailsActivity extends SherlockFragmentActivity {
 		getSupportActionBar().setTitle(TITLE_TAG);
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		
-		if (savedInstanceState != null) {
-			mProgramFeature = (ProgramFeature)savedInstanceState.getSerializable("program_feature");
-			mSpeakerId = savedInstanceState.getInt(ProgramFeature.SPEAKER_ID);
-		}
-		else {
-			mProgramFeature = (ProgramFeature)getIntent().getExtras().getSerializable("program_feature");
-			mSpeakerId = getIntent().getExtras().getInt(ProgramFeature.SPEAKER_ID);
-		}
+		mProgramFeature = (ProgramFeature)getIntent().getExtras().getSerializable("program_feature");
+		mSpeakerId = getIntent().getExtras().getInt(ProgramFeature.SPEAKER_ID);
 		
 		// initialize feature
 		try {
@@ -93,11 +89,28 @@ public class SpeakerDetailsActivity extends SherlockFragmentActivity {
 		bindData(speakerDetailsCursor, speakerPresentationsCursor);
 	}
 	
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+	    switch (item.getItemId()) {
+	        case android.R.id.home:
+	            // app icon in action bar clicked; go home
+	            Intent intent = new Intent(this, HomeActivity.class);
+	            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+	            startActivity(intent);
+	            return true;
+	        default:
+	            return super.onOptionsItemSelected(item);
+	    }
+	}
+	
+	
 	private View getSeparatorView() {
 		// instantiate speaker separator view
 		View v = getLayoutInflater().inflate(R.layout.envived_layout_separator_default, mPresentationsLayout, false);
 		return v.findViewById(R.id.layout_separator);
 	}
+	
 	
 	private void bindData(Cursor speakerDetailsCursor, Cursor speakerPresentationsCursor) {
 		if (speakerDetailsCursor != null) {
