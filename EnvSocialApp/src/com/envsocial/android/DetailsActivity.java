@@ -94,7 +94,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
         mGridView = new GridView(this);
         
         mActionBar = getSupportActionBar();
-        
+        mActionBar.setDisplayHomeAsUpEnabled(true);
         
         // --------------------------- image cache initialization -------------------------- //
         initImageFetcher();
@@ -108,7 +108,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
         else {
         	// we must at least have received a checkin URL
         	String checkinUrl = getIntent().getStringExtra(ActionHandler.CHECKIN);
-            checkin(checkinUrl);
+        	checkin(checkinUrl);
         }
 	}
 	
@@ -176,26 +176,20 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	}
 	
 	
-
-	public boolean onCreateOptionsMenu(Menu menu) {
-		/*
-		// add the search button
-		MenuItem item = menu.add(getText(R.string.menu_search));
-        item.setIcon(R.drawable.ic_menu_search_holder);
-        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-
-     	*/
-		
-     	// add temporary test for feature update notification
-     	//menu.add("Test Update Feature");
-     	
-    	return true;
-	}
-	
-	
 	public boolean onOptionsItemSelected(MenuItem item) {
-		final Context context = getApplicationContext();
 		
+		switch(item.getItemId()) {
+			case android.R.id.home:
+	            // app icon in action bar clicked; go home
+	            Intent intent = new Intent(this, HomeActivity.class);
+	            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+	            startActivity(intent);
+	            return true;
+	        default:
+	            return super.onOptionsItemSelected(item);
+		}
+		
+		/*
 		if (item.getTitle().toString().compareTo(getString(R.string.menu_search)) == 0) {
 			return onSearchRequested();
 		}
@@ -215,6 +209,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 		}
 		
 		return false;
+		*/
 	}
 	
 	

@@ -38,13 +38,14 @@ import com.envsocial.android.api.Location;
 import com.envsocial.android.api.exceptions.EnvSocialComException;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
+import com.envsocial.android.utils.EnvivedCommentAlertDialog;
 import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
 import com.envsocial.android.utils.Utils;
 
 public class PresentationCommentsActivity extends SherlockFragmentActivity implements OnClickListener {
 	private static final String TAG = "PresentationCommentsActivity";
-	private static final String TITLE_TAG = "Presentation Comments"; 
+	private static final String TITLE_TAG = "Comments"; 
 	
 	private Location mLocation;
 	private int mPresentationId;
@@ -165,7 +166,9 @@ public class PresentationCommentsActivity extends SherlockFragmentActivity imple
 	        		}
 	        	}
 	        	
-	        	PresentationCommentAlertDialog alertDialog = PresentationCommentAlertDialog.newInstance();
+	        	String message = "You have to be checked in at this location (scan the QRcode) " +
+	        					"to be able to post messages.";
+	        	EnvivedCommentAlertDialog alertDialog = EnvivedCommentAlertDialog.newInstance(message);
 	        	alertDialog.show(getSupportFragmentManager(), "comment_alert_dialog");
 	        	
 	        	return true;

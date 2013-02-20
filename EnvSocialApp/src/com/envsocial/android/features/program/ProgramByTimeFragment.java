@@ -56,7 +56,6 @@ public class ProgramByTimeFragment extends ProgramFragment
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		Log.i(TAG, "[INFO] onCreateView called.");
 		
 		// Inflate layout for this fragment.
 		View view = inflater.inflate(R.layout.program_by_time, container, false);
@@ -92,74 +91,78 @@ public class ProgramByTimeFragment extends ProgramFragment
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 	    super.onActivityCreated(savedInstanceState);
-	    //mLocation = (Location) getArguments().get(ActionHandler.CHECKIN);
 	    
-	    // start setup for data - get the distinct days and load data for first day
-	 	loadData();
+	    loadData();
+	}
+	
+	
+	@Override
+	public void onDestroy() {
+		super.onDestroy(); 
+		
+		if (mProgramLoaderDialog != null) {
+			mProgramLoaderDialog.cancel();
+			mProgramLoaderDialog = null;
+		}
 	}
 	
 	
 	private void loadData() {
-		// ======== get distinct program days ========
-		if (mDistinctProgramDays == null) {
-			mDistinctProgramDays = mProgramFeature.getDistinctDays();
+		if (mProgramFeature != null && mProgramFeature.isInitialized()) {
+			// ======== get distinct program days ========
+			if (mDistinctProgramDays == null) {
+				mDistinctProgramDays = mProgramFeature.getDistinctDays();
+				
+				int k = 0;
+				int numDays = mDistinctProgramDays.size();
+				
+				if (numDays > 1) {
+					for (int i = 0; i < numDays; i++) {
+						String d = mDistinctProgramDays.get(i);
+						TextView dayView = new TextView(getActivity());
 			
-			Log.d(TAG, "distinct program days: " + mDistinctProgramDays);
-			
-			int k = 0;
-			int numDays = mDistinctProgramDays.size();
-			
-			if (numDays > 1) {
-				for (int i = 0; i < numDays; i++) {
-					String d = mDistinctProgramDays.get(i);
-					TextView dayView = new TextView(getActivity());
-		
-					try {
-						SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-						Date date = formatter.parse(d);
-						formatter = new SimpleDateFormat("EEE, MMM d");
-						dayView.setText(formatter.format(date));
-					} catch (ParseException e) {
-						e.printStackTrace();
-						dayView.setText(d);
+						try {
+							SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+							Date date = formatter.parse(d);
+							formatter = new SimpleDateFormat("EEE, MMM d");
+							dayView.setText(formatter.format(date));
+						} catch (ParseException e) {
+							e.printStackTrace();
+							dayView.setText(d);
+						}
+						
+						LinearLayout.LayoutParams dayViewParams = 
+								new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
+						//dayView.setLayoutParams(dayViewParams);
+						
+						dayView.setTag(k ++);
+						dayView.setOnClickListener(this);
+						dayView.setPadding(15, 15, 15, 15);
+						dayView.setTextColor(getResources().getColor(R.color.envived_order_text_dark_green));
+						dayView.setBackgroundDrawable(getResources().getDrawable(R.drawable.envived_default_green_tab_indicator_ab));
+						mDayScroll.addView(dayView, dayViewParams);
 					}
-					
-					LinearLayout.LayoutParams dayViewParams = 
-							new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
-					//dayView.setLayoutParams(dayViewParams);
-					
-					dayView.setTag(k ++);
-					dayView.setOnClickListener(this);
-					dayView.setPadding(15, 15, 15, 15);
-					dayView.setTextColor(getResources().getColor(R.color.envived_order_text_dark_green));
-					dayView.setBackgroundDrawable(getResources().getDrawable(R.drawable.envived_default_green_tab_indicator_ab));
-					mDayScroll.addView(dayView, dayViewParams);
+				
+					mDayScroll.getChildAt(mCurrentDayIndex).setBackgroundDrawable(getResources().getDrawable(R.drawable.envived_default_actionbar_tab_selected_pressed));
 				}
-			
-				mDayScroll.getChildAt(mCurrentDayIndex).setBackgroundDrawable(getResources().getDrawable(R.drawable.envived_default_actionbar_tab_selected_pressed));
 			}
+			
+			
+			// ======== start the loader days ========
+			Bundle loaderArgs = new Bundle();
+			loaderArgs.putSerializable(Feature.PROGRAM, mProgramFeature);
+			loaderArgs.putInt("selected_program_day", mCurrentDayIndex);
+			
+			getLoaderManager().initLoader(mProgramDisplayType, null, this);
 		}
-		
-		
-		// ======== start the loader days ========
-		Bundle loaderArgs = new Bundle();
-		loaderArgs.putSerializable(Feature.PROGRAM, mProgramFeature);
-		loaderArgs.putInt("selected_program_day", mCurrentDayIndex);
-		
-		getLoaderManager().initLoader(mProgramDisplayType, null, this);
 	}
 	
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int loaderId, Bundle args) {
-		if (mProgramLoaderDialog == null) {
+		if (mProgramLoaderDialog == null && active) {
 			mProgramLoaderDialog = getProgressDialogInstance(getActivity());
 			mProgramLoaderDialog.show();
-		}
-		else {
-			if (!mProgramLoaderDialog.isShowing()) {
-				mProgramLoaderDialog.show();
-			}
 		}
 		
 		return new ProgramCursorLoader(getActivity(), mProgramFeature, mDistinctProgramDays, mCurrentDayIndex);
@@ -171,7 +174,7 @@ public class ProgramByTimeFragment extends ProgramFragment
 		mProgramAdapter.swapCursor(cursor);
 		//mProgramAdapter.notifyDataSetChanged();
 		
-		if (mProgramLoaderDialog != null && mProgramLoaderDialog.isShowing()) {
+		if (mProgramLoaderDialog != null) {
 			mProgramLoaderDialog.cancel();
 			mProgramLoaderDialog = null;
 		}
@@ -211,19 +214,24 @@ public class ProgramByTimeFragment extends ProgramFragment
 			getLoaderManager().restartLoader(mProgramDisplayType, null, this);
 		}
 	}
-
+	
+	
+	@Override
+	protected void handleProgramInit(ProgramFeature initProgramFeature) {
+		mProgramFeature = initProgramFeature;
+		
+		// start setup for data - get the distinct days and load data for first day
+	    loadData();
+	}
+	
+	
 	@Override
 	protected void handleProgramUpdate(ProgramFeature updatedProgramFeature) {
-		// TODO - restart loader
 		mProgramFeature = updatedProgramFeature;
 		
 		if (mProgramLoaderDialog != null) {
 			mProgramLoaderDialog.cancel();
-			mProgramLoaderDialog.show();
-		}
-		else {
-			mProgramLoaderDialog = getProgressDialogInstance(getActivity());
-			mProgramLoaderDialog.show();
+			mProgramLoaderDialog = null;
 		}
 		
 		getLoaderManager().restartLoader(mProgramDisplayType, null, this);

@@ -5,6 +5,12 @@
     <string name="app_name">Envived</string>
     <string name="app_id">114985135329363</string>
     
+    <!-- Preferences -->
+    <string name="title_envived_notifications_preference">Notification preference</string>
+    <string name="summary_on_envived_notifications_toggle_preference">Notifications enabled.</string>
+    <string name="summary_off_envived_notifications_toggle_preference">Notifications disabled</string>
+    
+    
     <!-- Search labels -->
     <!-- The label for use as a searchable item -->
     <string name="main_search_label">Envived</string>
@@ -67,6 +73,7 @@
     
     
     <!-- Labels -->
+    <string name="lbl_notification">Notification</string>
     <string name="lbl_attention">Attention</string>
     <string name="lbl_warning">Warning</string>
     
@@ -77,7 +84,7 @@
     <string name="lbl_details_features">Check out below the list of options for %1$s.</string>
     <string name="lbl_browse_locations">Browse locations for %1$s</string>
     <string name="lbl_presentation_comments">View comments for: %1$s</string>
-     <string name="lbl_comments">View comments for: %1$s</string>
+    <string name="lbl_booth_description_comments">View comments for: %1$s</string>
     
     <string name="lbl_email">Email</string>
     <string name="lbl_password">Password</string>
@@ -176,6 +183,11 @@
     <!-- Comments Messages -->
     <string name="msg_send_comment_ok">Comment Sent.</string>
     <string name="msg_send_comment_err">Error sending comment.</string>
+    
+    <!-- Booth Vote Messages -->
+    <string name="msg_send_vote_ok">Vote up sent.</string>
+    <string name="msg_send_vote_duplicate_err">You have already voted up for this project.</string>
+    <string name="msg_send_vote_err">Error sending vote up request.</string>
     
     <!-- location browsing feature -->
     <string name="locations_checked_in_count">%1$s people checked in.</string>

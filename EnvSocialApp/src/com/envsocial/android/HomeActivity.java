@@ -7,8 +7,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
@@ -46,6 +48,8 @@ import com.google.zxing.integration.android.IntentResult;
 
 public class HomeActivity extends SherlockFragmentActivity 
 	implements OnClickListener, OrderNoticeAlertDialogListener {
+	
+	private static final int REQUEST_CODE_ENVIVED_SETTINGS = 1;
 	
 	private static final String TAG = "HomeActivity";
 	private static final String SIGN_OUT = "Sign out";
@@ -112,7 +116,10 @@ public class HomeActivity extends SherlockFragmentActivity
                 new IntentFilter(GCMIntentService.ACTION_DISPLAY_GCM_MESSAGE));
 		
         // setup GCM notification registration
-        checkGCMRegistration();
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this); 
+        if (preferences.getBoolean(EnvivedSettings.KEY_ENVIVED_NOTIFICATIONS, true)) {
+        	setupGCMRegistration();
+        }
         
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
@@ -259,9 +266,9 @@ public class HomeActivity extends SherlockFragmentActivity
 	}
 	
 	
-	private void checkGCMRegistration() {
-		// look for the GCM registrationId stored in the GCMRegistrar
-		// if not found, pop-up a dialog to invite the user to register in order to receive notifications
+	private void setupGCMRegistration() {
+		// Look for the GCM registrationId stored in the GCMRegistrar
+		// If not found, register automatically. The user will be able to disable them afterwards.
 		final Context context = getApplicationContext();
 		
 		try {
@@ -297,16 +304,26 @@ public class HomeActivity extends SherlockFragmentActivity
 	}
 	
 	
+	private void disableGCMRegistrations() {
+		final Context context = getApplicationContext();
+		
+		GCMRegistrar.unregister(context);
+		GCMRegistrar.setRegisteredOnServer(context, false);
+		
+		// for now we are not interested that much in the response for unregistration from our 3rd party server
+		ActionHandler.unregisterWithServer(context);
+	}
+	
+	
 	private final BroadcastReceiver mHandleGCMMessageReceiver =
             new BroadcastReceiver() {
         
 		@Override
         public void onReceive(Context context, Intent intent) {
-            String newGCMMessage = intent.getExtras().getString(GCMIntentService.EXTRA_GCM_MESSAGE);
-            
+            /*
+			String newGCMMessage = intent.getExtras().getString(GCMIntentService.EXTRA_GCM_MESSAGE);
             Log.d(TAG, "RECEIVED GCM MESSAGE: " + newGCMMessage);
             
-            /*
             Toast toast = Toast.makeText(HomeActivity.this, newGCMMessage, Toast.LENGTH_LONG);
 			toast.show();
 			*/
@@ -444,6 +461,15 @@ public class HomeActivity extends SherlockFragmentActivity
 				int position = (Integer)v.getTag();
 				Location location = (Location) mLocationHistoryAdapter.getItem(position);
 				
+				// before passing it on in the intent set it's access policy - it might have been changed since
+				// last time it was saved
+				location.setVirtualAccess(true);
+				
+				Location checkedInLocation = Preferences.getCheckedInLocation(getApplicationContext());
+				if (checkedInLocation != null && checkedInLocation.getId().equals(location.getId())) {
+					location.setVirtualAccess(false);
+				}
+				
 				Intent intent = new Intent(this, DetailsActivity.class);
 				intent.putExtra("location", location);
 				
@@ -480,35 +506,53 @@ public class HomeActivity extends SherlockFragmentActivity
 	
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-		if (resultCode == RESULT_OK) {
-			if (requestCode == IntentIntegrator.REQUEST_CODE) {
-				// We have a checkin action, grab checkin url from scanned QR code
-				IntentResult scanResult = 
-					IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
-		    	if (scanResult != null) {
-		    		String actionUrl = scanResult.getContents();
-		    		Log.d(TAG, "CHECKIN URL: " + actionUrl);
-		    		
-		    		// Check if checkin url is proper
-		    		if (actionUrl.startsWith(Url.actionUrl(ActionHandler.CHECKIN))) {
-		    			Intent i = new Intent(this, DetailsActivity.class);
-			    		i.putExtra(ActionHandler.CHECKIN, actionUrl);
-			    		startActivity(i);
-		    		} else {
-		    			// If not, inform the user
-		    			Toast toast = Toast.makeText(this, R.string.msg_malformed_checkin_url, Toast.LENGTH_LONG);
-		    			toast.show();
-		    		}
-		    	}
-			}
+		super.onActivityResult(requestCode, resultCode, intent);
+		
+		switch(requestCode) {
+			case IntentIntegrator.REQUEST_CODE:
+				if (resultCode == RESULT_OK) {
+					// We have a checkin action, grab checkin url from scanned QR code
+					IntentResult scanResult = 
+						IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
+			    	if (scanResult != null) {
+			    		String actionUrl = scanResult.getContents();
+			    		Log.d(TAG, "CHECKIN URL: " + actionUrl);
+			    		
+			    		// Check if checkin url is proper
+			    		if (actionUrl.startsWith(Url.actionUrl(ActionHandler.CHECKIN))) {
+			    			Intent i = new Intent(this, DetailsActivity.class);
+				    		i.putExtra(ActionHandler.CHECKIN, actionUrl);
+				    		startActivity(i);
+			    		} else {
+			    			// If not, inform the user
+			    			Toast toast = Toast.makeText(this, R.string.msg_malformed_checkin_url, Toast.LENGTH_LONG);
+			    			toast.show();
+			    		}
+			    	}
+				}
+				else {
+					Toast toast = Toast.makeText(this, "Action Canceled or Connection Error.", Toast.LENGTH_LONG);
+					toast.show();
+				}
+				break;
+			case REQUEST_CODE_ENVIVED_SETTINGS:
+				SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+		        boolean notificationsEnabled = sharedPref.getBoolean(EnvivedSettings.KEY_ENVIVED_NOTIFICATIONS, true);
+		        
+		        if (notificationsEnabled) {
+		        	setupGCMRegistration();
+		        }
+		        else {
+		        	disableGCMRegistrations();
+		        }
+				break;
+			default: 
+				break;
 		}
-		else {
-			//System.err.println("WOUND UP HERE");
-			Toast toast = Toast.makeText(this, "Action Canceled or Connection Error.", Toast.LENGTH_LONG);
-			toast.show();
-		}
+		
     }
-	
+
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {		
 		MenuInflater inflater = getSupportMenuInflater();
@@ -563,57 +607,12 @@ public class HomeActivity extends SherlockFragmentActivity
 				new CheckoutTask().execute();
 				return true;
 			case R.id.home_menu_settings:
+				Intent intent = new Intent().setClass(this, EnvivedSettings.class);
+				startActivityForResult(intent, REQUEST_CODE_ENVIVED_SETTINGS);
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
 		}
-		
-		/*
-		if (item.getTitle().toString().compareTo(REGISTER_GCM_ITEM) == 0) {
-            final String regId = GCMRegistrar.getRegistrationId(context);
-			
-			if (regId != null && !"".equals(regId)) {
-				
-				// device is already registered on GCM, check server
-				if (GCMRegistrar.isRegisteredOnServer(context)) {
-					Toast toast = Toast.makeText(this, R.string.msg_gcm_already_registered, Toast.LENGTH_LONG);
-					toast.show();
-				}
-				else {
-					Log.d(TAG, "---- WE HAVE TO REGISTER WITH OUR SERVER FIRST.");
-					
-					// need to register with the server first
-					// Try to register again, but not in the UI thread.
-	                // It's also necessary to cancel the thread onDestroy(),
-	                // hence the use of AsyncTask instead of a raw thread.
-					mGCMRegisterTask = new RegisterEnvivedNotificationsTask(this);
-	                mGCMRegisterTask.execute(regId);
-					
-				}
-            } else {
-            	Log.d(TAG, "---- WE HAVE TO REGISTER WITH GCM.");
-                GCMRegistrar.register(context, GCMIntentService.SENDER_ID);
-            }
-			
-			return true;
-		}
-		
-		else if (item.getTitle().toString().compareTo(UNREGISTER_GCM_ITEM) == 0) {
-			GCMRegistrar.unregister(context);
-			GCMRegistrar.setRegisteredOnServer(context, false);
-			
-			// for now we are not interested that much in the response for unregistration from our 3rd party server
-			ActionHandler.unregisterWithServer(context);
-			
-			return true;
-		}
-		
-		else if (item.getTitle().toString().compareTo(getString(R.string.menu_search)) == 0) {
-			return onSearchRequested();
-		}
-		
-		return true;
-		*/
 	}
 
 	
@@ -742,7 +741,7 @@ public class HomeActivity extends SherlockFragmentActivity
 				if (holder.getCode() == HttpStatus.SC_OK) {
 					String message = getResources().getString(R.string.msg_checkout_successful);
 					if (mLocationName != null) {
-						getResources().getString(R.string.msg_checkout_successful_location, mLocationName);
+						message = getResources().getString(R.string.msg_checkout_successful_location, mLocationName);
 					}
 					
 					Toast toast = Toast.makeText(HomeActivity.this, message, Toast.LENGTH_LONG);
@@ -757,7 +756,7 @@ public class HomeActivity extends SherlockFragmentActivity
 						
 						String message = getResources().getString(R.string.msg_checkout_error);
 						if (mLocationName != null) {
-							getResources().getString(R.string.msg_checkout_error_location, mLocationName);
+							message = getResources().getString(R.string.msg_checkout_error_location, mLocationName);
 						}
 						
 						Toast toast = Toast.makeText(HomeActivity.this, message, Toast.LENGTH_LONG);
@@ -781,7 +780,7 @@ public class HomeActivity extends SherlockFragmentActivity
 				
 				String message = getResources().getString(R.string.msg_checkout_error);
 				if (mLocationName != null) {
-					getResources().getString(R.string.msg_checkout_error_location, mLocationName);
+					message = getResources().getString(R.string.msg_checkout_error_location, mLocationName);
 				}
 				
 				Toast toast = Toast.makeText(HomeActivity.this, message, Toast.LENGTH_LONG);

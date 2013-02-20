@@ -281,8 +281,7 @@ public class ActionHandler {
 	}
 
 	public static ResponseHolder register(Context context, String email, String password, 
-			String firstName, String lastName, 
-			String affiliation, String interests) {
+			String firstName, String lastName) {
 		
 		AppClient client = new AppClient(context);
 		
@@ -294,6 +293,7 @@ public class ActionHandler {
 		data.add(new BasicNameValuePair("first_name", firstName));
 		data.add(new BasicNameValuePair("last_name", lastName));
 		
+		/*
 		JSONObject researchProfileData = new JSONObject();
 		try {
 			researchProfileData.put("affiliation", affiliation);
@@ -302,7 +302,7 @@ public class ActionHandler {
 		} catch (JSONException e1) {
 			
 		}
-		
+		*/
 		
 		HttpResponse response = null;
 		try {

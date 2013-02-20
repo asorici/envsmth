@@ -207,24 +207,19 @@ def checkin(request):
 
 def checkout(request):
     """
-    TODO: Don't know if anonymous users should be deleted here
-    but at least we log them out
+    Anonymous users aren't deleted here, but in /delete_anonymous
+    Here we just check them out.
     """
     ## checkout is done by default from the current area or current env in the user_profile context
     try:
         if not request.user.is_anonymous():
             user_profile = request.user.get_profile()
             
-            ## if the user is anonymous
-            if user_profile.is_anonymous:
-                ## delete the anonymous user
-                user_profile.user.delete()
-            else:
-                ## otherwise just clear his context
-                user_profile.context.currentEnvironment = None
-                user_profile.context.currentArea = None
-                user_profile.context.save()
-            
+            ## clear user context
+            user_profile.context.currentEnvironment = None
+            user_profile.context.currentArea = None
+            user_profile.context.save()
+        
     except UserContext.DoesNotExist:
         ## graceful error handling, if no context exists don't freak out, just ignore
         pass

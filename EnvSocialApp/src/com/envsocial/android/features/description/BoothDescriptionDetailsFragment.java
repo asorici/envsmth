@@ -32,6 +32,7 @@ public class BoothDescriptionDetailsFragment extends SherlockFragment
 	
 	private static final String TAG = "BoothDescriptionFragment";
 	private static final int DESCRIPTION_LOADER = 0;
+	private static boolean active = true;
 	
 	private String mBoothImageUrl;
 	private String mBoothContactEmail;
@@ -83,6 +84,29 @@ public class BoothDescriptionDetailsFragment extends SherlockFragment
 	    // load data
 	 	getLoaderManager().initLoader(DESCRIPTION_LOADER, null, this);
 	}
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+		active = true;
+	}
+	
+	@Override
+	public void onPause() {
+		super.onResume();
+		active = false;
+	}
+	
+	@Override
+	public void onDestroy() {
+		super.onDestroy(); 
+		
+		if (mDescriptionLoaderDialog != null) {
+			mDescriptionLoaderDialog.cancel();
+			mDescriptionLoaderDialog = null;
+		}
+	}
+	
 	
 	
 	private void bindData(Cursor cursor) {
@@ -157,15 +181,20 @@ public class BoothDescriptionDetailsFragment extends SherlockFragment
 	
 	@Override
 	public Loader<Cursor> onCreateLoader(int loaderId, Bundle args) {
-		mDescriptionLoaderDialog = getProgressDialogInstance(getActivity());
-		mDescriptionLoaderDialog.show();
+		if (mDescriptionLoaderDialog == null && active) {
+			Log.d(TAG, "CREATING LOADER AND PROGRESS DIALOG");
+			
+			mDescriptionLoaderDialog = getProgressDialogInstance(getActivity());
+			mDescriptionLoaderDialog.show();
+		}
 		
 		return new BoothDescriptionCursorLoader(getActivity(), mDescriptionFeature);
 	}
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-		if (mDescriptionLoaderDialog != null && mDescriptionLoaderDialog.isShowing()) {
+		if (mDescriptionLoaderDialog != null) {
+			Log.d(TAG, "FINISHING LOADER AND PROGRESS DIALOG");
 			mDescriptionLoaderDialog.cancel();
 			mDescriptionLoaderDialog = null;
 		}
@@ -175,6 +204,11 @@ public class BoothDescriptionDetailsFragment extends SherlockFragment
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
+		if (mDescriptionLoaderDialog != null) {
+			mDescriptionLoaderDialog.cancel();
+			mDescriptionLoaderDialog = null;
+		}
+		
 		resetData();
 	}
 	

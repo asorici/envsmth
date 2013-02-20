@@ -59,15 +59,11 @@ public abstract class EnvivedFeatureActivity extends SherlockFragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
+        Log.d(TAG, "ON CREATE IN " + TAG);
+        
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         
-        // retrieve Location argument
-        if (savedInstanceState != null) {
-        	mLocation = (Location) savedInstanceState.get("location");
-        }
-        else {
-        	mLocation = (Location)getIntent().getExtras().get("location");
-        }
+        mLocation = (Location)getIntent().getExtras().get("location");
         
         try {
 			mFeature = getLocationFeature(mLocation);
@@ -135,12 +131,6 @@ public abstract class EnvivedFeatureActivity extends SherlockFragmentActivity {
 	
 	
 	@Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putSerializable("location", mLocation);
-    }
-	
-	@Override
 	public void onDestroy() {
 		super.onDestroy();
 		
@@ -166,6 +156,8 @@ public abstract class EnvivedFeatureActivity extends SherlockFragmentActivity {
 		
 		// finally close the feature
 		mFeature.doClose(getApplicationContext());
+		
+		Log.d(TAG, "ON DESTROY IN " + TAG);
 	}
 	
 	
@@ -336,7 +328,7 @@ public abstract class EnvivedFeatureActivity extends SherlockFragmentActivity {
 				// on successful initialization / update set newly initialized feature as current one
 				if (success) {
 					mFeature = mNewFeature;
-					mLocation.setFeature(mFeature.getCategory(), mFeature);
+					//mLocation.setFeature(mFeature.getCategory(), mFeature);
 				}
 				
 				// do the post init / update logic in the activities inheriting from EnvivedFeatureActivity 

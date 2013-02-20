@@ -10,6 +10,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.view.MenuItem;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.api.Location.AreaInfo;
@@ -32,15 +33,12 @@ public class BrowseLocationsActivity extends SherlockFragmentActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        if (savedInstanceState != null) {
-        	mLocation = (Location) savedInstanceState.get("location");
-        }
-        else {
-        	mLocation = (Location) getIntent().getExtras().get("location");
-        }
+        mLocation = (Location) getIntent().getExtras().get("location");
         
         // define a custom screen layout here
         setContentView(R.layout.browse_locations);
+        
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         
         // image cache initialization 
         initImageFetcher();
@@ -56,13 +54,6 @@ public class BrowseLocationsActivity extends SherlockFragmentActivity implements
         mAdapter = new BrowseLocationsListAdapter(this, mLocation, mImageFetcher);  
         mListView.setAdapter(mAdapter);
         mListView.setOnItemClickListener(this);
-    }
-	
-	
-	@Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putSerializable("location", mLocation);
     }
 	
 	
@@ -97,6 +88,20 @@ public class BrowseLocationsActivity extends SherlockFragmentActivity implements
 		
 		// close image fetcher cache
 		mImageFetcher.closeCache();
+	}
+	
+	
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+			case android.R.id.home:	
+				Intent i = new Intent(this, HomeActivity.class);
+				i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				startActivity(i);
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
+		
 	}
 	
 	

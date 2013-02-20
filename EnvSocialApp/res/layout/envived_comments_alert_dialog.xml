@@ -17,7 +17,7 @@
         android:textColor="@color/envived_order_text_warm_green"
 		android:textStyle="bold"
 		android:textSize="20sp"
-        android:text="@string/lbl_attention" />
+        android:text="@string/lbl_notification" />
     
     <TextView
         android:id="@+id/msg_content"
@@ -31,7 +31,7 @@
         android:textColor="@color/white"
         android:textSize="14sp"
         android:textStyle="bold"
-        android:text = "You have to be checked in at this location (scan the QR code) to be able to post messages."
+        android:text = "You have to be checked in at this location (scan the QR code) to be able to perform actions."
     /> 
     
     <Button

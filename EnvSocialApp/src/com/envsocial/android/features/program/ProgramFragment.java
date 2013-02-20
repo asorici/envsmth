@@ -1,13 +1,18 @@
 package com.envsocial.android.features.program;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import com.actionbarsherlock.app.SherlockFragment;
 
 
 public abstract class ProgramFragment extends SherlockFragment implements ProgramUpdateListener {
+	private static final String TAG = "ProgramFragment";
+	
 	protected static final int TIME_DISPLAY_TYPE = 0;
-	protected static final int SESSION_DISPLAY_TYPE = 1; 
+	protected static final int SESSION_DISPLAY_TYPE = 1;
+	protected static boolean active = true;
+	
 	
 	protected int mProgramDisplayType = TIME_DISPLAY_TYPE;
 	protected ProgramUpdateListener mProgramUpdateListener;
@@ -16,8 +21,27 @@ public abstract class ProgramFragment extends SherlockFragment implements Progra
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 	    
-	    setProgramUpdateListener(this);
+	}
+	
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+		
+		setProgramUpdateListener(this);
 	    ((ProgramUpdateObserver)getActivity()).registerListener(mProgramUpdateListener);
+	}
+	
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+		active = true;
+	}
+	
+	@Override
+	public void onPause() {
+		super.onResume();
+		active = false;
 	}
 	
 	
@@ -45,11 +69,17 @@ public abstract class ProgramFragment extends SherlockFragment implements Progra
 		mProgramUpdateListener = l;
 	}
 	
+	@Override
+	public void onProgramInit(ProgramFeature initProgramFeature) {
+		handleProgramInit(initProgramFeature);
+	}
 	
 	@Override
 	public void onProgramUpdated(ProgramFeature updatedProgramFeature) {
 		handleProgramUpdate(updatedProgramFeature);
 	}
+	
+	protected abstract void handleProgramInit(ProgramFeature initProgramFeature);
 	
 	protected abstract void handleProgramUpdate(ProgramFeature updatedProgramFeature);
 }

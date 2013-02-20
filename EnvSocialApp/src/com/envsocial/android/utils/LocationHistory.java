@@ -40,7 +40,11 @@ public class LocationHistory extends LruCache<String, Location> {
 		
 		JSONArray trackedLocationsList = new JSONArray();
 		for (Map.Entry<String, Location> trackedLocation : snapshot().entrySet()) {
-			trackedLocationsList.put(trackedLocation.getValue().getAsJson());
+			Location location = trackedLocation.getValue();
+			
+			// always save locations with virtual access set to true
+			location.setVirtualAccess(true);
+			trackedLocationsList.put(location.getAsJson());
 		}
 		
 		serializedLocationHistory.put(MAX_ENTRIES_LABEL, maxEntries);

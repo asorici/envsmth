@@ -5,9 +5,11 @@ import java.util.List;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentManager.BackStackEntry;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.ActionBar.Tab;
@@ -36,7 +38,7 @@ public class ProgramActivity extends EnvivedFeatureActivity implements ProgramUp
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    	super.onCreate(savedInstanceState);
         
         setContentView(R.layout.program);
         
@@ -50,6 +52,12 @@ public class ProgramActivity extends EnvivedFeatureActivity implements ProgramUp
         if (savedInstanceState != null) {
             // get current tab tag
         	mCurrentTabTag = savedInstanceState.getString("program_tab");
+        	
+        	FragmentManager fm = getSupportFragmentManager();
+        	FragmentTransaction ft = fm.beginTransaction();
+        	
+        	ft.remove(fm.findFragmentByTag(Feature.PROGRAM));
+        	ft.commit();
         }
       	else {
       		mCurrentTabTag = TIME_TAB_TAG;
@@ -59,13 +67,13 @@ public class ProgramActivity extends EnvivedFeatureActivity implements ProgramUp
     
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+    	super.onSaveInstanceState(outState);
         if (mActionBar.getSelectedTab() != null) {
         	outState.putString("program_tab", (String)mActionBar.getSelectedTab().getTag());
         }
     }
     
-        
+    
     @Override
 	public void onDestroy() {
 		super.onDestroy();
@@ -74,7 +82,9 @@ public class ProgramActivity extends EnvivedFeatureActivity implements ProgramUp
     
     private void initTabbedFragments() {
     	// Add tabs based on different program views
-        
+    	Log.d(TAG, "Feature loaded: " + mProgramFeature.isInitialized() + ". INIT TABS!!!!!");
+    	
+    	
         // add the time-based view
         Tab timeBasedProgramTab = mActionBar.newTab()
         		.setText("By Time")
@@ -82,8 +92,6 @@ public class ProgramActivity extends EnvivedFeatureActivity implements ProgramUp
     			.setTabListener(new TabListener<ProgramByTimeFragment>(this, 
     					Feature.PROGRAM, ProgramByTimeFragment.class, mLocation));
         mActionBar.addTab(timeBasedProgramTab);	
-        
-        
         
         Tab sessionBasedProgramTab = mActionBar.newTab()
         		.setText("By Session")
@@ -105,6 +113,7 @@ public class ProgramActivity extends EnvivedFeatureActivity implements ProgramUp
 	        	}
 	        }
         }
+        
 	}
     
     
@@ -123,34 +132,36 @@ public class ProgramActivity extends EnvivedFeatureActivity implements ProgramUp
 			mLocation = location;
 		}
 		
-		// Compatibility library sends null ft, so we simply ignore it and get our own
-		public void onTabSelected(Tab tab, FragmentTransaction ingnoredFt) {
+		
+		public void onTabSelected(Tab tab, FragmentTransaction ignoredFt) {
 			FragmentManager fragmentManager = ((SherlockFragmentActivity) mActivity).getSupportFragmentManager();
-	        FragmentTransaction ft = fragmentManager.beginTransaction();
 	        
-			// Check if the fragment is already initialized
-			if (mFragment == null) {
-				// If not, instantiate the fragment and add it to the activity
-				mFragment = (SherlockFragment) SherlockFragment.instantiate(mActivity, mClass.getName());
+			if (ignoredFt == null) {
+				FragmentTransaction ft = fragmentManager.beginTransaction();
+		        
+				if (mFragment == null) {
+					mFragment = (SherlockFragment) SherlockFragment.instantiate(mActivity, mClass.getName());
+					ft.replace(R.id.program_container, mFragment, mTag);
+				} 
+				else {
+					ft.attach(mFragment);
+				}
 				
-				Bundle bundle = new Bundle();
-				mFragment.setArguments(bundle);
-				
-				ft.add(R.id.program_container, mFragment, mTag);
-				//ft.add(mFragment, mTag);
-			} else {
-				// If the fragment exists, attach it in order to show it
-				ft.attach(mFragment);
+				ft.commit();
 			}
-			
-			// set this fragment as the active one
-			//mCurrentTabTag = mTag;
-			
-			ft.commit();
+			else {
+				if (mFragment == null) {
+					mFragment = (SherlockFragment) SherlockFragment.instantiate(mActivity, mClass.getName());
+					ignoredFt.replace(R.id.program_container, mFragment, mTag);
+				} 
+				else {
+					ignoredFt.attach(mFragment);
+				}
+			}
 		}
 		
-		// Compatibility library sends null ft, so we simply ignore it and get our own
-		public void onTabUnselected(Tab tab, FragmentTransaction ingnoredFt) {
+		
+		public void onTabUnselected(Tab tab, FragmentTransaction ignoredFt) {
 			FragmentManager fragmentManager = ((SherlockFragmentActivity) mActivity).getSupportFragmentManager();
 			
 			// firstly pop the entire fragment backstack -- each feature may load it's different fragments
@@ -162,15 +173,21 @@ public class ProgramActivity extends EnvivedFeatureActivity implements ProgramUp
 					bottomEntry.getId(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
 	        }
 			
-			
-			FragmentTransaction ft = fragmentManager.beginTransaction();
-			if (mFragment != null) {
-				// Detach the fragment, another one is being attached
-				ft.detach(mFragment);
+			if (ignoredFt == null) {
+				FragmentTransaction ft = fragmentManager.beginTransaction();
+				if (mFragment != null) {
+					// Detach the fragment, another one is being attached
+					ft.detach(mFragment);
+				}
+				
+				ft.commit();
 			}
-			
-			//mCurrentTabTag = null;
-			ft.commit();
+			else {
+				if (mFragment != null) {
+					// Detach the fragment, another one is being attached
+					ignoredFt.detach(mFragment);
+				}
+			}
 		}
 		
 		public void onTabReselected(Tab tab, FragmentTransaction ft) {
@@ -181,6 +198,8 @@ public class ProgramActivity extends EnvivedFeatureActivity implements ProgramUp
 
 	@Override
 	public void registerListener(ProgramUpdateListener l) {
+		assert(mRegisteredUpdateReceivers != null);
+		
 		if (!mRegisteredUpdateReceivers.contains(l)) {
 			mRegisteredUpdateReceivers.add(l);
 		}
@@ -190,6 +209,13 @@ public class ProgramActivity extends EnvivedFeatureActivity implements ProgramUp
 	@Override
 	public void unregisterListener(ProgramUpdateListener l) {
 		mRegisteredUpdateReceivers.remove(l);
+	}
+	
+	
+	private void notifyProgramInit(ProgramFeature initProgramFeature) {
+		for (ProgramUpdateListener l : mRegisteredUpdateReceivers) {
+			l.onProgramInit(initProgramFeature);
+		}
 	}
 	
 	

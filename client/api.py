@@ -1,10 +1,10 @@
 from client.authorization import AnnotationAuthorization, UserAuthorization, \
     FeatureAuthorization
 from client.validation import AnnotationValidation
+from coresql.exceptions import AnnotationException, DuplicateAnnotationException
 from coresql.models import Environment, Area, Feature, Annotation, Announcement, \
     History, UserProfile, ResearchProfile, UserContext, UserSubProfile
 from coresql.utils import str2bool
-
 from datetime import datetime
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from tastypie import fields, http
@@ -12,6 +12,7 @@ from tastypie.api import Api
 from tastypie.authentication import Authentication
 from tastypie.exceptions import ImmediateHttpResponse, NotFound, HydrationError
 from tastypie.resources import ModelResource
+
 #from coresql.forms import AnnotationForm
 #from tastypie.validation import FormValidation
 
@@ -645,6 +646,7 @@ class AnnotationResource(ModelResource):
             first_name = user_profile.user.first_name
             last_name = user_profile.user.last_name
         
+        
         bundle.data['data']['user'] = { 'first_name' : first_name,
                                         'last_name' : last_name 
                                       }
@@ -704,12 +706,15 @@ class AnnotationResource(ModelResource):
                                      area = area, category = category, data = data)
                     instantiated = True
                     break
-                except:
-                    pass
+                except DuplicateAnnotationException, e:
+                    raise ImmediateHttpResponse(response=http.HttpForbidden(content=e.get_message()))
+                except AnnotationException, ex:
+                    raise ImmediateHttpResponse(response=http.HttpBadRequest(content=ex.get_message()))
+                
         
         if not instantiated:
-            #raise ImmediateHttpResponse(response=http.HttpBadRequest())
-            raise HydrationError("No class found for annotation category (" + category + ") or incorrect data parameters")
+            raise ImmediateHttpResponse(response=http.HttpBadRequest(
+                content="No class found for annotation category (" + category + ") or incorrect data parameters"))
         
         return bundle
         

@@ -45,6 +45,7 @@ public abstract class Feature implements Serializable {
 	
 	public static final String DESCRIPTION 			= 	"description";
 	public static final String BOOTH_DESCRIPTION 	= 	"booth_description";
+	
 	public static final String ORDER 				= 	"order";
 	public static final String PEOPLE 				= 	"people";
 	public static final String PROGRAM 				= 	"program";
@@ -356,7 +357,6 @@ public abstract class Feature implements Serializable {
 			HttpResponse response = client.makeGetRequest(url.toString());
 			ResponseHolder holder = ResponseHolder.parseResponse(response);
 			
-			//Log.i(TAG, "Feature RETRIEVE FROM SERVER response body:" + holder.getResponseBody());
 			
 			if (!holder.hasError() && holder.getCode() == HttpStatus.SC_OK) {
 				// if all is Ok the response will be an object with the feature attributes including

@@ -5,11 +5,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import com.envsocial.android.R;
-import com.envsocial.android.features.Feature;
-import com.envsocial.android.features.program.ProgramByTimeFragment.ProgramCursorLoader;
-import com.envsocial.android.utils.SimpleCursorLoader;
-
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -17,17 +12,18 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.ExpandableListView;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.ExpandableListView.OnChildClickListener;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.envsocial.android.R;
+import com.envsocial.android.utils.SimpleCursorLoader;
 
 public class ProgramBySessionFragment extends ProgramFragment 
 	implements OnClickListener, OnChildClickListener, LoaderManager.LoaderCallbacks<Cursor> {
@@ -51,6 +47,8 @@ public class ProgramBySessionFragment extends ProgramFragment
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 	    
+	    Log.d(TAG, "ON CREATE IN " + TAG);
+	    
 	    mParentActivity = (ProgramActivity) getActivity();
 	    mProgramFeature = (ProgramFeature) mParentActivity.getFeature();
 	    mProgramDisplayType = ProgramFragment.SESSION_DISPLAY_TYPE;
@@ -59,7 +57,6 @@ public class ProgramBySessionFragment extends ProgramFragment
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		Log.i(TAG, "[INFO] onCreateView called.");
 		
 		// Inflate layout for this fragment.
 		View view = inflater.inflate(R.layout.program_by_session, container, false);
@@ -80,118 +77,126 @@ public class ProgramBySessionFragment extends ProgramFragment
 	public void onActivityCreated(Bundle savedInstanceState) {
 	    super.onActivityCreated(savedInstanceState);
 	    
-	    Log.i(TAG, "[INFO] onActivityCreated called.");
-	    
-	    // start setup for data - get the distinct days and load data for first day
-	 	loadData();
+	    loadData();
 	}
 	
 	
+	@Override
+	public void onDestroy() {
+		super.onDestroy(); 
+		
+		if (mProgramLoaderDialog != null) {
+			mProgramLoaderDialog.cancel();
+			mProgramLoaderDialog = null;
+		}
+	}
+	
 	
 	private void loadData() {
-		// ======== get distinct program days ========
-		if (mDistinctProgramDays == null) {
-			mDistinctProgramDays = mProgramFeature.getDistinctDays();
+		if (mProgramFeature != null && mProgramFeature.isInitialized()) {
+			// ======== get distinct program days ========
+			if (mDistinctProgramDays == null) {
+				mDistinctProgramDays = mProgramFeature.getDistinctDays();
+				
+				int k = 0;
+				int numDays = mDistinctProgramDays.size();
+				
+				if (numDays > 1) {
+					for (int i = 0; i < numDays; i++) {
+						String d = mDistinctProgramDays.get(i);
+						TextView dayView = new TextView(getActivity());
 			
-			int k = 0;
-			int numDays = mDistinctProgramDays.size();
-			
-			if (numDays > 1) {
-				for (int i = 0; i < numDays; i++) {
-					String d = mDistinctProgramDays.get(i);
-					TextView dayView = new TextView(getActivity());
-		
-					try {
-						SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-						Date date = formatter.parse(d);
-						formatter = new SimpleDateFormat("EEE, MMM d");
-						dayView.setText(formatter.format(date));
-					} catch (ParseException e) {
-						e.printStackTrace();
-						dayView.setText(d);
+						try {
+							SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+							Date date = formatter.parse(d);
+							formatter = new SimpleDateFormat("EEE, MMM d");
+							dayView.setText(formatter.format(date));
+						} catch (ParseException e) {
+							e.printStackTrace();
+							dayView.setText(d);
+						}
+						
+						LinearLayout.LayoutParams dayViewParams = 
+								new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
+						//dayView.setLayoutParams(dayViewParams);
+						
+						dayView.setTag(k ++);
+						dayView.setOnClickListener(this);
+						dayView.setPadding(15, 15, 15, 15);
+						dayView.setTextColor(getResources().getColor(R.color.envived_order_text_dark_green));
+						dayView.setBackgroundDrawable(getResources().getDrawable(R.drawable.envived_default_green_tab_indicator_ab));
+						mDayScroll.addView(dayView, dayViewParams);
 					}
-					
-					LinearLayout.LayoutParams dayViewParams = 
-							new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
-					//dayView.setLayoutParams(dayViewParams);
-					
-					dayView.setTag(k ++);
-					dayView.setOnClickListener(this);
-					dayView.setPadding(15, 15, 15, 15);
-					dayView.setTextColor(getResources().getColor(R.color.envived_order_text_dark_green));
-					dayView.setBackgroundDrawable(getResources().getDrawable(R.drawable.envived_default_green_tab_indicator_ab));
-					mDayScroll.addView(dayView, dayViewParams);
+				
+					mDayScroll.getChildAt(mCurrentDayIndex).setBackgroundDrawable(getResources().getDrawable(R.drawable.envived_default_actionbar_tab_selected_pressed));
 				}
-			
-				mDayScroll.getChildAt(mCurrentDayIndex).setBackgroundDrawable(getResources().getDrawable(R.drawable.envived_default_actionbar_tab_selected_pressed));
 			}
+			
+			// Create and set adapter
+			int groupLayout = R.layout.program_session_group;
+			int childLayout = R.layout.program_session_item;
+			
+			String[] groupFrom = new String[] {
+				ProgramDbHelper.COL_SESSION_TITLE
+			};
+			
+			int[] groupTo = new int[] {
+				R.id.program_session_title
+			};
+			
+			
+			String[] childFrom = new String[] {	
+				ProgramDbHelper.COL_PRESENTATION_TITLE, 
+				ProgramDbHelper.COL_PRESENTATION_START_TIME,
+				ProgramDbHelper.COL_PRESENTATION_END_TIME,
+				ProgramDbHelper.COL_SESSION_LOCATION_NAME,
+			};
+			
+			int[] childTo = new int[] {
+				R.id.program_presentation_title,
+				R.id.program_presentation_start_hour,
+				R.id.program_presentation_end_hour,
+				R.id.program_presentation_locationName,
+			};
+			
+			String selectedDayString = mDistinctProgramDays.get(mCurrentDayIndex);
+			mSessionAdapter = new ProgramBySessionAdapter(mProgramFeature, selectedDayString, getActivity(), 
+					null, groupLayout, groupFrom, groupTo, childLayout, childFrom, childTo);
+			mSessionListView.setAdapter(mSessionAdapter);
+			
+			// ======== start the loader days ========
+			getLoaderManager().initLoader(mProgramDisplayType, null, this);
 		}
+	}
+	
+	
+	@Override
+	protected void handleProgramInit(ProgramFeature initProgramFeature) {
+		mProgramFeature = initProgramFeature;
 		
-		// Create and set adapter
-		int groupLayout = R.layout.program_session_group;
-		int childLayout = R.layout.program_session_item;
-		
-		String[] groupFrom = new String[] {
-			ProgramDbHelper.COL_SESSION_TITLE
-		};
-		
-		int[] groupTo = new int[] {
-			R.id.program_session_title
-		};
-		
-		
-		String[] childFrom = new String[] {	
-			ProgramDbHelper.COL_PRESENTATION_TITLE, 
-			ProgramDbHelper.COL_PRESENTATION_START_TIME,
-			ProgramDbHelper.COL_PRESENTATION_END_TIME,
-			ProgramDbHelper.COL_SESSION_LOCATION_NAME,
-		};
-		
-		int[] childTo = new int[] {
-			R.id.program_presentation_title,
-			R.id.program_presentation_start_hour,
-			R.id.program_presentation_end_hour,
-			R.id.program_presentation_locationName,
-		};
-		
-		String selectedDayString = mDistinctProgramDays.get(mCurrentDayIndex);
-		mSessionAdapter = new ProgramBySessionAdapter(mProgramFeature, selectedDayString, getActivity(), 
-				null, groupLayout, groupFrom, groupTo, childLayout, childFrom, childTo);
-		mSessionListView.setAdapter(mSessionAdapter);
-		
-		// ======== start the loader days ========
-		getLoaderManager().initLoader(mProgramDisplayType, null, this);
+		// start setup for data - get the distinct days and load data for first day
+	    loadData();
 	}
 	
 	
 	@Override
 	protected void handleProgramUpdate(ProgramFeature updatedProgramFeature) {
-		// TODO - restart loader
 		mProgramFeature = updatedProgramFeature;
 
 		if (mProgramLoaderDialog != null) {
 			mProgramLoaderDialog.cancel();
-			mProgramLoaderDialog.show();
+			mProgramLoaderDialog = null;
 		} 
-		else {
-			mProgramLoaderDialog = getProgressDialogInstance(getActivity());
-			mProgramLoaderDialog.show();
-		}
-
+		
 		getLoaderManager().restartLoader(mProgramDisplayType, null, this);
 	}
 	
 	
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		if (mProgramLoaderDialog == null) {
+		if (mProgramLoaderDialog == null && active) {
 			mProgramLoaderDialog = getProgressDialogInstance(getActivity());
 			mProgramLoaderDialog.show();
-		}
-		else {
-			if (!mProgramLoaderDialog.isShowing()) {
-				mProgramLoaderDialog.show();
-			}
 		}
 		
 		return new ProgramCursorLoader(getActivity(), mProgramFeature, mDistinctProgramDays, mCurrentDayIndex);
@@ -202,7 +207,7 @@ public class ProgramBySessionFragment extends ProgramFragment
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
 		mSessionAdapter.changeCursor(cursor);
 		
-		if (mProgramLoaderDialog != null && mProgramLoaderDialog.isShowing()) {
+		if (mProgramLoaderDialog != null) {
 			mProgramLoaderDialog.cancel();
 			mProgramLoaderDialog = null;
 		}

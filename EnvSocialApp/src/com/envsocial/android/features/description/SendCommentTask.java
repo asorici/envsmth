@@ -1,4 +1,4 @@
-package com.envsocial.android;
+package com.envsocial.android.features.description;
 
 import org.apache.http.HttpStatus;
 
@@ -10,6 +10,9 @@ import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.widget.Toast;
 
+import com.envsocial.android.R;
+import com.envsocial.android.R.string;
+import com.envsocial.android.R.style;
 import com.envsocial.android.api.Annotation;
 import com.envsocial.android.api.exceptions.EnvSocialComException;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;

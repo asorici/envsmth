@@ -2,6 +2,7 @@ package com.envsocial.android.features.description;
 
 import java.util.Calendar;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 
@@ -32,6 +33,7 @@ public class BoothDescriptionFeature extends Feature {
 	public static final String BOOTH_PRODUCT_DESCRIPTION = "product_description";
 	public static final String BOOTH_PRODUCT_IMAGE_URL = "product_image_url";
 	public static final String BOOTH_PRODUCT_WEBSITE_URL = "product_website_url";
+	public static final String BOOTH_PRODUCT_VOTES = "product_votes";
 	
 	
 	public BoothDescriptionFeature(String category, int version, Calendar timestamp, boolean isGeneral,
@@ -133,6 +135,15 @@ public class BoothDescriptionFeature extends Feature {
 		}
 		
 		return null;
+	}
+	
+	
+	public boolean updateVotesValue(int productId, int votes) {
+		if (dbHelper != null) {
+			return dbHelper.updateVotesValue(productId, votes);
+		}
+		
+		return false;
 	}
 	
 	

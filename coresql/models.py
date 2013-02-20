@@ -1,18 +1,19 @@
 from coresql.db import fields
+from coresql.exceptions import AnnotationException, DuplicateAnnotationException
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.fields.related import SingleRelatedObjectDescriptor
 from django.db.models.signals import post_save
-
 from django_facebook.models import FacebookProfileModel
 from model_utils.managers import InheritanceManager
-from coresql.exceptions import AnnotationException
-
 import datetime
+
+
 
 CATEGORY_CHOICES = ( 
     ("description", "description"),
     ("booth_description", "booth_description"), 
+    ("booth_product_vote", "booth_product_vote"),
     ("order", "order"),
     ("program", "program"),
     ("people", "people"),
@@ -369,21 +370,26 @@ class BoothProductVoteAnnotation(Annotation):
                     product_id = data['product_id']
                     self.booth_product = BoothProduct.objects.get(id = product_id)
                     
-                    if self.booth_product and self.user.id in [ann.user.id for ann in self.booth_product.votes.all()]:
-                        raise AnnotationException("User already voted for booth product.")
+                    ''' annotation users can be NULL if they were anonymous and quit. Herein lies a potential error
+                    since a user who logs in as anonymous, votes, quits anonymous and logs back in as anonymous can
+                    vote several times for the same project. But as the feature is not essential, we're gonna let it slide.
+                    A fix would be to only allow actual logged in users to vote '''
+                    existing_vote_annotations = filter(lambda ann: not ann.user is None, self.booth_product.votes.all())
+                    
+                    if self.booth_product and self.user.id in [ann.user.id for ann in existing_vote_annotations]:
+                        raise DuplicateAnnotationException()
                     
                 except BoothProduct.DoesNotExist:
-                    raise AnnotationException("Booth Product Vote Annotation missing valid product product_id")
+                    raise AnnotationException(msg="Booth Product Vote Annotation missing valid product product_id")
             else:
-                raise AnnotationException("Booth Product Vote Annotation missing product_id value")
+                raise AnnotationException(msg="Booth Product Vote Annotation missing product_id value")
                 
     
     
     def get_annotation_data(self):
         data_dict = { 'product_id' : self.booth_product.id }
         if not self.booth_product.votes is None:
-            data_dict['product_votes' : self.booth_product.votes.count()]
-        
+            data_dict['product_votes'] = self.booth_product.votes.count()
         
         return data_dict
     
@@ -401,7 +407,7 @@ class BoothProductVoteAnnotation(Annotation):
         if "product_id" in filters:
             try:
                 product = BoothProduct.objects.get(id = filters['product_id'])
-                specific_filters['id__in'] = [ann.id for ann in BoothDescriptionAnnotation.objects.filter(product = product)]
+                specific_filters['id__in'] = [ann.id for ann in BoothProductVoteAnnotation.objects.filter(booth_product = product)]
             except BoothProduct.DoesNotExist:
                 pass
             except Exception:
@@ -696,9 +702,9 @@ class BoothDescriptionFeature(Feature):
                     product_dict['product_website_url'] = product.website_url
                 
                 if product.votes:
-                    product_dict['votes'] = product.votes.count()
+                    product_dict['product_votes'] = product.votes.count()
                 else:
-                    product_dict['votes'] = 0
+                    product_dict['product_votes'] = 0
                     
                 product_list.append(product_dict)
             

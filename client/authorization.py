@@ -174,7 +174,6 @@ class FeatureAuthorization(Authorization):
                 env_obj = None
                 area_obj = None
                 
-                
                 ''' try first to obtain info from the feature_obj itself if this is a detail request '''
                 feature_res_uri = request.path
                 try:

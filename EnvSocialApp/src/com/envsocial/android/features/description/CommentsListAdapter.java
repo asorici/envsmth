@@ -1,12 +1,13 @@
-package com.envsocial.android;
+package com.envsocial.android.features.description;
 
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -16,15 +17,21 @@ import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.envsocial.android.CommentsActivity.Comment;
+import com.envsocial.android.R;
+import com.envsocial.android.features.description.CommentsActivity.Comment;
 import com.envsocial.android.utils.Utils;
 
 public class CommentsListAdapter extends BaseAdapter {
+	private static final int LEFT = 0;
+	private static final int RIGHT = 1;
+	
 	private Context mContext;
 	private List<Comment> mCommentList;
 	private List<Comment> mActiveCommentList;
 	private LayoutInflater mInflater;
 	private List<String> filters;
+	
+	private Map<String, Integer> mCommentLayoutMap;
 	
 	public CommentsListAdapter(Context context, LinkedList<Comment> commentList) {
 		mContext = context;
@@ -32,6 +39,8 @@ public class CommentsListAdapter extends BaseAdapter {
 		mCommentList = commentList;
 		mActiveCommentList = new LinkedList<Comment>();
 		filters = new LinkedList<String>();
+		
+		mCommentLayoutMap = new HashMap<String, Integer>();
 	}
 
 	@Override
@@ -115,15 +124,42 @@ public class CommentsListAdapter extends BaseAdapter {
 		LinearLayout.LayoutParams marginLayoutParams = new LinearLayout.LayoutParams(
 						LinearLayout.LayoutParams.MATCH_PARENT, 
 						LinearLayout.LayoutParams.WRAP_CONTENT);
-		if (position % 2 == 0) {
+		
+		Comment currentComment = (Comment) getItem(position);
+		int currentLayout = LEFT;
+		
+		if (position == 0) {
+			currentLayout = LEFT;
+		}
+		else {
+			// get previous item
+			Comment prevComment = (Comment) getItem(position - 1);
+			Integer prevLayout = mCommentLayoutMap.get(prevComment.getCommentUrl());
+			if (prevLayout == null) {
+				prevLayout = LEFT;
+			}
+			
+			if (currentComment.getCommentOwnerUrl().equals(prevComment.getCommentOwnerUrl())) {
+				currentLayout = prevLayout;
+			}
+			else {
+				currentLayout = 1 - prevLayout;
+			}
+		}
+		
+		mCommentLayoutMap.put(currentComment.getCommentUrl(), currentLayout);
+		
+		if (currentLayout == LEFT) {
 			// to the left
 			marginLayoutParams.rightMargin = marginPx;
 			marginLayoutParams.gravity = Gravity.LEFT;
+			holder.wrapperLayout.setBackgroundDrawable((mContext.getResources().getDrawable(R.drawable.feature_program_presentation_comment_wrapper)));
 		}
 		else {
 			// to the right
 			marginLayoutParams.leftMargin = marginPx;
 			marginLayoutParams.gravity = Gravity.RIGHT;
+			holder.wrapperLayout.setBackgroundDrawable(mContext.getResources().getDrawable(R.drawable.feature_program_presentation_comment_wrapper_gray));
 		}
 		
 		holder.wrapperLayout.setLayoutParams(marginLayoutParams);
@@ -166,9 +202,9 @@ public class CommentsListAdapter extends BaseAdapter {
 	}
 	
 	private void filterData() {
-		Log.d("adapter", "filters:" + filters.toString());
+		//Log.d("adapter", "filters:" + filters.toString());
 		for (Comment comment : mCommentList) {
-			Log.d("adapter!", comment.toString());
+			//Log.d("adapter!", comment.toString());
 			if (checkFilter(comment)) {
 				mActiveCommentList.add(comment);
 			}

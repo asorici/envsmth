@@ -37,6 +37,7 @@ public class BoothDescriptionDbHelper extends FeatureDbHelper {
 	protected static final String COL_BOOTH_PRODUCT_DESCRIPTION = "booth_product_description";
 	protected static final String COL_BOOTH_PRODUCT_IMAGE_URL = "booth_product_image_url";
 	protected static final String COL_BOOTH_PRODUCT_WEBSITE_URL = "booth_product_website_url";
+	protected static final String COL_BOOTH_PRODUCT_VOTES = "booth_product_votes";
 	
 	protected static final String BOOTH_DESCRIPTION_FTS_TABLE = "booth_description_fts";
 	protected static final String COL_BOOTH_DESCRIPTION_FTS_ID = BaseColumns._ID;
@@ -74,6 +75,7 @@ public class BoothDescriptionDbHelper extends FeatureDbHelper {
 				COL_BOOTH_PRODUCT_DESCRIPTION + " TEXT, " +
 				COL_BOOTH_PRODUCT_IMAGE_URL + " TEXT, " +
 				COL_BOOTH_PRODUCT_WEBSITE_URL + " TEXT, " +
+				COL_BOOTH_PRODUCT_VOTES + " INTEGER DEFAULT 0, " +
 				COL_BOOTH_PRODUCT_BOOTH_ID + " INTEGER NOT NULL, " + 
 				"FOREIGN KEY (" + COL_BOOTH_PRODUCT_BOOTH_ID + ") REFERENCES " 
 				+ BOOTH_DESCRIPTION_TABLE + "(" + COL_BOOTH_DESCRIPTION_ID + "));");
@@ -222,11 +224,13 @@ public class BoothDescriptionDbHelper extends FeatureDbHelper {
 						String productDescription = boothProduct.getString(BoothDescriptionFeature.BOOTH_PRODUCT_DESCRIPTION);
 						String productImageUrl = boothProduct.optString(BoothDescriptionFeature.BOOTH_PRODUCT_IMAGE_URL, null);
 						String productWebsiteUrl = boothProduct.optString(BoothDescriptionFeature.BOOTH_PRODUCT_WEBSITE_URL, null);
+						int productVotes = boothProduct.optInt(BoothDescriptionFeature.BOOTH_PRODUCT_VOTES, 0);
 						
 						values.put(COL_BOOTH_PRODUCT_ID, productId);
 						values.put(COL_BOOTH_PRODUCT_BOOTH_ID, boothId);
 						values.put(COL_BOOTH_PRODUCT_NAME, productName);
 						values.put(COL_BOOTH_PRODUCT_DESCRIPTION, productDescription);
+						values.put(COL_BOOTH_PRODUCT_VOTES, productVotes);
 						
 						if (productImageUrl != null) {
 							values.put(COL_BOOTH_PRODUCT_IMAGE_URL, productImageUrl);
@@ -274,7 +278,8 @@ public class BoothDescriptionDbHelper extends FeatureDbHelper {
 		String[] selectionArgs = new String[] {"" + boothId};
 		String[] projection = new String[] { 
 				COL_BOOTH_PRODUCT_ID, 
-				COL_BOOTH_PRODUCT_NAME, 
+				COL_BOOTH_PRODUCT_NAME,
+				COL_BOOTH_PRODUCT_VOTES,
 				"SUBSTR(" + COL_BOOTH_PRODUCT_DESCRIPTION + ",1,64) AS " + COL_BOOTH_PRODUCT_DESCRIPTION
 				};
 		String orderBy = COL_BOOTH_PRODUCT_NAME;
@@ -315,5 +320,24 @@ public class BoothDescriptionDbHelper extends FeatureDbHelper {
 		
 		return database.query(true, BOOTH_PRODUCT_FTS_TABLE, null, 
 				selection, selectionArgs, null, null, orderBy, null);
+	}
+	
+	
+	public boolean updateVotesValue(int productId, int votes) {
+		String where = BOOTH_PRODUCT_TABLE + "." + COL_BOOTH_PRODUCT_ID + " = ?";
+		String[] whereArgs = new String[] {"" + productId};
+		
+		ContentValues values = new ContentValues();
+		values.put(COL_BOOTH_PRODUCT_VOTES, votes);
+		
+		int rowsAffected = database.update(BOOTH_PRODUCT_TABLE, values, where, whereArgs);
+		
+		// if no row was affected the the update did not succeed
+		if (rowsAffected == 0) {
+			return false;
+		}
+		
+		// otherwise, there can only be one row affected so return true
+		return true;
 	}
 }

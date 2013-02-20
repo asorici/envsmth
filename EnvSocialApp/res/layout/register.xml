@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical" 
+    android:padding="10dip">
     
     <TextView
         android:layout_width="fill_parent"
@@ -17,53 +18,43 @@
     <EditText android:id="@+id/txt_email"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        android:hint="@string/lbl_email" />
+        android:hint="@string/lbl_email"
+        android:inputType="textEmailAddress" />
     
     <EditText android:id="@+id/txt_password"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
         android:inputType="textPassword"
         android:hint="@string/lbl_password" />
     
     <EditText android:id="@+id/txt_first"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
         android:hint="@string/lbl_first" />
     
     <EditText android:id="@+id/txt_last"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
         android:hint="@string/lbl_last" />
     
+    <!-- 
     <EditText android:id="@+id/txt_affiliation"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
         android:hint="@string/lbl_affiliation" />
     
 	<EditText android:id="@+id/txt_interests"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
         android:hint="@string/lbl_interests" />
-    
+     -->
+     
     <Button
         android:id="@+id/btn_submit"
         style="@style/Widget.Envived.Button"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
+        android:layout_marginTop="10dip"
         android:text="@string/btn_submit" />
 
 </LinearLayout>

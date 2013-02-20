@@ -1,4 +1,4 @@
-package com.envsocial.android;
+package com.envsocial.android.features.description;
 
 import org.json.JSONObject;
 
@@ -11,6 +11,10 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.actionbarsherlock.app.SherlockDialogFragment;
+import com.envsocial.android.R;
+import com.envsocial.android.R.id;
+import com.envsocial.android.R.layout;
+import com.envsocial.android.R.style;
 
 public class CommentsDialogFragment extends SherlockDialogFragment implements Button.OnClickListener {
 
@@ -45,7 +49,6 @@ public class CommentsDialogFragment extends SherlockDialogFragment implements Bu
 		getDialog().setTitle(TITLE);
 		View v = inflater.inflate(R.layout.comments_dialog, container, false);
 		
-		//mMsgSubject = (EditText) v.findViewById(R.id.msg_subject);
 		mMsgContent = (EditText) v.findViewById(R.id.msg_content);
 		
 		mBtnSend = (Button) v.findViewById(R.id.btn_send);
@@ -61,7 +64,6 @@ public class CommentsDialogFragment extends SherlockDialogFragment implements Bu
 			JSONObject commentJSON = new JSONObject();
 			
 			commentJSON.put("topic_type", "booth_description");
-			//commentJSON.put("product_id", "test_product_id");
 			commentJSON.put("text", mMsgContent.getText().toString());
 			commentJSON.put("topic_title", mMsgSubject);
 			
@@ -77,13 +79,12 @@ public class CommentsDialogFragment extends SherlockDialogFragment implements Bu
 
 	@Override
 	public void onClick(View v) {
-	    if(v==mBtnSend)
-	       {
-	        	   CommentsActivity cm = (CommentsActivity)getActivity();
-	        	   cm.sendComment(this);
-	       }
-	           else if (v==mBtnCancel) {
-	    	   dismiss();
-	       }
+	    if(v==mBtnSend) {
+	    	CommentsActivity cm = (CommentsActivity)getActivity();
+	        cm.sendComment(this);
+	    }
+	    else if (v==mBtnCancel) {
+	    	dismiss();
+	    }
 	}
 }

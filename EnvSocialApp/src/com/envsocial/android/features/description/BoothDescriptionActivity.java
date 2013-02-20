@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentManager.BackStackEntry;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.ActionBar.Tab;
@@ -17,7 +16,6 @@ import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
-import com.envsocial.android.CommentsActivity;
 import com.envsocial.android.Envived;
 import com.envsocial.android.R;
 import com.envsocial.android.api.Location;
@@ -29,11 +27,11 @@ import com.envsocial.android.utils.imagemanager.ImageCache;
 import com.envsocial.android.utils.imagemanager.ImageFetcher;
 
 public class BoothDescriptionActivity extends EnvivedFeatureActivity {
+	private static final String TAG = "BoothDescriptionActivity";
+	
 	private static final String DESCRIPTION_TAB_TAG = "Description";
 	private static final String PRODUCT_TAB_TAG = "Projects";
 	
-	//private static final int BOOTH_DESCRIPTION_LOADER = 0;
-	//private static final int BOOTH_PRODUCT_LOADER = 1;
 	
 	private BoothDescriptionFeature mDescriptionFeature;
 	
@@ -86,10 +84,10 @@ public class BoothDescriptionActivity extends EnvivedFeatureActivity {
         
     @Override
 	public void onDestroy() {
-		super.onDestroy();
-		
-		// close image fetcher cache
-		mImageFetcher.closeCache();
+    	super.onDestroy();
+    			
+    	// close image fetcher cache
+    	mImageFetcher.closeCache();
 	}
 	
     
@@ -108,7 +106,7 @@ public class BoothDescriptionActivity extends EnvivedFeatureActivity {
     
     private void initTabbedFragments() {
     	// Add tabs based on different program views
-        
+    	
         // add the time-based view
         Tab boothDescriptionTab = mActionBar.newTab()
         		.setText(DESCRIPTION_TAB_TAG)
@@ -158,33 +156,47 @@ public class BoothDescriptionActivity extends EnvivedFeatureActivity {
 		}
 		
 		// Compatibility library sends null ft, so we simply ignore it and get our own
-		public void onTabSelected(Tab tab, FragmentTransaction ingnoredFt) {
+		public void onTabSelected(Tab tab, FragmentTransaction ignoredFt) {
 			FragmentManager fragmentManager = ((SherlockFragmentActivity) mActivity).getSupportFragmentManager();
-	        FragmentTransaction ft = fragmentManager.beginTransaction();
-	        
-			// Check if the fragment is already initialized
-			if (mFragment == null) {
-				// If not, instantiate the fragment and add it to the activity
-				mFragment = (SherlockFragment) SherlockFragment.instantiate(mActivity, mClass.getName());
+			
+			if (ignoredFt == null) {
+				FragmentTransaction ft = fragmentManager.beginTransaction();
 				
-				Bundle bundle = new Bundle();
-				mFragment.setArguments(bundle);
+				// Check if the fragment is already initialized
+				if (mFragment == null) {
+					// If not, instantiate the fragment and add it to the activity
+					mFragment = (SherlockFragment) SherlockFragment.instantiate(mActivity, mClass.getName());
+					
+					Bundle bundle = new Bundle();
+					mFragment.setArguments(bundle);
+					
+					ft.replace(R.id.booth_container, mFragment, mTag);
+				} else {
+					// If the fragment exists, attach it in order to show it
+					ft.attach(mFragment);
+				}
 				
-				ft.add(R.id.booth_container, mFragment, mTag);
-				//ft.add(mFragment, mTag);
-			} else {
-				// If the fragment exists, attach it in order to show it
-				ft.attach(mFragment);
+				// set this fragment as the active one
+				ft.commit();
 			}
-			
-			// set this fragment as the active one
-			//mCurrentTabTag = mTag;
-			
-			ft.commit();
+			else {
+				if (mFragment == null) {
+					// If not, instantiate the fragment and add it to the activity
+					mFragment = (SherlockFragment) SherlockFragment.instantiate(mActivity, mClass.getName());
+					
+					Bundle bundle = new Bundle();
+					mFragment.setArguments(bundle);
+					
+					ignoredFt.replace(R.id.booth_container, mFragment, mTag);
+				} else {
+					// If the fragment exists, attach it in order to show it
+					ignoredFt.attach(mFragment);
+				}
+			}
 		}
 		
 		// Compatibility library sends null ft, so we simply ignore it and get our own
-		public void onTabUnselected(Tab tab, FragmentTransaction ingnoredFt) {
+		public void onTabUnselected(Tab tab, FragmentTransaction ignoredFt) {
 			FragmentManager fragmentManager = ((SherlockFragmentActivity) mActivity).getSupportFragmentManager();
 			
 			// firstly pop the entire fragment backstack -- each feature may load it's different fragments
@@ -196,15 +208,21 @@ public class BoothDescriptionActivity extends EnvivedFeatureActivity {
 					bottomEntry.getId(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
 	        }
 			
-			
-			FragmentTransaction ft = fragmentManager.beginTransaction();
-			if (mFragment != null) {
-				// Detach the fragment, another one is being attached
-				ft.detach(mFragment);
+	        
+			if (ignoredFt == null) {
+				FragmentTransaction ft = fragmentManager.beginTransaction();
+				
+				if (mFragment != null) {
+					// Detach the fragment, another one is being attached
+					ft.detach(mFragment);
+				}
+				
+				ft.commit();
+			}
+			else {
+				ignoredFt.detach(mFragment);
 			}
 			
-			//mCurrentTabTag = null;
-			ft.commit();
 		}
 		
 		public void onTabReselected(Tab tab, FragmentTransaction ft) {
@@ -280,6 +298,6 @@ public class BoothDescriptionActivity extends EnvivedFeatureActivity {
 			return true;
 		}
 		
-		return false;
+		return super.onOptionsItemSelected(item);
 	}
 }

@@ -1,6 +1,6 @@
-package com.envsocial.android;
+package com.envsocial.android.features.description;
 
-import java.util.Arrays;
+import java.text.ParseException;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -32,17 +32,21 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
+import com.envsocial.android.HomeActivity;
+import com.envsocial.android.R;
 import com.envsocial.android.api.Annotation;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.api.exceptions.EnvSocialComException;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
+import com.envsocial.android.utils.EnvivedCommentAlertDialog;
 import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
 import com.envsocial.android.utils.Utils;
 
 public class CommentsActivity extends SherlockFragmentActivity implements OnClickListener {
 	private static final String TAG = "CommentsActivity";
+	private static final String TITLE_TAG = "Comments";
 	
 	private Location mLocation;
 	
@@ -67,30 +71,29 @@ public class CommentsActivity extends SherlockFragmentActivity implements OnClic
 		super.onCreate(savedInstanceState);
 		
 		mActionBar = getSupportActionBar();
-		
-		setContentView(R.layout.comments_view);
-		TextView commentsLabelView = (TextView) findViewById(R.id.comments_label);
-		TextView commentsListEmptyView = (TextView) findViewById(R.id.comments_empty);
-		mCommentsListView = (ListView) findViewById(R.id.comments_list);
-		mCommentsListAdapter = new CommentsListAdapter(this, new LinkedList<Comment>());
-		
-		commentsLabelView.setText(getResources().getString(R.string.lbl_comments, "test"));
-		mCommentsListView.setEmptyView(commentsListEmptyView);
-		mCommentsListView.setAdapter(mCommentsListAdapter);
-		
-		mMoreCommentsButton = (Button) findViewById(R.id.comments_load_more_button);
-		mMoreCommentsButton.setOnClickListener(this);
+		mActionBar.setTitle(TITLE_TAG);
+		mActionBar.setDisplayHomeAsUpEnabled(true);
 		
 		mLocation = (Location)getIntent().getSerializableExtra("location");
-		if (mLocation != null) {
-			mActionBar.setTitle(mLocation.getName());
-		}
-		
 		mSubject = (String)getIntent().getStringExtra("productName");
 		
 		if (mSubject == null) {
 			mSubject = mLocation.getName();
 		}
+		
+		setContentView(R.layout.comments_view);
+		TextView commentsLabelView = (TextView) findViewById(R.id.comments_label);
+		commentsLabelView.setText(getResources().getString(R.string.lbl_comments, mLocation.getName()));
+		
+		TextView commentsListEmptyView = (TextView) findViewById(R.id.comments_empty);
+		mCommentsListView = (ListView) findViewById(R.id.comments_list);
+		mCommentsListAdapter = new CommentsListAdapter(this, new LinkedList<Comment>());
+		
+		mCommentsListView.setEmptyView(commentsListEmptyView);
+		mCommentsListView.setAdapter(mCommentsListAdapter);
+		
+		mMoreCommentsButton = (Button) findViewById(R.id.comments_load_more_button);
+		mMoreCommentsButton.setOnClickListener(this);
 		
 		getComments(null, false);
 		
@@ -149,22 +152,24 @@ public class CommentsActivity extends SherlockFragmentActivity implements OnClic
 			return true;
 		case R.id.comments_add:
 			Location checkedInLocation = Preferences.getCheckedInLocation(this);
-			if (checkedInLocation != null) {
-				if (checkedInLocation.getLocationUri().equals(mLocation.getLocationUri())) {
-					mCommentDialog = CommentsDialogFragment.newInstance(mSubject);
-    				mCommentDialog.show(getSupportFragmentManager(), "comment_dialog");
+			if (checkedInLocation != null && checkedInLocation.getLocationUri().equals(mLocation.getLocationUri())) {
+				mCommentDialog = CommentsDialogFragment.newInstance(mSubject);
+    			mCommentDialog.show(getSupportFragmentManager(), "comment_dialog");
     				
-    				return true;
-				}
+    			return true;
 			}
 			
-			mCommentDialog = CommentsDialogFragment.newInstance(mSubject);
-			mCommentDialog.show(getSupportFragmentManager(), "comment_dialog");
+			String message = "You have to be checked in at this location (scan the QRcode) " +
+							 "to be able to post messages.";
+			EnvivedCommentAlertDialog alertDialog = EnvivedCommentAlertDialog.newInstance(message);
+			alertDialog.show(getSupportFragmentManager(), "comment_alert_dialog");
 			return true;
+			
 		case R.id.comments_refresh:
 			mRetrieveCommentsTask = new RetrieveCommentsTask(this, this, mNewestCommentTimestamp, true);
 			mRetrieveCommentsTask.execute();
 			return true;
+			
 		case R.id.comments_filter:
 			filterDialog.show();
 			return true;
@@ -172,22 +177,13 @@ public class CommentsActivity extends SherlockFragmentActivity implements OnClic
 			return super.onOptionsItemSelected(item);
 		}
 		
-		
-//		if (item.getTitle().toString().compareTo(getString(R.string.menu_add)) == 0) {
-//			mCommentDialog = CommentsDialogFragment.newInstance();
-//			FragmentManager fm = getSupportFragmentManager();
-//			mCommentDialog.show(fm, "comment_dialog");
-//			
-//			return true;
-//		}
-		
 	}
 	
 	public void initFilter() {
 		final String[] filterItems = getIntent().getStringArrayExtra("filterItems");
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("Choose a filter");
+		builder.setTitle("Filter by topic");
 		
 		boolean[] checked = new boolean[filterItems.length];
 		for (int i = 0; i < filterItems.length; i++) {
@@ -502,6 +498,7 @@ public class CommentsActivity extends SherlockFragmentActivity implements OnClic
 				
 				switch(holder.getCode()) {
 				case HttpStatus.SC_CREATED:
+				case HttpStatus.SC_ACCEPTED:
 					error = false;
 					break;
 				default:
@@ -512,13 +509,27 @@ public class CommentsActivity extends SherlockFragmentActivity implements OnClic
 				
 				if (error) {
 					Log.d(TAG, "response code: " + holder.getCode() + " response body: " + holder.getResponseBody());
-					Toast toast = Toast.makeText( mContext,
-							msgId, Toast.LENGTH_LONG);
+					Toast toast = Toast.makeText( mContext, msgId, Toast.LENGTH_LONG);
 					toast.show();
 				}
 				else {
-					Toast toast = Toast.makeText( mContext,
-							msgId, Toast.LENGTH_LONG);
+					try {
+						Annotation createdComment = Annotation.parseAnnotation(mContext, mLocation, holder.getJsonContent());
+						
+						Comment newComment = parseComment(createdComment);
+						mCommentsListAdapter.addItem(newComment, false);
+						
+						msgId = R.string.msg_send_comment_ok;
+					} 
+					catch (JSONException e) {
+						Log.d(TAG, "Error parsing new Booth Description comment. ", e);
+						msgId = R.string.msg_send_comment_err;
+					} catch (ParseException e) {
+						Log.d(TAG, "Error parsing new Booth Description comment. ", e);
+						msgId = R.string.msg_send_comment_err;
+					}
+					
+					Toast toast = Toast.makeText( mContext, msgId, Toast.LENGTH_LONG);
 					toast.show();
 				}
 			} else {
@@ -540,16 +551,6 @@ public class CommentsActivity extends SherlockFragmentActivity implements OnClic
 				Toast toast = Toast.makeText(mContext, msgId, Toast.LENGTH_LONG);
 				toast.show();
 			}
-			
-			Comment newComment;
-			try {
-				newComment = parseComment(mCommentRequest);
-				mCommentsListAdapter.addItem(newComment, false);
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
 			
 			mCommentsActivity.postSendComment();
 		}

@@ -1,8 +1,10 @@
 package com.envsocial.android.features.program;
 
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -20,14 +22,21 @@ import com.envsocial.android.features.program.PresentationCommentsActivity.Prese
 import com.envsocial.android.utils.Utils;
 
 public class PresentationCommentListAdapter extends BaseAdapter {
+	private static final int LEFT = 0;
+	private static final int RIGHT = 1;
+	
 	private Context mContext;
 	private List<PresentationComment> mCommentList;
 	private LayoutInflater mInflater;
+	
+	private Map<String, Integer> mCommentLayoutMap;
 	
 	public PresentationCommentListAdapter(Context context, LinkedList<PresentationComment> commentList) {
 		mContext = context;
 		mInflater = LayoutInflater.from(context);
 		mCommentList = commentList;
+		
+		mCommentLayoutMap = new HashMap<String, Integer>();
 	}
 	
 	@Override
@@ -99,15 +108,42 @@ public class PresentationCommentListAdapter extends BaseAdapter {
 		LinearLayout.LayoutParams marginLayoutParams = new LinearLayout.LayoutParams(
 						LinearLayout.LayoutParams.MATCH_PARENT, 
 						LinearLayout.LayoutParams.WRAP_CONTENT);
-		if (position % 2 == 0) {
+		
+		PresentationComment currentComment = (PresentationComment) getItem(position);
+		int currentLayout = LEFT;
+		
+		if (position == 0) {
+			currentLayout = LEFT;
+		}
+		else {
+			// get previous item
+			PresentationComment prevComment = (PresentationComment) getItem(position - 1);
+			Integer prevLayout = mCommentLayoutMap.get(prevComment.getCommentUrl());
+			if (prevLayout == null) {
+				prevLayout = LEFT;
+			}
+			
+			if (currentComment.getCommentOwnerUrl().equals(prevComment.getCommentOwnerUrl())) {
+				currentLayout = prevLayout;
+			}
+			else {
+				currentLayout = 1 - prevLayout;
+			}
+		}
+		
+		mCommentLayoutMap.put(currentComment.getCommentUrl(), currentLayout);
+		
+		if (currentLayout == LEFT) {
 			// to the left
 			marginLayoutParams.rightMargin = marginPx;
 			marginLayoutParams.gravity = Gravity.LEFT;
+			holder.wrapperLayout.setBackgroundDrawable((mContext.getResources().getDrawable(R.drawable.feature_program_presentation_comment_wrapper)));
 		}
 		else {
 			// to the right
 			marginLayoutParams.leftMargin = marginPx;
 			marginLayoutParams.gravity = Gravity.RIGHT;
+			holder.wrapperLayout.setBackgroundDrawable(mContext.getResources().getDrawable(R.drawable.feature_program_presentation_comment_wrapper_gray));
 		}
 		
 		holder.wrapperLayout.setLayoutParams(marginLayoutParams);

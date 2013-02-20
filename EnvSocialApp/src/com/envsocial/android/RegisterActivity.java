@@ -36,8 +36,8 @@ public class RegisterActivity extends SherlockActivity implements OnClickListene
 	private EditText mTxtPassword;
 	private EditText mTxtFirst;
 	private EditText mTxtLast;
-	private EditText mTxtAffiliation;
-	private EditText mTxtInterests;
+	// private EditText mTxtAffiliation;
+	// private EditText mTxtInterests;
 	private Button mBtnSubmit;
 	
 	private ProgressDialog mLoadingDialog;
@@ -54,17 +54,9 @@ public class RegisterActivity extends SherlockActivity implements OnClickListene
         
         mTxtFirst = (EditText) findViewById(R.id.txt_first);
         mTxtLast = (EditText) findViewById(R.id.txt_last);
-        mTxtAffiliation = (EditText) findViewById(R.id.txt_affiliation);
-        mTxtInterests = (EditText) findViewById(R.id.txt_interests);
+        // mTxtAffiliation = (EditText) findViewById(R.id.txt_affiliation);
+        // mTxtInterests = (EditText) findViewById(R.id.txt_interests);
         
-        /*
-        mTxtEmail.setText("unmail@email.com");
-        mTxtPassword.setText("unpass");
-        mTxtFirst.setText("Andrei");
-        mTxtLast.setText("Ciortea");
-        mTxtAffiliation.setText("Univ. Politehnica Bucuresti");
-        mTxtInterests.setText("multi-agent systems, ambient intelligence, internet of things");
-        */
         
         mBtnSubmit = (Button) findViewById(R.id.btn_submit);
         mBtnSubmit.setOnClickListener(this);
@@ -82,8 +74,8 @@ public class RegisterActivity extends SherlockActivity implements OnClickListene
 		private String mPassword;
 		private String mFirst;
 		private String mLast;
-		private String mAffiliation;
-		private String mInterests;
+		//private String mAffiliation;
+		//private String mInterests;
 		
 		@Override
 		protected void onPreExecute() {
@@ -93,21 +85,19 @@ public class RegisterActivity extends SherlockActivity implements OnClickListene
 			mPassword = mTxtPassword.getText().toString();
 			mFirst = mTxtFirst.getText().toString();
 			mLast = mTxtLast.getText().toString();
-			mAffiliation = mTxtAffiliation.getText().toString();
-			mInterests = mTxtInterests.getText().toString();
+			//mAffiliation = mTxtAffiliation.getText().toString();
+			//mInterests = mTxtInterests.getText().toString();
 		}
 		
 		@Override
 		protected ResponseHolder doInBackground(Void...args) {
 			
-			if (mFirst.isEmpty() || mLast.isEmpty()) {
-				return new ResponseHolder(
-						HttpStatus.SC_NOT_ACCEPTABLE,
-						getResources().getString(R.string.msg_registration_details_required),
-						null);
+			if (mFirst.equals("") || mLast.equals("")) {
+				return new ResponseHolder(HttpStatus.SC_NOT_ACCEPTABLE,
+						getResources().getString(R.string.msg_registration_details_required), null);
 			} else {
 				return ActionHandler.register(RegisterActivity.this,
-						mEmail, mPassword, mFirst, mLast, mAffiliation, mInterests);
+						mEmail, mPassword, mFirst, mLast);
 			}
 		}
 		
