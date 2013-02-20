@@ -86,7 +86,7 @@ public class EnvSocialAppActivity extends Activity implements OnClickListener {
     @Override
     protected void onRestart() {
     	super.onRestart();
-    	Log.d(TAG, "--- onRestart in EnvSocialAppActivity !!!!!!!!!!!!!!");
+    	//Log.d(TAG, "--- onRestart in EnvSocialAppActivity !!!!!!!!!!!!!!");
     	
     	/*
     	if (Preferences.isCheckedIn(getApplicationContext())) {

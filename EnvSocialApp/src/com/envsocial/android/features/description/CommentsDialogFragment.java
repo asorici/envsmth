@@ -70,7 +70,7 @@ public class CommentsDialogFragment extends SherlockDialogFragment implements Bu
 			return commentJSON.toString();
 			
 		} catch (Exception e) {
-			Log.d(TAG, "Error building new comment JSON: ", e);
+			//Log.d(TAG, "Error building new comment JSON: ", e);
 		}
 		
 		return null;

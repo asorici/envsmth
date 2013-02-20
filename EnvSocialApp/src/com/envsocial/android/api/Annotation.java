@@ -307,7 +307,7 @@ public class Annotation {
 		
 		// Check the status code
 		if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-			Log.d(TAG, "[DEBUG]>> Error response on annotations list: " + responseData);
+			//Log.d(TAG, "[DEBUG]>> Error response on annotations list: " + responseData);
 			throw EnvSocialComException.newInstanceFrom(
 					response.getStatusLine().getStatusCode(), 
 					userUri, HttpMethod.GET, EnvSocialResource.ANNOTATION, null);

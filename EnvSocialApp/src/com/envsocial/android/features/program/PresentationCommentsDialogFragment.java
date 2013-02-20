@@ -68,7 +68,7 @@ public class PresentationCommentsDialogFragment extends SherlockDialogFragment
 			
 			return commentJSON.toString();
 		} catch (Exception e) {
-			Log.d(TAG, "Error building new comment JSON: ", e);
+			//Log.d(TAG, "Error building new comment JSON: ", e);
 		}
 		
 		return null;

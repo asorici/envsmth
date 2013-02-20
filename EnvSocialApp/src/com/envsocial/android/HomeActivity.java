@@ -76,7 +76,7 @@ public class HomeActivity extends SherlockFragmentActivity
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG, "--- onCreate called in HomeActivity");
+        //Log.d(TAG, "--- onCreate called in HomeActivity");
 		super.onCreate(savedInstanceState);
         
 		
@@ -100,7 +100,7 @@ public class HomeActivity extends SherlockFragmentActivity
         // ---------------------------- location history loading ---------------------------- //
         LocationHistory locationHistory = Preferences.getLocationHistory(getApplicationContext());
         if (locationHistory == null) {
-        	Log.d(TAG, "CREATING NEW LOCATION HISTORY");
+        	//Log.d(TAG, "CREATING NEW LOCATION HISTORY");
         	
         	// if non exists create one with the default number of entries
         	locationHistory = new LocationHistory();
@@ -156,7 +156,7 @@ public class HomeActivity extends SherlockFragmentActivity
 	
 	@Override
 	public void onDestroy() {
-		Log.d(TAG, "--- onDestroy called in HomeActivity");
+		//Log.d(TAG, "--- onDestroy called in HomeActivity");
 		
 		// --------------------------- stop asynchronous tasks ---------------------------- //
 		if (mCheckoutTask != null) {
@@ -216,7 +216,7 @@ public class HomeActivity extends SherlockFragmentActivity
 	@Override
     public void onStart() {
     	super.onStart();
-    	Log.d(TAG, "--- onStart in HomeActivity ");
+    	//Log.d(TAG, "--- onStart in HomeActivity ");
     	
     	// update the location history list - to take into account the visits that were made
     	// to various locations
@@ -229,14 +229,14 @@ public class HomeActivity extends SherlockFragmentActivity
 	@Override
     public void onStop() {
     	super.onStop();
-    	Log.d(TAG, "--- onStop in HomeActivity");
+    	//Log.d(TAG, "--- onStop in HomeActivity");
     }
 	
 	
 	@Override
 	public void onResume() {
 		super.onResume();
-		Log.d(TAG, "On Resume in Home Activity");
+		//Log.d(TAG, "On Resume in Home Activity");
 		
 		mImageFetcher.setExitTasksEarly(false);
 		
@@ -248,7 +248,7 @@ public class HomeActivity extends SherlockFragmentActivity
 	@Override
 	public void onPause() {
 		super.onPause();
-		Log.d(TAG, "On Pause in Home Activity");
+		//Log.d(TAG, "On Pause in Home Activity");
 		
 		mImageFetcher.setExitTasksEarly(true);
         mImageFetcher.flushCache();
@@ -288,7 +288,7 @@ public class HomeActivity extends SherlockFragmentActivity
 		// check if device is has an active registraionId and get one if not
 		final String regId = GCMRegistrar.getRegistrationId(context);
         if (regId == null || "".equals(regId)) {
-        	Log.d(TAG, "need to register for notifications");
+        	//Log.d(TAG, "need to register for notifications");
         	GCMRegistrar.register(this, GCMIntentService.SENDER_ID);
         	//NotificationRegistrationDialog dialog = NotificationRegistrationDialog.newInstance();
         	//dialog.show(getSupportFragmentManager(), "dialog");
@@ -516,7 +516,7 @@ public class HomeActivity extends SherlockFragmentActivity
 						IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
 			    	if (scanResult != null) {
 			    		String actionUrl = scanResult.getContents();
-			    		Log.d(TAG, "CHECKIN URL: " + actionUrl);
+			    		//Log.d(TAG, "CHECKIN URL: " + actionUrl);
 			    		
 			    		// Check if checkin url is proper
 			    		if (actionUrl.startsWith(Url.actionUrl(ActionHandler.CHECKIN))) {

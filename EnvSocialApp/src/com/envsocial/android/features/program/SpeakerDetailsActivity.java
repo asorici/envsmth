@@ -163,7 +163,7 @@ public class SpeakerDetailsActivity extends SherlockFragmentActivity {
 				try {
 					mBiographyView.loadData(URLEncoder.encode(biography, "UTF-8").replaceAll("\\+", " "), "text/html", Encoding.UTF_8.toString());
 				} catch (UnsupportedEncodingException e) {
-					Log.d(TAG, "ERROR loading speaker biography in WebView.", e);
+					//Log.d(TAG, "ERROR loading speaker biography in WebView.", e);
 				}
 			}
 			else {
@@ -241,7 +241,7 @@ public class SpeakerDetailsActivity extends SherlockFragmentActivity {
 				
 				timeView.setText(startHour + " - " + endHour +", " + day); 
 			} catch (ParseException e) {
-				Log.d(TAG, "Error parsing presentation start/end time: " + startTime + " / " + endTime, e);
+				//Log.d(TAG, "Error parsing presentation start/end time: " + startTime + " / " + endTime, e);
 			}
 			
 			// add speaker row view speaker layout
@@ -321,7 +321,7 @@ public class SpeakerDetailsActivity extends SherlockFragmentActivity {
 		
 		@Override
 		public void onClick(View v) {
-			Log.d(TAG, "Launching speaker details activity for speakerId: " + mPresentationId);
+			//Log.d(TAG, "Launching speaker details activity for speakerId: " + mPresentationId);
 			Intent i = new Intent(SpeakerDetailsActivity.this, PresentationDetailsActivity.class);
 			Bundle extras = new Bundle();
 			extras.putInt(ProgramFeature.SPEAKER_ID, mPresentationId);
@@ -333,6 +333,8 @@ public class SpeakerDetailsActivity extends SherlockFragmentActivity {
 	}
 	
 	static class SpeakerPresentationInfo implements Serializable {
+		private static final long serialVersionUID = 1L;
+		
 		int mPresentationId;
 		String mTitle;
 		String mStartTime;

@@ -47,8 +47,6 @@ public class ProgramBySessionFragment extends ProgramFragment
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 	    
-	    Log.d(TAG, "ON CREATE IN " + TAG);
-	    
 	    mParentActivity = (ProgramActivity) getActivity();
 	    mProgramFeature = (ProgramFeature) mParentActivity.getFeature();
 	    mProgramDisplayType = ProgramFragment.SESSION_DISPLAY_TYPE;
@@ -57,7 +55,6 @@ public class ProgramBySessionFragment extends ProgramFragment
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		
 		// Inflate layout for this fragment.
 		View view = inflater.inflate(R.layout.program_by_session, container, false);
 		
@@ -66,7 +63,6 @@ public class ProgramBySessionFragment extends ProgramFragment
 		mDayScroll = (LinearLayout) view.findViewById(R.id.dayScroll);
 		
 		mSessionListView.setOnChildClickListener(this);
-		
 		
 		return view;
 	}

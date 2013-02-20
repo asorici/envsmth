@@ -71,7 +71,7 @@ public class BoothDescriptionProductsFragment extends SherlockFragment
 				R.id.description_booth_product_votes
 		};
 
-		mBoothProductsListAdapter = new SimpleCursorAdapter(getActivity(),
+		mBoothProductsListAdapter = new BoothDescriptionProductListAdapter(getActivity(),
 				R.layout.description_booth_products_row, null, from, to, 0);
 		mBoothProductListView.setAdapter(mBoothProductsListAdapter);
 		mBoothProductListView.setOnItemClickListener(this);
@@ -126,7 +126,7 @@ public class BoothDescriptionProductsFragment extends SherlockFragment
 	@Override
 	public Loader<Cursor> onCreateLoader(int loaderId, Bundle args) {
 		if (mDescriptionLoaderDialog == null && active) {
-			Log.d(TAG, "CREATING LOADER AND PROGRESS DIALOG");
+			//Log.d(TAG, "CREATING LOADER AND PROGRESS DIALOG");
 			mDescriptionLoaderDialog = getProgressDialogInstance(getActivity());
 			mDescriptionLoaderDialog.show();
 		}
@@ -140,7 +140,7 @@ public class BoothDescriptionProductsFragment extends SherlockFragment
 		mBoothProductsListAdapter.swapCursor(cursor);
 		
 		if (mDescriptionLoaderDialog != null) {
-			Log.d(TAG, "FINISHING LOADER AND PROGRESS DIALOG");
+			//Log.d(TAG, "FINISHING LOADER AND PROGRESS DIALOG");
 			mDescriptionLoaderDialog.cancel();
 			mDescriptionLoaderDialog = null;
 		}

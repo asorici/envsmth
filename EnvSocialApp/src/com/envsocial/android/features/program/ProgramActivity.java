@@ -82,8 +82,6 @@ public class ProgramActivity extends EnvivedFeatureActivity implements ProgramUp
     
     private void initTabbedFragments() {
     	// Add tabs based on different program views
-    	Log.d(TAG, "Feature loaded: " + mProgramFeature.isInitialized() + ". INIT TABS!!!!!");
-    	
     	
         // add the time-based view
         Tab timeBasedProgramTab = mActionBar.newTab()

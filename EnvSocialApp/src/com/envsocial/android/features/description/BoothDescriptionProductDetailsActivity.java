@@ -35,6 +35,7 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.envsocial.android.Envived;
+import com.envsocial.android.HomeActivity;
 import com.envsocial.android.R;
 import com.envsocial.android.api.Annotation;
 import com.envsocial.android.api.EnvSocialResource;
@@ -43,7 +44,6 @@ import com.envsocial.android.api.Url;
 import com.envsocial.android.api.exceptions.EnvSocialComException;
 import com.envsocial.android.api.exceptions.EnvSocialContentException;
 import com.envsocial.android.features.Feature;
-import com.envsocial.android.features.program.PresentationCommentsDialogFragment;
 import com.envsocial.android.utils.EnvivedCommentAlertDialog;
 import com.envsocial.android.utils.Preferences;
 import com.envsocial.android.utils.ResponseHolder;
@@ -84,6 +84,7 @@ public class BoothDescriptionProductDetailsActivity extends SherlockFragmentActi
 		super.onCreate(savedInstanceState);
 		
 		getSupportActionBar().setTitle(TITLE_TAG);
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		
 		// retrieve the intent data
 		mLocation = (Location) getIntent().getSerializableExtra("location");
@@ -169,7 +170,6 @@ public class BoothDescriptionProductDetailsActivity extends SherlockFragmentActi
 	}
 	
 	public boolean onOptionsItemSelected(MenuItem item) {
-		final Context context = getApplicationContext();
 		
 		if (item.getTitle().toString().compareTo(getString(R.string.menu_comments)) == 0) {
 			Intent intent = new Intent(getApplicationContext(), CommentsActivity.class);
@@ -193,6 +193,13 @@ public class BoothDescriptionProductDetailsActivity extends SherlockFragmentActi
 			startActivity(intent);
 			
 			return true;
+		}
+		else if (item.getItemId() == android.R.id.home) {
+			// app icon in action bar clicked; go home
+            Intent intent = new Intent(this, HomeActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            return true;
 		}
 		
 		return super.onOptionsItemSelected(item);

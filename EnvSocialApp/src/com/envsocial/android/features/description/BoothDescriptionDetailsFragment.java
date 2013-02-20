@@ -182,7 +182,7 @@ public class BoothDescriptionDetailsFragment extends SherlockFragment
 	@Override
 	public Loader<Cursor> onCreateLoader(int loaderId, Bundle args) {
 		if (mDescriptionLoaderDialog == null && active) {
-			Log.d(TAG, "CREATING LOADER AND PROGRESS DIALOG");
+			//Log.d(TAG, "CREATING LOADER AND PROGRESS DIALOG");
 			
 			mDescriptionLoaderDialog = getProgressDialogInstance(getActivity());
 			mDescriptionLoaderDialog.show();
@@ -194,7 +194,7 @@ public class BoothDescriptionDetailsFragment extends SherlockFragment
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
 		if (mDescriptionLoaderDialog != null) {
-			Log.d(TAG, "FINISHING LOADER AND PROGRESS DIALOG");
+			//Log.d(TAG, "FINISHING LOADER AND PROGRESS DIALOG");
 			mDescriptionLoaderDialog.cancel();
 			mDescriptionLoaderDialog = null;
 		}

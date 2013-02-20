@@ -82,7 +82,7 @@ public class ProgramDbHelper extends FeatureDbHelper {
 	
 	@Override
 	public void onDbCreate(SQLiteDatabase db) {
-		Log.d(TAG, "[DEBUG] >> ----------- Database " + getDBName() + " is being created. ------------");
+		//Log.d(TAG, "[DEBUG] >> ----------- Database " + getDBName() + " is being created. ------------");
 		
 		db.execSQL("CREATE TABLE " + SESSION_TABLE + "(" + 
 					COL_SESSION_ID + " INTEGER PRIMARY KEY, " + 
@@ -184,7 +184,7 @@ public class ProgramDbHelper extends FeatureDbHelper {
 	
 	@Override
 	public void onDbOpen(SQLiteDatabase db) {
-		Log.d(TAG, "[DEBUG] >> ----------- Database " + getDBName() + " already created. Now opening ------------");
+		//Log.d(TAG, "[DEBUG] >> ----------- Database " + getDBName() + " already created. Now opening ------------");
 	}
 	
 	@Override
@@ -218,7 +218,7 @@ public class ProgramDbHelper extends FeatureDbHelper {
 	
 	private void insertProgram() throws EnvSocialContentException {
 		// perform initial insertion of the program if and only if the database is created
-		Log.d(TAG, "Inserting program");
+		//Log.d(TAG, "Inserting program");
 		
 		String programJSON = feature.getSerializedData();
 		
@@ -244,7 +244,7 @@ public class ProgramDbHelper extends FeatureDbHelper {
 
 
 	public void insertSessions(JSONArray sessionsArray) throws JSONException {
-		Log.d(TAG, "[DEBUG] >> ----------- INSERTING SESSIONS ------------");
+		//Log.d(TAG, "[DEBUG] >> ----------- INSERTING SESSIONS ------------");
 		
 		ContentValues values = new ContentValues();
 		int n = sessionsArray.length();
@@ -281,7 +281,7 @@ public class ProgramDbHelper extends FeatureDbHelper {
 	
 	
 	public void insertPresentations(JSONArray presentationsArray) throws JSONException {
-		Log.d(TAG, "[DEBUG] >> ----------- INSERTING PRESENTATIONS ------------");
+		//Log.d(TAG, "[DEBUG] >> ----------- INSERTING PRESENTATIONS ------------");
 		
 		ContentValues values = new ContentValues();
 		int n = presentationsArray.length();
@@ -345,7 +345,7 @@ public class ProgramDbHelper extends FeatureDbHelper {
 	
 	
 	private void insertSpeakers(JSONArray speakersArray) throws JSONException {
-		Log.d(TAG, "[DEBUG] >> ----------- INSERTING SPEAKERS ------------");
+		//Log.d(TAG, "[DEBUG] >> ----------- INSERTING SPEAKERS ------------");
 		
 		ContentValues values = new ContentValues();
 		int n = speakersArray.length();
@@ -420,7 +420,7 @@ public class ProgramDbHelper extends FeatureDbHelper {
 	
 	private void insertPresentationSpeakers(JSONArray presentationSpeakersArray) throws JSONException {
 		
-		Log.d(TAG, "[DEBUG] >> ----------- INSERTING SPEAKERS ------------");
+		//Log.d(TAG, "[DEBUG] >> ----------- INSERTING SPEAKERS ------------");
 
 		ContentValues values = new ContentValues();
 		int n = presentationSpeakersArray.length();

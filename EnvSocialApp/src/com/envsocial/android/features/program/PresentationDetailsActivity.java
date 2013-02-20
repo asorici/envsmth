@@ -340,7 +340,7 @@ public class PresentationDetailsActivity extends SherlockFragmentActivity {
 		
 		@Override
 		public void onClick(View v) {
-			Log.d(TAG, "Launching speaker details activity for speakerId: " + mSpeakerId);
+			//Log.d(TAG, "Launching speaker details activity for speakerId: " + mSpeakerId);
 			Intent i = new Intent(PresentationDetailsActivity.this, SpeakerDetailsActivity.class);
 			Bundle extras = new Bundle();
 			extras.putInt(ProgramFeature.SPEAKER_ID, mSpeakerId);
@@ -353,6 +353,8 @@ public class PresentationDetailsActivity extends SherlockFragmentActivity {
 	
 	
 	static class PresentationSpeakerInfo implements Serializable {
+		private static final long serialVersionUID = 1L;
+
 		int mSpeakerId;
 
 		String mImageUrl;

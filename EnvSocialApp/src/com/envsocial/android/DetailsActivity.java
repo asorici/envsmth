@@ -8,7 +8,6 @@ import java.util.Map.Entry;
 import org.apache.http.HttpStatus;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -25,7 +24,6 @@ import android.widget.Toast;
 
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
-import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.envsocial.android.api.ActionHandler;
 import com.envsocial.android.api.Location;
@@ -36,7 +34,6 @@ import com.envsocial.android.features.description.BoothDescriptionActivity;
 import com.envsocial.android.features.description.DescriptionActivity;
 import com.envsocial.android.features.program.ProgramActivity;
 import com.envsocial.android.features.socialmedia.SocialMediaActivity;
-import com.envsocial.android.utils.EnvivedNotificationContents;
 import com.envsocial.android.utils.LocationHistory;
 import com.envsocial.android.utils.ResponseHolder;
 import com.envsocial.android.utils.imagemanager.ImageCache;
@@ -128,7 +125,6 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	public void onPause() {
 		super.onPause();
 		
-		Log.d(TAG, " --- onPause called in DetailsActivity");
 		active = false;
 		
 		mImageFetcher.setExitTasksEarly(true);
@@ -138,7 +134,6 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	
 	@Override
 	public void onStop() {
-		Log.d(TAG, " --- onStop called in DetailsActivity");
 		super.onStop();
 	}
 	
@@ -147,7 +142,6 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	public void onResume() {
 		super.onResume();
 		
-		Log.d(TAG, " --- onResume called in DetailsActivity");
 		active = true;
 		mImageFetcher.setExitTasksEarly(false);
 	}
@@ -155,7 +149,6 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	
 	@Override
 	public void onStart() {
-		Log.d(TAG, " --- onStart called in DetailsActivity");
 		super.onStart();
 		
 		// check if due to delayed onDestroy (can happen from Notification relaunch) 
@@ -169,7 +162,6 @@ public class DetailsActivity extends SherlockFragmentActivity {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		Log.d(TAG, " --- onDestroy called in DetailsActivity");
 		
 		// close image fetcher cache
 		mImageFetcher.closeCache();
@@ -370,7 +362,7 @@ public class DetailsActivity extends SherlockFragmentActivity {
 		
 		@Override
 		protected ResponseHolder doInBackground(Void...args) {
-			Log.d(TAG, "Checkin URL: " + checkinUrl);
+			//Log.d(TAG, "Checkin URL: " + checkinUrl);
 			
 			ResponseHolder holder = ActionHandler.checkin(DetailsActivity.this, checkinUrl);
 			return holder;

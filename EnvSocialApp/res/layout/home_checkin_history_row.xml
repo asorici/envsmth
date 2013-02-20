@@ -3,7 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="64dip"
     android:orientation="horizontal"
-    android:background="@drawable/feature_browse_locations_row">
+    android:background="@drawable/feature_browse_locations_row"
+    android:paddingLeft="5dip"
+    android:paddingRight="5dip">
 	
     <ImageView 
     	android:id="@+id/location_image"

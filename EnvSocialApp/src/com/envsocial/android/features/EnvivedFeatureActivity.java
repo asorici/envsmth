@@ -43,6 +43,7 @@ public abstract class EnvivedFeatureActivity extends SherlockFragmentActivity {
 	protected ProgressDialog mFeatureLoadingDialog;
 	protected InitializeFeatureTask mInitFeatureTask;
 	protected Timer mCancelLoadingDialogTimer;
+	private AlertDialog mUpdateAlertDialog;
 	
 	
 	private ProgressDialog createFeatureLoadingDialog(Context context, String message) {
@@ -58,8 +59,6 @@ public abstract class EnvivedFeatureActivity extends SherlockFragmentActivity {
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        Log.d(TAG, "ON CREATE IN " + TAG);
         
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         
@@ -152,12 +151,18 @@ public abstract class EnvivedFeatureActivity extends SherlockFragmentActivity {
 			mFeatureLoadingDialog = null;
 		}
 		
+		// cancel update feature alert dialog
+		if (mUpdateAlertDialog != null) {
+			mUpdateAlertDialog.cancel();
+			mUpdateAlertDialog = null;
+		}
+		
 		this.unregisterReceiver(mFeatureDataReceiver);
 		
 		// finally close the feature
 		mFeature.doClose(getApplicationContext());
 		
-		Log.d(TAG, "ON DESTROY IN " + TAG);
+		//Log.d(TAG, "ON DESTROY IN " + TAG);
 	}
 	
 	
@@ -194,7 +199,7 @@ public abstract class EnvivedFeatureActivity extends SherlockFragmentActivity {
 			
 			// get the feature category for which an update was performed
 			String featureCategory = extras.getString("feature_category");
-			Log.d(TAG, "Received update description notification with category: " + featureCategory);
+			//Log.d(TAG, "Received update description notification with category: " + featureCategory);
 			
 			if (featureCategory.equals(mFeature.getCategory())) {
 				if (mFeature.isInitialized()) {
@@ -239,8 +244,9 @@ public abstract class EnvivedFeatureActivity extends SherlockFragmentActivity {
 										dialog.cancel();
 									}
 								});
-	
-						builder.show();
+						
+						mUpdateAlertDialog = builder.create();
+						mUpdateAlertDialog.show();
 					}
 					else {
 						// start the update directly

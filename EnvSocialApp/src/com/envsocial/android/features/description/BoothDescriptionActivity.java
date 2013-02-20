@@ -106,6 +106,8 @@ public class BoothDescriptionActivity extends EnvivedFeatureActivity {
     
     private void initTabbedFragments() {
     	// Add tabs based on different program views
+    	mActionBar.removeAllTabs();
+    	
     	
         // add the time-based view
         Tab boothDescriptionTab = mActionBar.newTab()
@@ -201,7 +203,6 @@ public class BoothDescriptionActivity extends EnvivedFeatureActivity {
 			
 			// firstly pop the entire fragment backstack -- each feature may load it's different fragments
 	        // but since we are swapping features here we basically want to clear everything
-	        
 	        if (fragmentManager.getBackStackEntryCount() > 0) {
 	        	BackStackEntry bottomEntry = fragmentManager.getBackStackEntryAt(0);
 	        	fragmentManager.popBackStackImmediate(
@@ -249,6 +250,7 @@ public class BoothDescriptionActivity extends EnvivedFeatureActivity {
 		if (success) {
 			mDescriptionFeature = (BoothDescriptionFeature) updatedFeature;
 			// TODO: update the fragments
+			initTabbedFragments();
 		}
 	}
 

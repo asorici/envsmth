@@ -108,7 +108,7 @@ public class DescriptionActivity extends EnvivedFeatureActivity {
 	@Override
 	public void onStart() {
 		super.onStart();
-		Log.d(TAG, "onStart in DescriptionFragment");
+		//Log.d(TAG, "onStart in DescriptionFragment");
 		
 		mPeopleCountTask = new CheckedInCountTask(); 
 		mPeopleCountTask.execute(mLocation);
@@ -173,13 +173,13 @@ public class DescriptionActivity extends EnvivedFeatureActivity {
 						
 						
 					} catch (JSONException e) {
-						Log.d(TAG, holder.getResponseBody(), e);
+						//Log.d(TAG, holder.getResponseBody(), e);
 					} 
 				}
 				// else fail silently - no update
 			}
 			else {
-				Log.d(TAG, holder.getResponseBody(), holder.getError());
+				//Log.d(TAG, holder.getResponseBody(), holder.getError());
 			}
 		}
 	}

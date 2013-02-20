@@ -1,6 +1,5 @@
 package com.envsocial.android;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -12,7 +11,6 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.envsocial.android.HomeLocationHistoryAdapter.ViewHolder;
 import com.envsocial.android.api.Location;
 import com.envsocial.android.api.Url;
 import com.envsocial.android.utils.LocationHistory;

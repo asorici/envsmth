@@ -43,19 +43,19 @@ public class GCMIntentService extends GCMBaseIntentService {
 
 	@Override
 	protected void onRegistered(Context context, String regId) {
-		Log.d(TAG, "Received registration id: " + regId);
+		//Log.d(TAG, "Received registration id: " + regId);
 		
 		if (Preferences.getUserUri(context) != null) {
 			ResponseHolder holder = ActionHandler.registerWithServer(context, regId);
 			if (!holder.hasError()) {
 				// mark the device as registered with the server as well
 				GCMRegistrar.setRegisteredOnServer(context, true);
-				Log.d(TAG, "---- REGISTERED WITH OUR SERVER");
+				//Log.d(TAG, "---- REGISTERED WITH OUR SERVER");
 				
 				Utils.sendGCMStatusMessage(context, context.getString(R.string.gcm_registered));
 			}
 			else {
-				Log.d(TAG, "---- THERE WAS AN ERROR IN REG WITH OUR SERVER: " + holder.getError().getMessage());
+				//Log.d(TAG, "---- THERE WAS AN ERROR IN REG WITH OUR SERVER: " + holder.getError().getMessage());
 				Utils.sendGCMStatusMessage(context, context.getString(R.string.gcm_register_error));
 			}
 		}
@@ -63,7 +63,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 
 	@Override
 	protected void onUnregistered(Context context, String regId) {
-		Log.d(TAG, "Unregistered regId: " + regId + " from GCM.");
+		//Log.d(TAG, "Unregistered regId: " + regId + " from GCM.");
 		
 		ActionHandler.unregisterWithServer(context);
 		GCMRegistrar.setRegisteredOnServer(context, false);

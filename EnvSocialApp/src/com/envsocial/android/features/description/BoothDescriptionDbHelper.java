@@ -57,7 +57,7 @@ public class BoothDescriptionDbHelper extends FeatureDbHelper {
 
 	@Override
 	protected void onDbCreate(SQLiteDatabase db) {
-		Log.d(TAG, "[DEBUG] >> ----------- Database " + getDBName() + " is being created. ------------");
+		//Log.d(TAG, "[DEBUG] >> ----------- Database " + getDBName() + " is being created. ------------");
 		
 		db.execSQL("CREATE TABLE " + BOOTH_DESCRIPTION_TABLE + "(" + 
 				COL_BOOTH_DESCRIPTION_ID + " INTEGER PRIMARY KEY, " + 
@@ -118,7 +118,7 @@ public class BoothDescriptionDbHelper extends FeatureDbHelper {
 
 	@Override
 	protected void onDbOpen(SQLiteDatabase db) {
-		Log.d(TAG, "[DEBUG] >> ----------- Database " + getDBName() + " already created. Now opening ------------");
+		//Log.d(TAG, "[DEBUG] >> ----------- Database " + getDBName() + " already created. Now opening ------------");
 	}
 	
 	
@@ -152,7 +152,7 @@ public class BoothDescriptionDbHelper extends FeatureDbHelper {
 	
 	private void insertDescriptionData() throws EnvSocialContentException {
 		// perform initial insertion of the program if and only if the database is created
-		Log.d(TAG, "Inserting booth description");
+		//Log.d(TAG, "Inserting booth description");
 			
 		String descriptionJSON = feature.getSerializedData();
 		
@@ -162,7 +162,7 @@ public class BoothDescriptionDbHelper extends FeatureDbHelper {
 			ContentValues values = new ContentValues();
 			
 			int boothId = description.getInt(BoothDescriptionFeature.BOOTH_DESCRIPTION_ID);
-			String boothDescription = description.getString(BoothDescriptionFeature.BOOTH_DESCRIPTION_DESCRIPTION);
+			String boothDescription = description.optString(BoothDescriptionFeature.BOOTH_DESCRIPTION_DESCRIPTION, "No description available");
 			
 			String boothTags = null;
 			JSONArray boothTagsArray = description.optJSONArray(BoothDescriptionFeature.BOOTH_DESCRIPTION_TAGS);
@@ -221,7 +221,7 @@ public class BoothDescriptionDbHelper extends FeatureDbHelper {
 						JSONObject boothProduct = boothProductList.getJSONObject(i);
 						int productId = boothProduct.getInt(BoothDescriptionFeature.BOOTH_PRODUCT_ID);
 						String productName = boothProduct.getString(BoothDescriptionFeature.BOOTH_PRODUCT_NAME);
-						String productDescription = boothProduct.getString(BoothDescriptionFeature.BOOTH_PRODUCT_DESCRIPTION);
+						String productDescription = boothProduct.optString(BoothDescriptionFeature.BOOTH_PRODUCT_DESCRIPTION, "No description available");
 						String productImageUrl = boothProduct.optString(BoothDescriptionFeature.BOOTH_PRODUCT_IMAGE_URL, null);
 						String productWebsiteUrl = boothProduct.optString(BoothDescriptionFeature.BOOTH_PRODUCT_WEBSITE_URL, null);
 						int productVotes = boothProduct.optInt(BoothDescriptionFeature.BOOTH_PRODUCT_VOTES, 0);
@@ -280,7 +280,8 @@ public class BoothDescriptionDbHelper extends FeatureDbHelper {
 				COL_BOOTH_PRODUCT_ID, 
 				COL_BOOTH_PRODUCT_NAME,
 				COL_BOOTH_PRODUCT_VOTES,
-				"SUBSTR(" + COL_BOOTH_PRODUCT_DESCRIPTION + ",1,64) AS " + COL_BOOTH_PRODUCT_DESCRIPTION
+				//"SUBSTR(" + COL_BOOTH_PRODUCT_DESCRIPTION + ",1,64) AS " + COL_BOOTH_PRODUCT_DESCRIPTION
+				COL_BOOTH_PRODUCT_DESCRIPTION
 				};
 		String orderBy = COL_BOOTH_PRODUCT_NAME;
 		
@@ -303,7 +304,7 @@ public class BoothDescriptionDbHelper extends FeatureDbHelper {
 		String selection = BOOTH_DESCRIPTION_FTS_TABLE + " MATCH ?";
 		String[] selectionArgs = new String [] { "'" + wildCardQuery + "'" };
 		
-		Log.d(TAG, "BOOTH DESCRIPTION SEARCH QUERY WHERE CLAUSE: " + selectionArgs);
+		//Log.d(TAG, "BOOTH DESCRIPTION SEARCH QUERY WHERE CLAUSE: " + selectionArgs);
 		
 		return database.query(true, BOOTH_DESCRIPTION_FTS_TABLE, null, 
 				selection, selectionArgs, null, null, null, null);
@@ -316,7 +317,7 @@ public class BoothDescriptionDbHelper extends FeatureDbHelper {
 		String[] selectionArgs = new String [] { "'" + wildCardQuery + "'" };
 		String orderBy = COL_BOOTH_PRODUCT_FTS_NAME;
 		
-		Log.d(TAG, "BOOTH PRODUCT SEARCH QUERY WHERE CLAUSE: " + selectionArgs);
+		//Log.d(TAG, "BOOTH PRODUCT SEARCH QUERY WHERE CLAUSE: " + selectionArgs);
 		
 		return database.query(true, BOOTH_PRODUCT_FTS_TABLE, null, 
 				selection, selectionArgs, null, null, orderBy, null);

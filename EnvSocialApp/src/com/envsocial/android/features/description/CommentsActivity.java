@@ -382,7 +382,7 @@ public class CommentsActivity extends SherlockFragmentActivity implements OnClic
 
 		@Override
 		protected List<Annotation> doInBackground(Calendar... cals) {
-			Log.d(TAG, "doInBackground() started");
+			//Log.d(TAG, "doInBackground() started");
 			
 			Map<String, String> extra = new HashMap<String, String>();
 			
@@ -407,7 +407,7 @@ public class CommentsActivity extends SherlockFragmentActivity implements OnClic
 						false
 				);
 				
-				Log.d(TAG, " " + commentRequests.size());
+				//Log.d(TAG, " " + commentRequests.size());
 				
 				return commentRequests;
 			} catch (Exception e) {
