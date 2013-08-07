@@ -54,7 +54,7 @@ public class DetailsGridAdapter extends BaseAdapter {
 			mNames.add(currentFeature.getDisplayName());
 		}
 		
-		Log.d(TAG, "environment feature categories: " + mFeatureCategories);
+		//Log.d(TAG, "environment feature categories: " + mFeatureCategories);
 	}
 
 	@Override

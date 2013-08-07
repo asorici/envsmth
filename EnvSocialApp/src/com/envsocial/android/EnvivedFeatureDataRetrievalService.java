@@ -66,7 +66,7 @@ public class EnvivedFeatureDataRetrievalService extends IntentService {
 				sendOrderedBroadcast(updateIntent, FEATURE_RETRIEVE_DATA_PERMISSION);
 			}
 			else {
-				Log.d(TAG, "Received NO feature update");
+				//Log.d(TAG, "Received NO feature update");
 			}
 		}
 	}

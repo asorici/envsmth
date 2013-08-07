@@ -68,7 +68,7 @@ public class ProgramFeature extends Feature {
 	
 	@Override
 	protected void featureInit(boolean insert) throws EnvSocialContentException {
-		// register order notification handler
+		// register program notification handler
 		notificationHandler = new ProgramFeatureNotificationHandler();
 		EnvivedNotificationDispatcher.registerNotificationHandler(notificationHandler);
 		

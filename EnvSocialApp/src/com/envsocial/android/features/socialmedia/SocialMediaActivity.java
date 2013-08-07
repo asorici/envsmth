@@ -4,18 +4,14 @@ import java.util.List;
 import java.util.Locale;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
-import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.http.SslError;
 import android.os.Bundle;
-import android.view.ContextThemeWrapper;
+import android.view.View;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.RelativeLayout;
 import android.widget.TabHost;
 import android.widget.TabWidget;
 import android.widget.Toast;
@@ -32,7 +28,6 @@ public class SocialMediaActivity extends EnvivedFeatureActivity {
 	
 	private TabHost mTabHost;
 	private SocialMediaFeature mSocialMediaFeature;
-	private ProgressDialog mWebViewLoadingDialog;
 	
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,21 +43,6 @@ public class SocialMediaActivity extends EnvivedFeatureActivity {
 	public void onDestroy() {
 		super.onDestroy();
 		
-		if (mWebViewLoadingDialog != null) {
-			mWebViewLoadingDialog.cancel();
-			mWebViewLoadingDialog = null;
-		}
-	}
-	
-	
-	private ProgressDialog createWebViewLoadingDialog(Context context, String message) {
-		ProgressDialog pd = new ProgressDialog(new ContextThemeWrapper(context, R.style.ProgressDialogWhiteText));
-		pd.setIndeterminate(true);
-		pd.setMessage(message);
-		pd.setCancelable(true);
-		pd.setCanceledOnTouchOutside(false);
-		
-		return pd;
 	}
 	
 	
@@ -88,8 +68,9 @@ public class SocialMediaActivity extends EnvivedFeatureActivity {
 		
 		TabWidget tabWidget = mTabHost.getTabWidget();
 		for (int i = 0; i < len; i++) {
-			RelativeLayout tabLayout = (RelativeLayout) tabWidget.getChildAt(i);
+			View tabLayout = tabWidget.getChildAt(i);
 			tabLayout.setBackgroundDrawable(getResources().getDrawable(R.drawable.feature_social_media_tab_indicator));
+			//tabLayout.setBackground(getResources().getDrawable(R.drawable.feature_social_media_tab_indicator));
 		}
 	}
 
@@ -110,21 +91,6 @@ public class SocialMediaActivity extends EnvivedFeatureActivity {
 		});
 		
 		webview.setWebViewClient(new WebViewClient() {
-			@Override
-			public void onPageStarted(WebView view, String url, Bitmap favicon) {
-				if (id == 1 && mWebViewLoadingDialog == null) {
-					mWebViewLoadingDialog = createWebViewLoadingDialog(activity, "Loading Page...");
-					mWebViewLoadingDialog.show();
-				}
-			}
-			
-			@Override
-			public void onPageFinished(WebView view, String url) {
-				if (id  == mSocialMediaFeature.getNumLinks() && mWebViewLoadingDialog != null) {
-					mWebViewLoadingDialog.cancel();
-					mWebViewLoadingDialog = null;
-				}
-			}
 			
 			@Override
 			public void onReceivedError(WebView view, int errorCode,

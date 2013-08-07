@@ -86,7 +86,7 @@ public abstract class Feature implements Serializable {
 	protected Feature(String category, int version, Calendar timestamp, boolean isGeneral, 
 			String resourceUrl, String environmentUrl, String areaUrl, String data, boolean virtualAccess) {
 		this.category = category;
-		this.version = version;
+		this.version = version;		// TO BE USED IN THE FUTURE
 		this.timestamp = timestamp;
 		this.isGeneral = isGeneral;
 		
@@ -107,12 +107,16 @@ public abstract class Feature implements Serializable {
 			if (retrievedData == null) {
 				// check that data is not out-of-date
 				FeatureLRUTracker featureLruTracker = Envived.getFeatureLRUTracker();
-				FeatureLRUEntry featureLruEntry = featureLruTracker.get(featureCacheFileName);
+				
+				FeatureLRUEntry featureLruEntry = null;
+				if (featureLruTracker != null) {
+					featureLruEntry = featureLruTracker.get(featureCacheFileName);
+				}
 				
 				if (featureLruEntry != null) {
 					Log.d(TAG, "FEATURE META DATA IN CACHE for: " + category);
 					
-					if (featureLruEntry.getFeatureTimestamp().before(timestamp)) {
+					if (featureLruEntry.getFeatureTimestamp().compareTo(timestamp) < 0) {
 						Log.d(TAG, "REFRESHING DATA for feature: " + category + ". Will start SERVER RETRIEVE.");
 						
 						// cached data must be refreshed
@@ -122,6 +126,7 @@ public abstract class Feature implements Serializable {
 						
 						// afterwards start new data retrieval service
 						startFeatureDataRetrievalService();
+						return;
 					}
 					else {
 						Log.d(TAG, "USING CACHED DATA for feature: " + category);
@@ -148,7 +153,9 @@ public abstract class Feature implements Serializable {
 					new FeatureLRUEntry(category, featureCacheFileName, locationUrl, virtualAccess, timestamp);
 			
 			FeatureLRUTracker featureLruTracker = Envived.getFeatureLRUTracker();
-			featureLruTracker.put(featureCacheFileName, featureLruEntry);
+			if (featureLruTracker != null) {
+				featureLruTracker.put(featureCacheFileName, featureLruEntry);
+			}
 			
 			initialized = true;
 		}

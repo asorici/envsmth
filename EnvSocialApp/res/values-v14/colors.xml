@@ -1,0 +1,32 @@
+
+    <resources>
+        <color name="dark_green">#4d8024</color>
+        <color name="light_green">#7ac142</color>
+        <color name="actionbar_gray">#F5F5F5</color>
+        <color name="black">#000000</color>
+        <color name="white">#ffffff</color>
+        <color name="divider_gray">#b2b2b2</color>
+        
+        <color name="facebook_blue">#3b5998</color>
+        <color name="facebook_light_blue">#8b9dc3</color>
+        <color name="facebook_light_light_blue">#f7f7f7</color>
+        
+        <color name="envived_button_gray">#dedede</color>
+        <color name="envived_button_light_gray">#b1b1b1</color>
+        <color name="envived_button_white">#ffffff</color>
+        
+        <color name="envived_default_layout_green">#7f9400</color>
+        <color name="envived_actionbar_tab_green">#8aba32</color>
+        <color name="envived_actionbar_tab_light_green">#b0d960</color>
+        
+        <color name="envived_order_filler_green">#8cbc32</color>
+        <color name="envived_order_filler_light_green">#a7d254</color>
+        <color name="envived_order_label_green">#8cbc32</color>
+        <color name="envived_order_label_light_green">#a7d254</color>
+        <color name="envived_order_divider_green">#4d8125</color>
+        
+        <color name="envived_order_text_dark_green">#274c00</color>
+        <color name="envived_order_text_light_green">#edffa9</color>
+        <color name="envived_order_text_warm_green">#007a14</color>
+        <color name="envived_order_text_white">#ffffff</color>
+    </resources>

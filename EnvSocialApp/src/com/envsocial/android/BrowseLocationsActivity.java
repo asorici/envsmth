@@ -121,7 +121,7 @@ public class BrowseLocationsActivity extends SherlockFragmentActivity implements
 		AreaInfo areaInfo = (AreaInfo) mAdapter.getItem(position);
 		String areaUrlString = areaInfo.getResourceUrl();
 		
-		Log.d(TAG, "Accessing area with url: " + areaUrlString);
+		//Log.d(TAG, "Accessing area with url: " + areaUrlString);
 		
 		Url areaResourceUrl = Url.fromResourceUrl(areaUrlString);
 		

@@ -560,6 +560,10 @@ class UserContext(models.Model):
     currentArea = models.ForeignKey(Area, null = True, blank = True)
     virtual = models.BooleanField()
     
+    def __unicode__(self):
+        return self.user.user.username
+
+    
     @staticmethod
     def from_user(from_user_profile, to_user_profile):
         if hasattr(from_user_profile, "context"):

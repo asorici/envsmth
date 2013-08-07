@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
     <style name="Theme.Envived" parent="Theme.Sherlock.Light">
-		<item name="actionBarStyle">@style/Widget.Envived.ActionBar</item>
 		<item name="android:actionBarStyle">@style/Widget.Envived.ActionBar</item>
 
-		<item name="actionBarTabStyle">@style/envived_default_green_ActionBarTabStyle</item>
 		<item name="android:actionBarTabStyle">@style/envived_default_green_ActionBarTabStyle</item>
 				
 		<!-- <item name="android:buttonStyle">@style/Widget.Envived.Button</item> -->
@@ -17,8 +15,11 @@
     
      
     <style name="Widget.Envived.ActionBar" parent="Widget.Sherlock.Light.ActionBar">
-        <item name="background">@color/actionbar_gray</item>
         <item name="android:background">@color/actionbar_gray</item>
+        <!-- 
+        <item name="titleTextStyle">@style/Widget.Envived.ActionBar.Title</item>
+        <item name="android:titleTextStyle">@style/Widget.Envived.ActionBar.Title</item>
+         -->
     </style>
     
     <!-- 
@@ -30,7 +31,6 @@
      -->
     
     <style name="envived_default_green_ActionBarTabStyle" parent="@style/Widget.Sherlock.Light.ActionBar.TabView">
-        <item name="background">@drawable/envived_default_green_tab_indicator_ab</item>
         <item name="android:background">@drawable/envived_default_green_tab_indicator_ab</item>
     </style>
     

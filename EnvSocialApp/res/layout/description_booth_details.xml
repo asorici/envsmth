@@ -51,7 +51,7 @@
 	        	
 	        	android:src="@drawable/placeholder"
 	        	android:contentDescription="Exhibitant logo"
-	        	android:scaleType="centerInside"
+	        	android:scaleType="fitCenter"
 	        	
 	        	android:layout_marginBottom="20dip"
 	       	/>
